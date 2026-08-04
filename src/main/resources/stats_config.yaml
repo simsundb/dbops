@@ -2,58 +2,6 @@
   enabled: true
   sqlFile: "object_num.sql"
 
-- description: "02.各模块表空间使用情况"
+- description: "02.链接数统计"
   enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "03.各模块用户权限统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "04.各模块索引使用情况"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "05.各模块慢查询统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "06.各模块连接数统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "07.各模块数据增长趋势"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "08.各模块存储过程统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "09.各模块触发器统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "10.各模块视图统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "11.各模块锁等待统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "12.各模块会话状态统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "13.各模块归档日志统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "14.各模块备份状态统计"
-  enabled: true
-  sqlFile: "object_num.sql"
-
-- description: "15.各模块告警统计"
-  enabled: true
-  sqlFile: "object_num.sql"
+  sqlFile: "session_stats.sql"
