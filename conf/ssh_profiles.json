@@ -1,0 +1,16 @@
+[
+  {
+    "name": "gauss3",
+    "sshHost": "172.19.136.3",
+    "sshPort": 22,
+    "sshUser": "root",
+    "sshPassword": "SGFpWWkqMTIz",
+    "execUser": "Ruby",
+    "dbHost": "172.19.136.3",
+    "dbPort": 8000,
+    "dbName": "muts",
+    "dbUser": "gk_sjdb",
+    "dbPassword": "Z2tfc2pkYjE5OTc\u003d",
+    "backupDir": "/data/dump"
+  }
+]

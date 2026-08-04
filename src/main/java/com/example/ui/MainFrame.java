@@ -5,14 +5,15 @@ import com.example.core.DataSourceStore;
 import com.example.datasource.DataSourceDialog;
 import com.example.inspection.InspectionDialog;
 import com.example.scriptrunner.ScriptRunnerDialog;
+import com.example.ssh.SshBackupDialog;
 import com.example.stats.StatsQueryDialog;
 import com.example.sync.DataSyncDialog;
 import com.example.ui.components.StatusBar;
 import com.example.ui.dialogs.ObjectQueryDialog;
 import com.example.ui.dialogs.SchemaCompareDialog;
 import com.example.ui.dialogs.SettingsDialog;
-import com.example.utils.ThemeUtils;
 import com.example.utils.SvgIconUtils;
+import com.example.utils.ThemeUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -169,7 +170,7 @@ public class MainFrame extends JFrame {
         JMenu funcMenu = new JMenu("功能");
         funcMenu.setFont(menuFont);
 
-        // 图标尺寸增大到 16px，保留彩色（传入 null）
+        // 所有图标尺寸 16px，保留彩色
         JMenuItem dsItem = new JMenuItem("1.数据源配置");
         dsItem.setFont(itemFont);
         dsItem.setIcon(SvgIconUtils.get("shujuyuanpeizhi", 16, null));
@@ -214,6 +215,15 @@ public class MainFrame extends JFrame {
         statsItem.setIcon(SvgIconUtils.get("shujuchaxun-6", 16, null));
         statsItem.addActionListener(e -> openStatsQueryDialog());
         funcMenu.add(statsItem);
+
+        funcMenu.addSeparator();
+
+        // 新增第8项：GaussDB数据库备份
+        JMenuItem sshBackupItem = new JMenuItem("8.GaussDB数据库备份");
+        sshBackupItem.setFont(itemFont);
+        sshBackupItem.setIcon(SvgIconUtils.get("backup", 16, null));
+        sshBackupItem.addActionListener(e -> openSshBackupDialog());
+        funcMenu.add(sshBackupItem);
 
         menuBar.add(funcMenu);
 
@@ -285,6 +295,7 @@ public class MainFrame extends JFrame {
                 {"transfer", "数据同步", "Excel数据入库和Oracle与Gauss跨库表数据同步"},
                 {"file-code", "SQL执行", "数据库脚本x.sql脚本批量执行"},
                 {"search", "数据库巡检", "Gauss数据库自定义指标巡检,并生成巡检报告"},
+                {"backup", "数据库备份", "通过SSH远程备份GaussDB数据库"}  // 新增快捷入口
         };
 
         for (String[] f : features) {
@@ -329,6 +340,8 @@ public class MainFrame extends JFrame {
         JLabel iconLbl = new JLabel(svgIcon);
         iconLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
         btn.add(iconLbl);
+
+        // 统一处理快捷按钮点击事件
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 switch (title) {
@@ -337,6 +350,7 @@ public class MainFrame extends JFrame {
                     case "数据同步": openDataSyncDialog(); break;
                     case "SQL执行": openScriptRunnerDialog(); break;
                     case "数据库巡检": openCheckModelDialog(); break;
+                    case "数据库备份": openSshBackupDialog(); break;   // 新增
                 }
             }
         });
@@ -387,6 +401,12 @@ public class MainFrame extends JFrame {
         dialog.setVisible(true);
     }
 
+    // 新增：打开 SSH 备份对话框
+    private void openSshBackupDialog() {
+        SshBackupDialog dialog = new SshBackupDialog(this);
+        dialog.setVisible(true);
+    }
+
     private void showAboutDialog() {
         JOptionPane.showMessageDialog(this,
                 "资源管控中心 · 数据库运维管理平台\n" +
@@ -399,8 +419,9 @@ public class MainFrame extends JFrame {
                         "  5.Gausdb数据库巡检\n" +
                         "  6.数据库对象查询\n" +
                         "  7.自定义查询统计\n" +
+                        "  8.GaussDB数据库备份\n" +
                         "\n作者: 资源管控中心 · SunZhiHui\n" +
-                        "时间: 2026-07",
+                        "时间: 2026-08",
                 "关于", JOptionPane.INFORMATION_MESSAGE);
     }
 
