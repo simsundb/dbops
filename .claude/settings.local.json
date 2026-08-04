@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sLo \"sync.svg\" -w \"%{http_code}\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/repeat.svg\")",
+      "Bash(curl -sLo \"play.svg\" -w \"%{http_code}\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/player-play.svg\")",
+      "Bash(curl -sLo \"stop.svg\" -w \"%{http_code}\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/stop.svg\")",
+      "Bash(curl -sLo \"sql.svg\" -w \"%{http_code}\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/file-database.svg\")",
+      "Bash(curl -sLo stop.svg -w \"http_code=%{http_code}\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/ban.svg\")",
+      "Bash(mvn compile *)",
+      "Bash(curl -sLo /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/resources/icons/list.svg -w \"%{http_code}\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/list.svg\")",
+      "Bash(curl -sLo /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/resources/icons/info-circle.svg -w \"%{http_code}\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/info-circle.svg\")",
+      "Bash(curl -sLo /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/resources/icons/check.svg -w \"%{http_code}\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/check.svg\")",
+      "Bash(curl -sLo \"db-search.svg\" -w \".\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/database-search.svg\")",
+      "Bash(curl -sLo \"db-export.svg\" -w \".\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/database-export.svg\")",
+      "Bash(curl -sLo \"db-import.svg\" -w \".\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/database-import.svg\")",
+      "Bash(curl -sLo \"db-share.svg\" -w \".\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/database-share.svg\")",
+      "Bash(curl -sLo \"db-star.svg\" -w \".\" \"https://unpkg.com/@tabler/icons@3.41.1/icons/outline/database-star.svg\")",
+      "Bash(sort -t: -k1,1 -k2,2n)",
+      "Bash(sed -i '' 's/super\\(owner, \"🔍 数据库巡检\"\\)/super\\(owner, \"数据库巡检\"\\)/g' /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/java/com/example/inspection/InspectionDialog.java)",
+      "Bash(sed -i '' 's/super\\(owner, \"⚙️ 数据源配置\"\\)/super\\(owner, \"数据源配置\"\\)/g' /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/java/com/example/datasource/DataSourceDialog.java)",
+      "Bash(sed -i '' 's/super\\(owner, \"📜 SQL脚本执行\"\\)/super\\(owner, \"SQL脚本执行\"\\)/g' /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/java/com/example/scriptrunner/ScriptRunnerDialog.java)",
+      "Bash(sed -i '' 's/上标题\"📋 数据源列表\"/上标题\"数据源列表\"/g' /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/java/com/example/datasource/DataSourceDialog.java)",
+      "Bash(sed -i '' 's/\"📋 数据源列表\"/\"数据源列表\"/g' /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/java/com/example/datasource/DataSourceDialog.java)",
+      "Bash(mvn clean *)",
+      "Bash(mvn test *)"
+    ]
+  }
+}

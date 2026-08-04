@@ -1,0 +1,104 @@
+# 任务列表
+- description: "01.表包含GSI全局二级索引.关注"
+  enabled: true
+  sqlFile: "gsi_check.sql"
+
+- description: "02.序列检测.关注"
+  enabled: true
+  sqlFile: "sequence_check.sql"
+
+- description: "03.索引数量大于5.关注"
+  enabled: true
+  sqlFile: "index_count.sql"
+
+- description: "04.全局临时表.关注"
+  enabled: true
+  sqlFile: "gtt_check.sql"
+
+- description: "05.索引名称不同冗余索引内容完全一样.禁止"
+  enabled: true
+  sqlFile: "index_check.sql"
+
+- description: "06.索引包含关系冗余索引.禁止"
+  enabled: true
+  sqlFile: "index_include_check.sql"
+  
+- description: "07.分布键或者分区列是多列组成.禁止"
+  enabled: true
+  sqlFile: "dist_code_partcode_more.sql"
+
+- description: "08.复制表大于10mb或者大于1万行.关注"
+  enabled: true
+  sqlFile: "replication_check.sql"
+
+- description: "09.分布键允许为空.禁止"
+  enabled: true
+  sqlFile: "dist_code_null_check.sql"
+
+- description: "10.对象名包含大写字母或特殊字符.禁止"
+  enabled: true
+  sqlFile: "objectname_include_special_word.sql"
+
+- description: "11.触发器.禁止"
+  enabled: true
+  sqlFile: "trigger_check.sql"
+
+- description: "12.业务索引小于3.关注"
+  enabled: true
+  sqlFile: "normal_index_check.sql"
+
+- description: "13.无主键或者主键不包含分布键.禁止"
+  enabled: true
+  sqlFile: "pk_check.sql"
+  
+- description: "14.dist_code创建了唯一索引.禁止"
+  enabled: true
+  sqlFile: "uidx_dist_code_check.sql"
+
+- description: "15.对象名称包含数字.禁止"
+  enabled: true
+  sqlFile: "objectname_include_number_check.sql"
+  
+- description: "16.各模式对象数量.查看"
+  enabled: true
+  sqlFile: "object_num.sql"
+  
+- description: "17.相同名称的列类型或者长度不一致.禁止"
+  enabled: true
+  sqlFile: "col_diff.sql"
+
+- description: "18.与关键字冲突的列.禁止"
+  enabled: true
+  sqlFile: "col_keyword.sql"
+
+- description: "19.同义词与表重名.禁止"
+  enabled: true
+  sqlFile: "syn_samename.sql"
+  
+- description: "20.表的分布键和分区列.查看"
+  enabled: true
+  sqlFile: "table_dist_part_col.sql"
+
+- description: "21.序列名不规范.关注"
+  enabled: true
+  sqlFile: "seq_name_check.sql"
+  
+- description: "22.复制表分区.禁止"
+  enabled: true
+  sqlFile: "replication_partition.sql"
+  
+- description: "23.索引名称元数据规范.禁止"
+  enabled: true
+  sqlFile: "index_name.sql"
+
+- description: "24.可疑列数据类型.关注"
+  enabled: true
+  sqlFile: "col_type_check.sql"
+  
+- description: "25.hash分布表主键或者唯一索引不包含分布键.禁止"
+  enabled: true
+  sqlFile: "hashtable_no_distkey.sql"
+  
+- description: "26.view.关注"
+  enabled: true
+  sqlFile: "view_check.sql"
