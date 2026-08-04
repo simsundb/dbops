@@ -587,17 +587,29 @@ public class SshBackupDialog extends BaseDialog {
         String ext = format.contains("c") ? "dmp" : "sql";
         String prefix = normalizedBackupDir + "/backup_" + timestamp + "." + ext;
 
-        log("===== 备份参数 =====");
+        // ========== 调试日志：打印所有配置参数 ==========
+        log("========== 调试信息：当前使用的配置 ==========");
+        log("配置名称: " + currentProfile.getName());
+        log("SSH 主机: " + sshHost);
+        log("SSH 端口: " + currentProfile.getSshPort());
+        log("SSH 用户: " + sshUser);
+        log("SSH 密码: " + (sshPassword.isEmpty() ? "(空)" : "******"));
+        log("执行用户: " + currentProfile.getExecUser());
+        log("数据库主机: " + dbHost);
+        log("数据库端口: " + dbPort);
+        log("数据库名: " + dbName);
+        log("数据库用户: " + dbUser);
+        log("数据库密码: " + (dbPassword.isEmpty() ? "(空)" : "******"));
+        log("备份目录: " + normalizedBackupDir);
+        log("输出文件前缀: " + prefix);
         log("粒度: " + grain);
         log("内容: " + content);
         log("格式: " + format);
-        log("数据库: " + dbName);
-        log("DB主机: " + dbHost + ":" + dbPort);
-        if ("schema".equals(grain)) log("模式: " + schemaField.getText().trim());
+        if ("schema".equals(grain)) log("模式名: " + schemaField.getText().trim());
         if ("table".equals(grain) && !useTableListCheck.isSelected()) {
-            log("表: " + tableListArea.getText().trim());
+            log("表列表: " + tableListArea.getText().trim());
         }
-        log("输出文件: " + prefix);
+        log("===============================================");
 
         setUIEnabled(false);
         progressBar.setVisible(true);
@@ -619,15 +631,19 @@ public class SshBackupDialog extends BaseDialog {
             @Override
             protected Void doInBackground() throws Exception {
                 try {
-                    publish("🔌 正在连接 SSH: " + sshUser + "@" + sshHost);
+                    // ========== 调试日志：连接过程 ==========
+                    publish("🔌 正在连接 SSH: " + sshUser + "@" + sshHost + ":" + currentProfile.getSshPort());
                     SshClient client = SshClient.setUpDefaultClient();
                     client.start();
                     ConnectFuture cf = client.connect(sshUser, sshHost, currentProfile.getSshPort());
+                    publish("⏳ 等待会话建立...");
                     ClientSession sess = cf.verify(30000).getSession();
+                    publish("✅ 会话已建立，准备认证...");
                     sess.addPasswordIdentity(sshPassword);
+                    publish("🔑 已添加密码身份，正在认证...");
                     sess.auth().verify(30000);
                     session = sess;
-                    publish("✅ SSH 连接成功");
+                    publish("✅ SSH 认证成功");
 
                     String execCmd;
                     if ("table".equals(finalGrain) && useTableListCheck.isSelected()) {
@@ -690,15 +706,23 @@ public class SshBackupDialog extends BaseDialog {
                         execCmd = cmd.toString();
                     }
 
-                    publish("📌 最终执行命令: " + execCmd);
-                    log("📌 最终执行命令: " + execCmd);
+                    // ========== 调试日志：打印最终命令 ==========
+                    String fullSuCommand = "su - " + currentProfile.getExecUser() + " -c \"" + execCmd.replace("\"", "\\\"") + "\"";
+                    publish("📌 最终 gs_dump 命令: " + execCmd);
+                    publish("🔧 实际通过 SSH 执行的完整命令: " + fullSuCommand);
                     executeCommand(session, execCmd);
 
                 } catch (Exception e) {
                     publish("❌ 错误: " + e.getMessage());
                     e.printStackTrace();
                 } finally {
-                    if (session != null && !session.isClosed()) session.close();
+                    if (session != null && !session.isClosed()) {
+                        try {
+                            session.close();
+                        } catch (IOException e) {
+                            publish("⚠️ 关闭 SSH 会话时出错: " + e.getMessage());
+                        }
+                    }
                 }
                 return null;
             }
@@ -716,6 +740,7 @@ public class SshBackupDialog extends BaseDialog {
                 String url = ds.buildUrl();
                 String user = ds.getUser();
                 String password = ds.getPassword();
+                publish("📋 执行查询: SELECT schema_name||'.'||table_name FROM gk_sjdb.gk_gsdump_tablelist");
                 try (Connection conn = DriverManager.getConnection(url, user, password);
                      Statement stmt = conn.createStatement();
                      ResultSet rs = stmt.executeQuery("SELECT schema_name||'.'||table_name FROM gk_sjdb.gk_gsdump_tablelist")) {
@@ -768,7 +793,7 @@ public class SshBackupDialog extends BaseDialog {
                     try {
                         session.close();
                     } catch (IOException e) {
-                        log("关闭 SSH 会话时出错: " + e.getMessage());
+                        log("⚠️ 关闭 SSH 会话时出错: " + e.getMessage());
                     }
                 }
             }
@@ -783,14 +808,11 @@ public class SshBackupDialog extends BaseDialog {
                 try {
                     session.close();
                 } catch (IOException e) {
-                    // 日志或忽略，例如：
-                    log("关闭 SSH 会话时出错: " + e.getMessage());
+                    log("⚠️ 关闭 SSH 会话时出错: " + e.getMessage());
                 }
             }
         }
     }
-
-
 
     private void log(String msg) {
         SwingUtilities.invokeLater(() -> {

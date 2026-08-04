@@ -4,7 +4,7 @@
     "sshHost": "172.19.136.3",
     "sshPort": 22,
     "sshUser": "root",
-    "sshPassword": "SGFpWWkqMTIz",
+    "sshPassword": "SGFpeWkqMTIz",
     "execUser": "Ruby",
     "dbHost": "172.19.136.3",
     "dbPort": 8000,
