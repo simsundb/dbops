@@ -4,7 +4,6 @@ import com.example.core.DataSource;
 import com.example.core.DataSourceStore;
 import com.example.ui.BaseDialog;
 import com.example.utils.ThemeUtils;
-
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ChannelExec;
 import org.apache.sshd.client.channel.ClientChannelEvent;
@@ -14,16 +13,17 @@ import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.client.SftpClientFactory;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
 
 public class SshBackupDialog extends BaseDialog {
 
@@ -51,6 +51,8 @@ public class SshBackupDialog extends BaseDialog {
 
     private JButton saveProfileBtn, deleteProfileBtn, newProfileBtn;
     private JButton executeBtn, stopBtn, closeBtn, clearLogBtn;
+    private JButton viewDirBtn;
+
     private JTextArea logArea;
     private JProgressBar progressBar;
 
@@ -70,7 +72,7 @@ public class SshBackupDialog extends BaseDialog {
         profiles = SshProfileStore.load();
 
         JSplitPane mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        mainSplit.setDividerLocation(250);
+        mainSplit.setDividerLocation(220);
         mainSplit.setResizeWeight(0.2);
         mainSplit.setBorder(BorderFactory.createEmptyBorder());
 
@@ -97,7 +99,7 @@ public class SshBackupDialog extends BaseDialog {
             loadProfile(profiles.get(0));
         }
 
-        setSize(1150, 880);
+        setSize(1150, 820);
         setLocationRelativeTo(owner);
         setResizable(true);
     }
@@ -159,86 +161,66 @@ public class SshBackupDialog extends BaseDialog {
         ));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(3, 6, 3, 6);
+        gbc.insets = new Insets(2, 5, 2, 5);
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
 
-        int row = 0;
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("配置名称:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.4;
-        nameField = new JTextField(15);
-        panel.add(nameField, gbc);
-        row++;
+        Dimension fieldSize = new Dimension(180, 24);
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("SSH 主机:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.3;
-        sshHostField = new JTextField(15);
-        panel.add(sshHostField, gbc);
-        gbc.gridx = 2; gbc.weightx = 0;
-        panel.add(new JLabel("端口:"), gbc);
-        gbc.gridx = 3; gbc.weightx = 0.1;
-        sshPortField = new JTextField(5);
-        panel.add(sshPortField, gbc);
-        row++;
+        addLabel(panel, gbc, "配置名称:", 0, 0);
+        nameField = createField(15, fieldSize);
+        addComponent(panel, gbc, nameField, 1, 0);
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("SSH 用户:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.3;
-        sshUserField = new JTextField(15);
-        panel.add(sshUserField, gbc);
-        gbc.gridx = 2; gbc.weightx = 0;
-        panel.add(new JLabel("密码:"), gbc);
-        gbc.gridx = 3; gbc.weightx = 0.3;
+        addLabel(panel, gbc, "SSH 主机:", 2, 0);
+        sshHostField = createField(15, fieldSize);
+        addComponent(panel, gbc, sshHostField, 3, 0);
+
+        addLabel(panel, gbc, "SSH 用户:", 0, 1);
+        sshUserField = createField(15, fieldSize);
+        addComponent(panel, gbc, sshUserField, 1, 1);
+
+        addLabel(panel, gbc, "SSH 端口:", 2, 1);
+        sshPortField = createField(5, fieldSize);
+        addComponent(panel, gbc, sshPortField, 3, 1);
+
+        addLabel(panel, gbc, "SSH 密码:", 0, 2);
         sshPasswordField = new JPasswordField(15);
-        panel.add(sshPasswordField, gbc);
-        row++;
+        sshPasswordField.setPreferredSize(fieldSize);
+        addComponent(panel, gbc, sshPasswordField, 1, 2);
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("执行用户:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.3;
-        execUserField = new JTextField(15);
-        panel.add(execUserField, gbc);
-        row++;
+        addLabel(panel, gbc, "执行用户:", 2, 2);
+        execUserField = createField(15, fieldSize);
+        addComponent(panel, gbc, execUserField, 3, 2);
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("DB 主机:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.3;
-        dbHostField = new JTextField(15);
-        panel.add(dbHostField, gbc);
-        gbc.gridx = 2; gbc.weightx = 0;
-        panel.add(new JLabel("端口:"), gbc);
-        gbc.gridx = 3; gbc.weightx = 0.1;
-        dbPortField = new JTextField(5);
-        panel.add(dbPortField, gbc);
-        row++;
+        addLabel(panel, gbc, "DB 主机:", 0, 3);
+        dbHostField = createField(15, fieldSize);
+        addComponent(panel, gbc, dbHostField, 1, 3);
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("数据库名:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.3;
-        dbNameField = new JTextField(15);
-        panel.add(dbNameField, gbc);
-        gbc.gridx = 2; gbc.weightx = 0;
-        panel.add(new JLabel("DB 用户:"), gbc);
-        gbc.gridx = 3; gbc.weightx = 0.3;
-        dbUserField = new JTextField(15);
-        panel.add(dbUserField, gbc);
-        row++;
+        addLabel(panel, gbc, "DB 端口:", 2, 3);
+        dbPortField = createField(5, fieldSize);
+        addComponent(panel, gbc, dbPortField, 3, 3);
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("DB 密码:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.3;
+        addLabel(panel, gbc, "数据库名:", 0, 4);
+        dbNameField = createField(15, fieldSize);
+        addComponent(panel, gbc, dbNameField, 1, 4);
+
+        addLabel(panel, gbc, "DB 用户:", 2, 4);
+        dbUserField = createField(15, fieldSize);
+        addComponent(panel, gbc, dbUserField, 3, 4);
+
+        addLabel(panel, gbc, "DB 密码:", 0, 5);
         dbPasswordField = new JPasswordField(15);
-        panel.add(dbPasswordField, gbc);
-        row++;
+        dbPasswordField.setPreferredSize(fieldSize);
+        addComponent(panel, gbc, dbPasswordField, 1, 5);
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("备份目录:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.5;
-        backupDirField = new JTextField(20);
-        panel.add(backupDirField, gbc);
-        gbc.gridx = 3; gbc.weightx = 0;
+        addLabel(panel, gbc, "备份目录:", 2, 5);
+        backupDirField = createField(20, fieldSize);
+        addComponent(panel, gbc, backupDirField, 3, 5);
+
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 4;
+        gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.CENTER;
         saveProfileBtn = new JButton("💾 保存");
         saveProfileBtn.setBackground(ThemeUtils.COLOR_PRIMARY);
         saveProfileBtn.setForeground(Color.WHITE);
@@ -251,6 +233,27 @@ public class SshBackupDialog extends BaseDialog {
         return panel;
     }
 
+    private JTextField createField(int cols, Dimension size) {
+        JTextField field = new JTextField(cols);
+        field.setPreferredSize(size);
+        return field;
+    }
+
+    private void addLabel(JPanel panel, GridBagConstraints gbc, String text, int x, int y) {
+        gbc.gridx = x; gbc.gridy = y;
+        gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        JLabel label = new JLabel(text);
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
+        label.setPreferredSize(new Dimension(80, 24));
+        panel.add(label, gbc);
+    }
+
+    private void addComponent(JPanel panel, GridBagConstraints gbc, JComponent comp, int x, int y) {
+        gbc.gridx = x; gbc.gridy = y;
+        gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        panel.add(comp, gbc);
+    }
+
     private JPanel createBackupParamsPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(ThemeUtils.COLOR_BG_CARD);
@@ -261,107 +264,56 @@ public class SshBackupDialog extends BaseDialog {
                 ThemeUtils.FONT_SUBTITLE,
                 ThemeUtils.COLOR_PRIMARY
         ));
-        // 设置最小高度，防止压缩
-        panel.setMinimumSize(new Dimension(400, 320));
+        panel.setMinimumSize(new Dimension(400, 300));
 
-        // 统一的布局约束
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(4, 8, 4, 8);
+        gbc.insets = new Insets(3, 5, 3, 5);
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
         gbc.gridwidth = 1;
 
-        // 统一标签宽度
-        Dimension labelDim = new Dimension(80, 25);
-        // 统一输入组件首选宽度
-        Dimension fieldDim = new Dimension(220, 25);
+        Dimension labelSize = new Dimension(80, 24);
 
-        int row = 0;
-        // 粒度
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        JLabel grainLabel = new JLabel("粒度:");
-        grainLabel.setPreferredSize(labelDim);
-        grainLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        panel.add(grainLabel, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 2;
+        addParamLabel(panel, gbc, "粒度:", 0, 0, labelSize);
         JPanel grainPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         grainPanel.setOpaque(false);
         dbRadio = new JRadioButton("数据库级", true);
         schemaRadio = new JRadioButton("模式级");
         tableRadio = new JRadioButton("表级");
         ButtonGroup grainGroup = new ButtonGroup();
-        grainGroup.add(dbRadio);
-        grainGroup.add(schemaRadio);
-        grainGroup.add(tableRadio);
-        grainPanel.add(dbRadio);
-        grainPanel.add(schemaRadio);
-        grainPanel.add(tableRadio);
-        panel.add(grainPanel, gbc);
-        row++;
+        grainGroup.add(dbRadio); grainGroup.add(schemaRadio); grainGroup.add(tableRadio);
+        grainPanel.add(dbRadio); grainPanel.add(schemaRadio); grainPanel.add(tableRadio);
+        addParamComponent(panel, gbc, grainPanel, 1, 0);
 
-        // 内容
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
-        JLabel contentLabel = new JLabel("内容:");
-        contentLabel.setPreferredSize(labelDim);
-        contentLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        panel.add(contentLabel, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 2;
+        addParamLabel(panel, gbc, "内容:", 0, 1, labelSize);
         JPanel contentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         contentPanel.setOpaque(false);
         fullRadio = new JRadioButton("全量", true);
         structRadio = new JRadioButton("仅结构");
         dataRadio = new JRadioButton("仅数据");
         ButtonGroup contentGroup = new ButtonGroup();
-        contentGroup.add(fullRadio);
-        contentGroup.add(structRadio);
-        contentGroup.add(dataRadio);
-        contentPanel.add(fullRadio);
-        contentPanel.add(structRadio);
-        contentPanel.add(dataRadio);
-        panel.add(contentPanel, gbc);
-        row++;
+        contentGroup.add(fullRadio); contentGroup.add(structRadio); contentGroup.add(dataRadio);
+        contentPanel.add(fullRadio); contentPanel.add(structRadio); contentPanel.add(dataRadio);
+        addParamComponent(panel, gbc, contentPanel, 1, 1);
 
-        // 格式
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
-        JLabel formatLabel = new JLabel("格式:");
-        formatLabel.setPreferredSize(labelDim);
-        formatLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        panel.add(formatLabel, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 0.3; gbc.gridwidth = 1;
+        addParamLabel(panel, gbc, "格式:", 0, 2, labelSize);
         formatCombo = new JComboBox<>(new String[]{"自定义 (-F c)", "纯文本 (-F p)"});
-        formatCombo.setPreferredSize(fieldDim);
-        panel.add(formatCombo, gbc);
-        row++;
+        formatCombo.setPreferredSize(new Dimension(180, 25));
+        addParamComponent(panel, gbc, formatCombo, 1, 2);
 
-        // 模式名
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
-        JLabel schemaLabel = new JLabel("模式名:");
-        schemaLabel.setPreferredSize(labelDim);
-        schemaLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        panel.add(schemaLabel, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 2;
+        addParamLabel(panel, gbc, "模式名:", 0, 3, labelSize);
         schemaField = new JTextField();
-        schemaField.setPreferredSize(new Dimension(220, 25));
+        schemaField.setPreferredSize(new Dimension(200, 25));
         schemaField.setEnabled(false);
-        panel.add(schemaField, gbc);
-        row++;
+        addParamComponent(panel, gbc, schemaField, 1, 3);
 
-        // 表名列表（带提示）
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
-        JLabel tableLabel = new JLabel("表名列表:");
-        tableLabel.setPreferredSize(labelDim);
-        tableLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        panel.add(tableLabel, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 2;
-        JPanel tablePanel = new JPanel(new BorderLayout(0, 3));
+        addParamLabel(panel, gbc, "表名列表:", 0, 4, labelSize);
+        JPanel tablePanel = new JPanel(new BorderLayout(0, 2));
         tablePanel.setOpaque(false);
         JLabel tableHint = new JLabel("多个表名用逗号分隔");
-        tableHint.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        tableHint.setFont(ThemeUtils.FONT_NORMAL);
         tableHint.setForeground(ThemeUtils.COLOR_TEXT_HINT);
         tablePanel.add(tableHint, BorderLayout.NORTH);
 
@@ -369,40 +321,27 @@ public class SshBackupDialog extends BaseDialog {
         tableListArea.setLineWrap(true);
         tableListArea.setEnabled(false);
         JScrollPane tableScroll = new JScrollPane(tableListArea);
-        tableScroll.setPreferredSize(new Dimension(0, 90));
+        tableScroll.setPreferredSize(new Dimension(250, 65));
         tablePanel.add(tableScroll, BorderLayout.CENTER);
-        panel.add(tablePanel, gbc);
-        row++;
+        addParamComponent(panel, gbc, tablePanel, 1, 4);
 
-        // 表列表来源
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
-        JLabel sourceLabel = new JLabel("表列表来源:");
-        sourceLabel.setPreferredSize(labelDim);
-        sourceLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        panel.add(sourceLabel, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 0.5; gbc.gridwidth = 2;
+        addParamLabel(panel, gbc, "表列表来源:", 0, 5, labelSize);
         useTableListCheck = new JCheckBox("从 gk_sjdb.gk_gsdump_tablelist 读取");
         useTableListCheck.setEnabled(false);
-        panel.add(useTableListCheck, gbc);
-        row++;
+        addParamComponent(panel, gbc, useTableListCheck, 1, 5);
 
-        // GaussDB 数据源（动态显示）
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
         dataSourceLabel = new JLabel("GaussDB 数据源:");
-        dataSourceLabel.setPreferredSize(labelDim);
+        dataSourceLabel.setPreferredSize(labelSize);
         dataSourceLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         dataSourceLabel.setVisible(false);
-        panel.add(dataSourceLabel, gbc);
+        addParamComponent(panel, gbc, dataSourceLabel, 0, 6);
 
-        gbc.gridx = 1; gbc.weightx = 0.5; gbc.gridwidth = 2;
         dataSourceCombo = new JComboBox<>();
-        dataSourceCombo.setPreferredSize(new Dimension(220, 25));
+        dataSourceCombo.setPreferredSize(new Dimension(200, 25));
         dataSourceCombo.setVisible(false);
         refreshDataSourceCombo();
-        panel.add(dataSourceCombo, gbc);
+        addParamComponent(panel, gbc, dataSourceCombo, 1, 6);
 
-        // 监听粒度变化，控制启用状态
         ActionListener grainListener = e -> {
             boolean table = tableRadio.isSelected();
             boolean useList = table && useTableListCheck.isSelected();
@@ -427,6 +366,21 @@ public class SshBackupDialog extends BaseDialog {
         grainListener.actionPerformed(null);
 
         return panel;
+    }
+
+    private void addParamLabel(JPanel panel, GridBagConstraints gbc, String text, int x, int y, Dimension size) {
+        gbc.gridx = x; gbc.gridy = y;
+        gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        JLabel label = new JLabel(text);
+        label.setPreferredSize(size);
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
+        panel.add(label, gbc);
+    }
+
+    private void addParamComponent(JPanel panel, GridBagConstraints gbc, JComponent comp, int x, int y) {
+        gbc.gridx = x; gbc.gridy = y;
+        gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        panel.add(comp, gbc);
     }
 
     private void refreshDataSourceCombo() {
@@ -484,6 +438,15 @@ public class SshBackupDialog extends BaseDialog {
         clearLogBtn.addActionListener(e -> logArea.setText(""));
         btnPanel.add(clearLogBtn);
 
+        viewDirBtn = new JButton("📂 查看备份目录");
+        viewDirBtn.setBackground(new Color(70, 130, 180));
+        viewDirBtn.setForeground(Color.WHITE);
+        viewDirBtn.setFocusPainted(false);
+        viewDirBtn.setBorderPainted(false);
+        viewDirBtn.setPreferredSize(new Dimension(140, 34));
+        viewDirBtn.addActionListener(e -> viewBackupDir());
+        btnPanel.add(viewDirBtn);
+
         closeBtn = new JButton("✕ 关闭");
         closeBtn.setBackground(new Color(160, 170, 185));
         closeBtn.setForeground(Color.WHITE);
@@ -493,7 +456,7 @@ public class SshBackupDialog extends BaseDialog {
         closeBtn.addActionListener(e -> dispose());
         btnPanel.add(closeBtn);
 
-        logArea = new JTextArea(10, 60);
+        logArea = new JTextArea(6, 60);
         logArea.setEditable(false);
         logArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
         logArea.setBackground(new Color(26, 26, 30));
@@ -608,6 +571,137 @@ public class SshBackupDialog extends BaseDialog {
         return "'" + raw.replace("'", "'\\''") + "'";
     }
 
+    // ======================= 查看备份目录 =======================
+    private void viewBackupDir() {
+        int idx = profileList.getSelectedIndex();
+        if (idx < 0) {
+            JOptionPane.showMessageDialog(this, "请先选择配置", "提示", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        updateProfileFromForm(currentProfile);
+
+        final String sshHost = currentProfile.getSshHost();
+        final String sshUser = currentProfile.getSshUser();
+        final String sshPassword = currentProfile.getSshPassword();
+        final String backupDir = currentProfile.getBackupDir();
+
+        if (sshHost.isEmpty() || sshUser.isEmpty() || sshPassword.isEmpty() || backupDir.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "请填写 SSH 主机、用户、密码和备份目录", "错误", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String dir = backupDir.replaceAll("/+$", "");
+        if (dir.isEmpty()) dir = "/data/dump";
+        final String normalizedDir = dir;
+        final int sshPort = currentProfile.getSshPort();
+        final String execUser = currentProfile.getExecUser();
+
+        setUIEnabled(false);
+        progressBar.setVisible(true);
+        progressBar.setIndeterminate(true);
+        stopBtn.setEnabled(true);
+
+        SwingWorker<Void, String> worker = new SwingWorker<Void, String>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                SshClient client = null;
+                ClientSession sess = null;
+                try {
+                    publish("🔌 正在连接 SSH: " + sshUser + "@" + sshHost + ":" + sshPort);
+                    client = SshClient.setUpDefaultClient();
+                    client.start();
+                    ConnectFuture cf = client.connect(sshUser, sshHost, sshPort);
+                    sess = cf.verify(30000).getSession();
+                    sess.addPasswordIdentity(sshPassword);
+                    sess.auth().verify(30000);
+
+                    publish("✅ SSH 连接成功");
+                    publish("");
+                    publish("📂 查看远程目录: " + normalizedDir);
+                    publish("--------------------------------------------------");
+
+                    String lsCmd = "ls -lh " + normalizedDir + " | sort -k5 -h";
+                    String lsFull = "su - " + execUser + " -c \"" + lsCmd.replace("\"", "\\\"") + "\"";
+                    publish("🔧 执行命令: " + lsFull);
+                    publish("");
+                    for (String line : executeSimpleCommand(sess, lsFull)) {
+                        publish(line);
+                    }
+
+                    publish("");
+                    publish("--- 统计信息 ---");
+                    String countCmd = "ls " + normalizedDir + " 2>/dev/null | wc -l";
+                    String countFull = "su - " + execUser + " -c \"" + countCmd.replace("\"", "\\\"") + "\"";
+                    for (String line : executeSimpleCommand(sess, countFull)) {
+                        publish(line);
+                    }
+
+                    String sizeCmd = "du -sh " + normalizedDir + " 2>/dev/null";
+                    String sizeFull = "su - " + execUser + " -c \"" + sizeCmd.replace("\"", "\\\"") + "\"";
+                    for (String line : executeSimpleCommand(sess, sizeFull)) {
+                        publish(line);
+                    }
+
+                } catch (Exception e) {
+                    publish("❌ 错误: " + e.getMessage());
+                    e.printStackTrace();
+                } finally {
+                    if (sess != null && !sess.isClosed()) {
+                        try { sess.close(); } catch (IOException ignore) {}
+                    }
+                    if (client != null && client.isStarted()) {
+                        try { client.stop(); } catch (Exception ignore) {}
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(List<String> chunks) {
+                for (String msg : chunks) log(msg);
+            }
+
+            @Override
+            protected void done() {
+                setUIEnabled(true);
+                progressBar.setVisible(false);
+                progressBar.setIndeterminate(false);
+                stopBtn.setEnabled(false);
+            }
+        };
+        worker.execute();
+    }
+
+    private List<String> executeSimpleCommand(ClientSession sess, String command) throws Exception {
+        List<String> result = new ArrayList<>();
+        try (ChannelExec ch = sess.createExecChannel(command)) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ByteArrayOutputStream err = new ByteArrayOutputStream();
+            ch.setOut(out);
+            ch.setErr(err);
+            ch.open().verify(10000);
+            ch.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.MINUTES.toMillis(2));
+
+            String output = out.toString(StandardCharsets.UTF_8);
+            String error = err.toString(StandardCharsets.UTF_8);
+
+            if (!output.isEmpty()) {
+                for (String line : output.split("\n")) {
+                    if (!line.trim().isEmpty()) result.add(line);
+                }
+            }
+            if (!error.isEmpty()) {
+                result.add("[ERR] " + error.trim());
+            }
+            int exit = ch.getExitStatus();
+            if (exit != 0) {
+                result.add("⚠️ 命令退出码: " + exit);
+            }
+        }
+        return result;
+    }
+
+    // ======================= 备份执行逻辑 =======================
     private void executeBackup() {
         int idx = profileList.getSelectedIndex();
         if (idx < 0) {
@@ -655,9 +749,8 @@ public class SshBackupDialog extends BaseDialog {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
         String namePart = "schema".equals(grain) ? schemaField.getText().trim() : dbName;
         String ext = format.contains("c") ? "dmp" : "sql";
-        final String dumpFile = normalizedBackupDir + "/backup_" + namePart + "_" + timestamp + "." + ext;
-        final String logFile  = normalizedBackupDir + "/backup_" + namePart + "_" + timestamp + ".log";
-
+        final String dumpFile = normalizedBackupDir + "/backup_" + namePart + "_" + grain + "_" + content + "_" + timestamp + "." + ext;
+        final String logFile  = normalizedBackupDir + "/backup_" + namePart + "_" + grain + "_" + content + "_" + timestamp + ".log";
         final String escapedDbPassword = escapeForShell(dbPassword);
 
         setUIEnabled(false);
@@ -688,7 +781,6 @@ public class SshBackupDialog extends BaseDialog {
 
                     String execCmd;
                     String passArg = "-W " + escapedDbPassword;
-                    // 使用 tee 同时输出到屏幕（捕获）和远程日志文件
                     String teeLog = " 2>&1 | tee -a " + logFile;
 
                     if ("table".equals(finalGrain) && useTableListCheck.isSelected()) {
@@ -740,9 +832,9 @@ public class SshBackupDialog extends BaseDialog {
                     }
 
                     String fullSuCommand = "su - " + currentProfile.getExecUser() + " -c \"" + execCmd.replace("\"", "\\\"") + "\"";
-                    publish("--------------------------------------------------");
-                    publish("🔧 实际通过 SSH 执行的完整命令: " + fullSuCommand);
-                    publish("--------------------------------------------------");
+                    publish("----------------------------------------------------------------------------------------------------");
+                    publish("🔧: " + fullSuCommand);
+                    publish("----------------------------------------------------------------------------------------------------");
                     executeCommand(session, execCmd);
 
                 } catch (Exception e) {
@@ -848,6 +940,7 @@ public class SshBackupDialog extends BaseDialog {
             saveProfileBtn.setEnabled(enabled);
             newProfileBtn.setEnabled(enabled);
             deleteProfileBtn.setEnabled(enabled);
+            viewDirBtn.setEnabled(enabled);
             Component[] comps = {nameField, sshHostField, sshPortField, sshUserField, sshPasswordField,
                     execUserField, dbHostField, dbPortField, dbNameField, dbUserField, dbPasswordField, backupDirField,
                     dbRadio, schemaRadio, tableRadio, fullRadio, structRadio, dataRadio, formatCombo,
