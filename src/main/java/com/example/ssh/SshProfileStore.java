@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SshProfileStore {
-    private static final String CONFIG_FILE = "./conf/ssh_profiles.json";
+    private static final String CONFIG_FILE = "./conf/ssh/ssh_profiles.json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public static List<SshProfile> load() {
