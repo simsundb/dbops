@@ -50,7 +50,7 @@ public class SshBackupDialog extends BaseDialog {
     private JComboBox<DataSource> dataSourceCombo;
 
     private JButton saveProfileBtn, deleteProfileBtn, newProfileBtn;
-    private JButton executeBtn, stopBtn, closeBtn;
+    private JButton executeBtn, stopBtn, closeBtn, clearLogBtn;
     private JTextArea logArea;
     private JProgressBar progressBar;
 
@@ -97,7 +97,7 @@ public class SshBackupDialog extends BaseDialog {
             loadProfile(profiles.get(0));
         }
 
-        setSize(1100, 800);
+        setSize(1150, 880);
         setLocationRelativeTo(owner);
         setResizable(true);
     }
@@ -261,16 +261,30 @@ public class SshBackupDialog extends BaseDialog {
                 ThemeUtils.FONT_SUBTITLE,
                 ThemeUtils.COLOR_PRIMARY
         ));
+        // 设置最小高度，防止压缩
+        panel.setMinimumSize(new Dimension(400, 320));
 
+        // 统一的布局约束
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 8, 4, 8);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridwidth = 1;
+
+        // 统一标签宽度
+        Dimension labelDim = new Dimension(80, 25);
+        // 统一输入组件首选宽度
+        Dimension fieldDim = new Dimension(220, 25);
 
         int row = 0;
+        // 粒度
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("粒度:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1;
+        JLabel grainLabel = new JLabel("粒度:");
+        grainLabel.setPreferredSize(labelDim);
+        grainLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        panel.add(grainLabel, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 2;
         JPanel grainPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         grainPanel.setOpaque(false);
         dbRadio = new JRadioButton("数据库级", true);
@@ -286,9 +300,14 @@ public class SshBackupDialog extends BaseDialog {
         panel.add(grainPanel, gbc);
         row++;
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("内容:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1;
+        // 内容
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
+        JLabel contentLabel = new JLabel("内容:");
+        contentLabel.setPreferredSize(labelDim);
+        contentLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        panel.add(contentLabel, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 2;
         JPanel contentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         contentPanel.setOpaque(false);
         fullRadio = new JRadioButton("全量", true);
@@ -304,50 +323,86 @@ public class SshBackupDialog extends BaseDialog {
         panel.add(contentPanel, gbc);
         row++;
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("格式:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.2;
+        // 格式
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
+        JLabel formatLabel = new JLabel("格式:");
+        formatLabel.setPreferredSize(labelDim);
+        formatLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        panel.add(formatLabel, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 0.3; gbc.gridwidth = 1;
         formatCombo = new JComboBox<>(new String[]{"自定义 (-F c)", "纯文本 (-F p)"});
+        formatCombo.setPreferredSize(fieldDim);
         panel.add(formatCombo, gbc);
         row++;
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("模式名:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.4;
-        schemaField = new JTextField(20);
+        // 模式名
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
+        JLabel schemaLabel = new JLabel("模式名:");
+        schemaLabel.setPreferredSize(labelDim);
+        schemaLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        panel.add(schemaLabel, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 2;
+        schemaField = new JTextField();
+        schemaField.setPreferredSize(new Dimension(220, 25));
         schemaField.setEnabled(false);
         panel.add(schemaField, gbc);
         row++;
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("表名列表:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1;
-        tableListArea = new JTextArea(3, 30);
+        // 表名列表（带提示）
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
+        JLabel tableLabel = new JLabel("表名列表:");
+        tableLabel.setPreferredSize(labelDim);
+        tableLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        panel.add(tableLabel, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 2;
+        JPanel tablePanel = new JPanel(new BorderLayout(0, 3));
+        tablePanel.setOpaque(false);
+        JLabel tableHint = new JLabel("多个表名用逗号分隔");
+        tableHint.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        tableHint.setForeground(ThemeUtils.COLOR_TEXT_HINT);
+        tablePanel.add(tableHint, BorderLayout.NORTH);
+
+        tableListArea = new JTextArea(3, 20);
         tableListArea.setLineWrap(true);
         tableListArea.setEnabled(false);
         JScrollPane tableScroll = new JScrollPane(tableListArea);
-        tableScroll.setPreferredSize(new Dimension(0, 50));
-        panel.add(tableScroll, gbc);
+        tableScroll.setPreferredSize(new Dimension(0, 90));
+        tablePanel.add(tableScroll, BorderLayout.CENTER);
+        panel.add(tablePanel, gbc);
         row++;
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        panel.add(new JLabel("表列表来源:"), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.5;
+        // 表列表来源
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
+        JLabel sourceLabel = new JLabel("表列表来源:");
+        sourceLabel.setPreferredSize(labelDim);
+        sourceLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        panel.add(sourceLabel, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 0.5; gbc.gridwidth = 2;
         useTableListCheck = new JCheckBox("从 gk_sjdb.gk_gsdump_tablelist 读取");
         useTableListCheck.setEnabled(false);
         panel.add(useTableListCheck, gbc);
         row++;
 
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        // GaussDB 数据源（动态显示）
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0; gbc.gridwidth = 1;
         dataSourceLabel = new JLabel("GaussDB 数据源:");
+        dataSourceLabel.setPreferredSize(labelDim);
+        dataSourceLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         dataSourceLabel.setVisible(false);
         panel.add(dataSourceLabel, gbc);
-        gbc.gridx = 1; gbc.weightx = 0.5;
+
+        gbc.gridx = 1; gbc.weightx = 0.5; gbc.gridwidth = 2;
         dataSourceCombo = new JComboBox<>();
+        dataSourceCombo.setPreferredSize(new Dimension(220, 25));
         dataSourceCombo.setVisible(false);
         refreshDataSourceCombo();
         panel.add(dataSourceCombo, gbc);
 
+        // 监听粒度变化，控制启用状态
         ActionListener grainListener = e -> {
             boolean table = tableRadio.isSelected();
             boolean useList = table && useTableListCheck.isSelected();
@@ -419,6 +474,15 @@ public class SshBackupDialog extends BaseDialog {
         progressBar.setStringPainted(true);
         progressBar.setVisible(false);
         btnPanel.add(progressBar);
+
+        clearLogBtn = new JButton("🧹 清空日志");
+        clearLogBtn.setBackground(new Color(180, 190, 200));
+        clearLogBtn.setForeground(Color.WHITE);
+        clearLogBtn.setFocusPainted(false);
+        clearLogBtn.setBorderPainted(false);
+        clearLogBtn.setPreferredSize(new Dimension(100, 34));
+        clearLogBtn.addActionListener(e -> logArea.setText(""));
+        btnPanel.add(clearLogBtn);
 
         closeBtn = new JButton("✕ 关闭");
         closeBtn.setBackground(new Color(160, 170, 185));
@@ -539,6 +603,11 @@ public class SshBackupDialog extends BaseDialog {
         currentProfile = null;
     }
 
+    private String escapeForShell(String raw) {
+        if (raw == null) return "''";
+        return "'" + raw.replace("'", "'\\''") + "'";
+    }
+
     private void executeBackup() {
         int idx = profileList.getSelectedIndex();
         if (idx < 0) {
@@ -584,32 +653,12 @@ public class SshBackupDialog extends BaseDialog {
         if (normalizedBackupDir.isEmpty()) normalizedBackupDir = "/data/dump";
 
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+        String namePart = "schema".equals(grain) ? schemaField.getText().trim() : dbName;
         String ext = format.contains("c") ? "dmp" : "sql";
-        String prefix = normalizedBackupDir + "/backup_" + timestamp + "." + ext;
+        final String dumpFile = normalizedBackupDir + "/backup_" + namePart + "_" + timestamp + "." + ext;
+        final String logFile  = normalizedBackupDir + "/backup_" + namePart + "_" + timestamp + ".log";
 
-        // ========== 调试日志：打印所有配置参数 ==========
-        log("========== 调试信息：当前使用的配置 ==========");
-        log("配置名称: " + currentProfile.getName());
-        log("SSH 主机: " + sshHost);
-        log("SSH 端口: " + currentProfile.getSshPort());
-        log("SSH 用户: " + sshUser);
-        log("SSH 密码: " + (sshPassword.isEmpty() ? "(空)" : "******"));
-        log("执行用户: " + currentProfile.getExecUser());
-        log("数据库主机: " + dbHost);
-        log("数据库端口: " + dbPort);
-        log("数据库名: " + dbName);
-        log("数据库用户: " + dbUser);
-        log("数据库密码: " + (dbPassword.isEmpty() ? "(空)" : "******"));
-        log("备份目录: " + normalizedBackupDir);
-        log("输出文件前缀: " + prefix);
-        log("粒度: " + grain);
-        log("内容: " + content);
-        log("格式: " + format);
-        if ("schema".equals(grain)) log("模式名: " + schemaField.getText().trim());
-        if ("table".equals(grain) && !useTableListCheck.isSelected()) {
-            log("表列表: " + tableListArea.getText().trim());
-        }
-        log("===============================================");
+        final String escapedDbPassword = escapeForShell(dbPassword);
 
         setUIEnabled(false);
         progressBar.setVisible(true);
@@ -619,11 +668,9 @@ public class SshBackupDialog extends BaseDialog {
         final String finalGrain = grain;
         final String finalContent = content;
         final String finalFormat = format;
-        final String finalPrefix = prefix;
         final String finalDbHost = dbHost;
         final int finalDbPort = dbPort;
         final String finalDbUser = dbUser;
-        final String finalDbPassword = dbPassword;
         final String finalDbName = dbName;
         final DataSource selectedDs = useTableListCheck.isSelected() ? (DataSource) dataSourceCombo.getSelectedItem() : null;
 
@@ -631,56 +678,43 @@ public class SshBackupDialog extends BaseDialog {
             @Override
             protected Void doInBackground() throws Exception {
                 try {
-                    // ========== 调试日志：连接过程 ==========
-                    publish("🔌 正在连接 SSH: " + sshUser + "@" + sshHost + ":" + currentProfile.getSshPort());
                     SshClient client = SshClient.setUpDefaultClient();
                     client.start();
                     ConnectFuture cf = client.connect(sshUser, sshHost, currentProfile.getSshPort());
-                    publish("⏳ 等待会话建立...");
                     ClientSession sess = cf.verify(30000).getSession();
-                    publish("✅ 会话已建立，准备认证...");
                     sess.addPasswordIdentity(sshPassword);
-                    publish("🔑 已添加密码身份，正在认证...");
                     sess.auth().verify(30000);
                     session = sess;
-                    publish("✅ SSH 认证成功");
 
                     String execCmd;
+                    String passArg = "-W " + escapedDbPassword;
+                    // 使用 tee 同时输出到屏幕（捕获）和远程日志文件
+                    String teeLog = " 2>&1 | tee -a " + logFile;
+
                     if ("table".equals(finalGrain) && useTableListCheck.isSelected()) {
-                        publish("📋 从 gk_sjdb.gk_gsdump_tablelist 读取表列表...");
                         List<String> tables = queryTableList(selectedDs);
                         if (tables.isEmpty()) {
                             publish("⚠️ 表列表为空，无法执行备份");
                             return null;
                         }
-                        publish("✅ 共读取 " + tables.size() + " 个表");
                         File localFile = File.createTempFile("tablelist_", ".txt");
                         try (PrintWriter writer = new PrintWriter(localFile, "UTF-8")) {
-                            for (String t : tables) {
-                                writer.println(t);
-                            }
+                            for (String t : tables) writer.println(t);
                         }
                         String remotePath = "/tmp/tablelist_" + System.currentTimeMillis() + ".txt";
                         uploadFile(localFile, remotePath);
-                        publish("✅ 表列表文件已上传: " + remotePath);
 
-                        StringBuilder cmd = new StringBuilder();
-                        cmd.append("export PGPASSWORD='").append(finalDbPassword.replace("'", "'\\''")).append("' && ");
-                        cmd.append("gs_dump -h ").append(finalDbHost).append(" -p ").append(finalDbPort)
-                                .append(" -U ").append(finalDbUser)
-                                .append(" ").append(finalDbName).append(" ");
-                        if ("struct".equals(finalContent)) cmd.append("-s ");
-                        else if ("data".equals(finalContent)) cmd.append("-a ");
-                        cmd.append(finalFormat).append(" ");
-                        cmd.append("--include-table-file=").append(remotePath).append(" ");
-                        cmd.append("-f ").append(finalPrefix);
-                        execCmd = cmd.toString();
+                        execCmd = "gs_dump -h " + finalDbHost + " -p " + finalDbPort +
+                                " -U " + finalDbUser + " " + passArg + " " + finalDbName + " " +
+                                (finalContent.equals("struct") ? "-s " : finalContent.equals("data") ? "-a " : "") +
+                                finalFormat + " " +
+                                "--include-table-file=" + remotePath + " " +
+                                "-f " + dumpFile + teeLog;
                     } else if ("table".equals(finalGrain)) {
                         StringBuilder cmd = new StringBuilder();
-                        cmd.append("export PGPASSWORD='").append(finalDbPassword.replace("'", "'\\''")).append("' && ");
                         cmd.append("gs_dump -h ").append(finalDbHost).append(" -p ").append(finalDbPort)
-                                .append(" -U ").append(finalDbUser)
-                                .append(" ").append(finalDbName).append(" ");
+                                .append(" -U ").append(finalDbUser).append(" ").append(passArg).append(" ")
+                                .append(finalDbName).append(" ");
                         if ("struct".equals(finalContent)) cmd.append("-s ");
                         else if ("data".equals(finalContent)) cmd.append("-a ");
                         cmd.append(finalFormat).append(" ");
@@ -688,28 +722,27 @@ public class SshBackupDialog extends BaseDialog {
                         for (String t : tables) {
                             if (!t.trim().isEmpty()) cmd.append("-t ").append(t.trim()).append(" ");
                         }
-                        cmd.append("-f ").append(finalPrefix);
+                        cmd.append("-f ").append(dumpFile).append(teeLog);
                         execCmd = cmd.toString();
                     } else {
                         StringBuilder cmd = new StringBuilder();
-                        cmd.append("export PGPASSWORD='").append(finalDbPassword.replace("'", "'\\''")).append("' && ");
                         cmd.append("gs_dump -h ").append(finalDbHost).append(" -p ").append(finalDbPort)
-                                .append(" -U ").append(finalDbUser)
-                                .append(" ").append(finalDbName).append(" ");
+                                .append(" -U ").append(finalDbUser).append(" ").append(passArg).append(" ")
+                                .append(finalDbName).append(" ");
                         if ("schema".equals(finalGrain)) {
                             cmd.append("-n ").append(schemaField.getText().trim()).append(" ");
                         }
                         if ("struct".equals(finalContent)) cmd.append("-s ");
                         else if ("data".equals(finalContent)) cmd.append("-a ");
                         cmd.append(finalFormat).append(" ");
-                        cmd.append("-f ").append(finalPrefix);
+                        cmd.append("-f ").append(dumpFile).append(teeLog);
                         execCmd = cmd.toString();
                     }
 
-                    // ========== 调试日志：打印最终命令 ==========
                     String fullSuCommand = "su - " + currentProfile.getExecUser() + " -c \"" + execCmd.replace("\"", "\\\"") + "\"";
-                    publish("📌 最终 gs_dump 命令: " + execCmd);
+                    publish("--------------------------------------------------");
                     publish("🔧 实际通过 SSH 执行的完整命令: " + fullSuCommand);
+                    publish("--------------------------------------------------");
                     executeCommand(session, execCmd);
 
                 } catch (Exception e) {
@@ -717,11 +750,7 @@ public class SshBackupDialog extends BaseDialog {
                     e.printStackTrace();
                 } finally {
                     if (session != null && !session.isClosed()) {
-                        try {
-                            session.close();
-                        } catch (IOException e) {
-                            publish("⚠️ 关闭 SSH 会话时出错: " + e.getMessage());
-                        }
+                        try { session.close(); } catch (IOException e) { publish("⚠️ 关闭 SSH 会话时出错: " + e.getMessage()); }
                     }
                 }
                 return null;
@@ -740,7 +769,6 @@ public class SshBackupDialog extends BaseDialog {
                 String url = ds.buildUrl();
                 String user = ds.getUser();
                 String password = ds.getPassword();
-                publish("📋 执行查询: SELECT schema_name||'.'||table_name FROM gk_sjdb.gk_gsdump_tablelist");
                 try (Connection conn = DriverManager.getConnection(url, user, password);
                      Statement stmt = conn.createStatement();
                      ResultSet rs = stmt.executeQuery("SELECT schema_name||'.'||table_name FROM gk_sjdb.gk_gsdump_tablelist")) {
@@ -790,11 +818,7 @@ public class SshBackupDialog extends BaseDialog {
                 stopBtn.setEnabled(false);
                 currentWorker = null;
                 if (session != null && !session.isClosed()) {
-                    try {
-                        session.close();
-                    } catch (IOException e) {
-                        log("⚠️ 关闭 SSH 会话时出错: " + e.getMessage());
-                    }
+                    try { session.close(); } catch (IOException e) { log("⚠️ 关闭 SSH 会话时出错: " + e.getMessage()); }
                 }
             }
         };
@@ -805,11 +829,7 @@ public class SshBackupDialog extends BaseDialog {
         if (currentWorker != null && !currentWorker.isDone()) {
             currentWorker.cancel(true);
             if (session != null && !session.isClosed()) {
-                try {
-                    session.close();
-                } catch (IOException e) {
-                    log("⚠️ 关闭 SSH 会话时出错: " + e.getMessage());
-                }
+                try { session.close(); } catch (IOException e) { log("⚠️ 关闭 SSH 会话时出错: " + e.getMessage()); }
             }
         }
     }
