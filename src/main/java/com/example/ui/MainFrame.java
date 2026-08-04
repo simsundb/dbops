@@ -238,7 +238,7 @@ public class MainFrame extends JFrame {
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
                 GradientPaint bgGp = new GradientPaint(0, 0, new Color(242, 246, 252),
-                                                       w, h, new Color(225, 232, 240));
+                        w, h, new Color(225, 232, 240));
                 g2d.setPaint(bgGp);
                 g2d.fillRect(0, 0, w, h);
             }
@@ -280,11 +280,11 @@ public class MainFrame extends JFrame {
         quickBtns.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         String[][] features = {
-            {"settings", "数据源", "配置数据库源"},
-            {"compare", "结构对比", "Gauss数据库结构对比:表/列/索引/序列/同义词"},
-            {"transfer", "数据同步", "Excel数据入库和Oracle与Gauss跨库表数据同步"},
-            {"file-code", "SQL执行", "数据库脚本x.sql脚本批量执行"},
-            {"search", "数据库巡检", "Gauss数据库自定义指标巡检,并生成巡检报告"},
+                {"settings", "数据源", "配置数据库源"},
+                {"compare", "结构对比", "Gauss数据库结构对比:表/列/索引/序列/同义词"},
+                {"transfer", "数据同步", "Excel数据入库和Oracle与Gauss跨库表数据同步"},
+                {"file-code", "SQL执行", "数据库脚本x.sql脚本批量执行"},
+                {"search", "数据库巡检", "Gauss数据库自定义指标巡检,并生成巡检报告"},
         };
 
         for (String[] f : features) {

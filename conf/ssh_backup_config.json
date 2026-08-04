@@ -1,0 +1,11 @@
+{
+  "host": "172.19.136.3",
+  "port": 22,
+  "username": "root",
+  "password": "SGFpeWkqMTIz",
+  "execUser": "Ruby",
+  "database": "muts",
+  "dbHost": "172.19.136.3",
+  "dbPort": 8000,
+  "backupDir": "/data/dump/"
+}
