@@ -40,6 +40,14 @@
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
         </dependency>
+
+        <!--最简单：SLF4J 绑定到 JDK 自带的 java.util.logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>1.7.36</version>
+        </dependency>
+
         <!-- gs_dump 导出 -->
         <dependency>
             <groupId>org.apache.sshd</groupId>

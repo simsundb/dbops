@@ -20,7 +20,7 @@
     "sshUser": "root",
     "sshPassword": "SGFpeWkqMTIz",
     "execUser": "Ruby",
-    "dbHost": "172.19.136.3",
+    "dbHost": "172.19.136.5",
     "dbPort": 8000,
     "dbName": "muts",
     "dbUser": "gk_sjdb",
