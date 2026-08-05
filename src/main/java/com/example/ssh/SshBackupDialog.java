@@ -60,7 +60,7 @@ public class SshBackupDialog extends BaseDialog {
     private ClientSession session;
 
     public SshBackupDialog(JFrame owner) {
-        super(owner, "SSH 数据库备份", "backup");
+        super(owner, "Gaussdb数据库备份工具", "backup");
     }
 
     @Override
@@ -99,7 +99,8 @@ public class SshBackupDialog extends BaseDialog {
             loadProfile(profiles.get(0));
         }
 
-        setSize(1150, 820);
+        // ★ 扩大窗口尺寸
+        setSize(1300, 900);
         setLocationRelativeTo(owner);
         setResizable(true);
     }
@@ -326,7 +327,7 @@ public class SshBackupDialog extends BaseDialog {
         addParamComponent(panel, gbc, tablePanel, 1, 4);
 
         addParamLabel(panel, gbc, "表列表来源:", 0, 5, labelSize);
-        useTableListCheck = new JCheckBox("从 gk_sjdb.gk_gsdump_tablelist 读取");
+        useTableListCheck = new JCheckBox("从 gk_gsdump_tablelist 读取");
         useTableListCheck.setEnabled(false);
         addParamComponent(panel, gbc, useTableListCheck, 1, 5);
 
@@ -456,7 +457,8 @@ public class SshBackupDialog extends BaseDialog {
         closeBtn.addActionListener(e -> dispose());
         btnPanel.add(closeBtn);
 
-        logArea = new JTextArea(6, 60);
+        // ★ 增加日志文本框的行数，并设置字体
+        logArea = new JTextArea(12, 60);  // 从6行增加到12行
         logArea.setEditable(false);
         logArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
         logArea.setBackground(new Color(26, 26, 30));
@@ -469,6 +471,8 @@ public class SshBackupDialog extends BaseDialog {
                 ThemeUtils.FONT_SUBTITLE,
                 ThemeUtils.COLOR_PRIMARY
         ));
+        // 让日志区域在垂直方向上可以扩展
+        logScroll.setPreferredSize(new Dimension(0, 200));
 
         panel.add(logScroll, BorderLayout.CENTER);
         panel.add(btnPanel, BorderLayout.NORTH);
@@ -725,6 +729,20 @@ public class SshBackupDialog extends BaseDialog {
         String content = fullRadio.isSelected() ? "full" : structRadio.isSelected() ? "struct" : "data";
         String format = formatCombo.getSelectedIndex() == 0 ? "-F c" : "-F p";
 
+        // ★ 数据库级备份确认提示
+        if ("db".equals(grain)) {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "您选择了数据库级备份，备份时间可能会很长（取决于数据量）。\n确定要继续吗？",
+                    "长时间操作确认",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+            if (confirm != JOptionPane.YES_OPTION) {
+                return; // 用户取消
+            }
+        }
+
         if ("schema".equals(grain) && schemaField.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "请输入模式名", "错误", JOptionPane.ERROR_MESSAGE);
             return;
@@ -833,8 +851,11 @@ public class SshBackupDialog extends BaseDialog {
 
                     String fullSuCommand = "su - " + currentProfile.getExecUser() + " -c \"" + execCmd.replace("\"", "\\\"") + "\"";
                     publish("----------------------------------------------------------------------------------------------------");
-                    publish("🔧: " + fullSuCommand);
+                    // ★ 密码脱敏：将 -W '...' 替换为 -W '***'
+                    String maskedCommand = fullSuCommand.replaceAll("(?<=-W )'[^']*'", "'***'");
+                    publish("🔧: " + maskedCommand);
                     publish("----------------------------------------------------------------------------------------------------");
+                    // 执行原始命令（未脱敏）
                     executeCommand(session, execCmd);
 
                 } catch (Exception e) {
