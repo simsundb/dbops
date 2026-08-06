@@ -74,7 +74,8 @@ public class MainFrame extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
-                GradientPaint gp = new GradientPaint(0, 0, new Color(48, 72, 95), w, 0, new Color(70, 100, 130));
+                GradientPaint gp = new GradientPaint(0, 0, ThemeUtils.COLOR_HEADER_BG,
+                        w, 0, ThemeUtils.COLOR_HEADER_BG.brighter());
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
                 g2d.setColor(new Color(130, 170, 210, 60));
@@ -279,8 +280,8 @@ public class MainFrame extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
-                GradientPaint bgGp = new GradientPaint(0, 0, new Color(242, 246, 252),
-                        w, h, new Color(225, 232, 240));
+                GradientPaint bgGp = new GradientPaint(0, 0, ThemeUtils.COLOR_BG,
+                        w, h, ThemeUtils.COLOR_BG.darker());
                 g2d.setPaint(bgGp);
                 g2d.fillRect(0, 0, w, h);
             }

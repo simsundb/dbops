@@ -28,7 +28,15 @@
       "Read(//tmp/**)",
       "Bash(awk '{print \"RUNNING PID=\"$2}')",
       "Bash(screencapture -x /tmp/db_theme_screenshot.png)",
-      "Bash(kill 78310)"
+      "Bash(kill 78310)",
+      "Bash(sips -g pixelWidth -g pixelHeight /tmp/db_mainframe_preview.png)",
+      "Bash(javac -encoding UTF-8 -cp \"target/gkzx-dbops-1.0.jar\" -d /tmp/uirp ColorProbe.java)",
+      "Bash(java -cp \"target/gkzx-dbops-1.0.jar:/tmp/uirp\" ColorProbe)",
+      "Bash(javac -encoding UTF-8 -cp \"target/gkzx-dbops-1.0.jar\" -d /tmp/uirp UIRenderPreview.java)",
+      "Bash(java -cp \"target/gkzx-dbops-1.0.jar:/tmp/uirp\" UIRenderPreview)",
+      "Bash(java -cp \"target/gkzx-dbops-1.0.jar:/tmp/uirp\" ColorProbe2)",
+      "Bash(javac -encoding UTF-8 -cp \"target/gkzx-dbops-1.0.jar\" -d /tmp/uirp DialogRenderPreview.java)",
+      "Bash(java -cp \"target/gkzx-dbops-1.0.jar:/tmp/uirp\" DialogRenderPreview)"
     ]
   }
 }
