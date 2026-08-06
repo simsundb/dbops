@@ -10,7 +10,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
@@ -391,7 +390,7 @@ public class GenerateScriptPanel extends JPanel {
     }
 
     /**
-     * 创建保存并刷新按钮（金色/橙色）
+     * 创建保存并刷新按钮（金色）
      */
     private JButton createSaveRefreshButton(String text, String icon) {
         JButton btn = new JButton(text);
@@ -679,10 +678,14 @@ public class GenerateScriptPanel extends JPanel {
      * 控制底部按钮启用/禁用
      */
     private void setBottomButtonsEnabled(boolean enabled) {
-        Component[] components = ((JPanel) getComponent(2)).getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JButton) {
-                comp.setEnabled(enabled);
+        // 获取底部面板（索引2是底部面板）
+        Component bottomComp = getComponent(2);
+        if (bottomComp instanceof JPanel) {
+            Component[] components = ((JPanel) bottomComp).getComponents();
+            for (Component comp : components) {
+                if (comp instanceof JButton) {
+                    comp.setEnabled(enabled);
+                }
             }
         }
     }
