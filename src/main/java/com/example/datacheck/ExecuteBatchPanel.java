@@ -16,6 +16,7 @@ import java.util.List;
 
 /**
  * 执行批次面板 - 美化版（含明细查询）
+ * 布局：明细表格 60% + 执行日志 40%，日志默认可见
  */
 public class ExecuteBatchPanel extends JPanel {
 
@@ -50,7 +51,7 @@ public class ExecuteBatchPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBackground(ThemeUtils.COLOR_BG);
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        // 设置面板首选大小，让窗口默认更大
+        // 设置面板首选大小，使对话框默认更大
         setPreferredSize(new Dimension(1100, 750));
     }
 
@@ -163,13 +164,14 @@ public class ExecuteBatchPanel extends JPanel {
     }
 
     /**
-     * 中间区域：明细表格（上） + 日志（下）- 调整比例让日志可见
+     * 中间区域：明细表格（上） + 日志（下）
+     * 使用比例分割，保证日志区域始终可见
      */
     private void initContentPanel() {
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        // 明细表格占 60%，日志占 40%，让日志有足够空间
-        splitPane.setDividerLocation(480);
+        // 使用比例分割：明细 60%，日志 40%
         splitPane.setResizeWeight(0.6);
+        splitPane.setDividerLocation(0.6);
         splitPane.setBorder(BorderFactory.createEmptyBorder());
         splitPane.setOpaque(false);
         splitPane.setDividerSize(6);
@@ -179,6 +181,8 @@ public class ExecuteBatchPanel extends JPanel {
 
         // ---- 下半部分：日志区域 ----
         JPanel logPanel = createLogPanel();
+        // 设置日志区域最小高度，防止被压缩到看不见
+        logPanel.setMinimumSize(new Dimension(0, 150));
 
         splitPane.setTopComponent(tablePanel);
         splitPane.setBottomComponent(logPanel);
@@ -267,12 +271,12 @@ public class ExecuteBatchPanel extends JPanel {
     }
 
     /**
-     * 创建日志面板 - 增大默认高度
+     * 创建日志面板 - 带初始提示，确保日志区域默认可见
      */
     private JPanel createLogPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.setPreferredSize(new Dimension(0, 280)); // 设置日志区域默认高度
+        panel.setMinimumSize(new Dimension(0, 150));
 
         logArea = new JTextArea();
         logArea.setEditable(false);
@@ -308,7 +312,7 @@ public class ExecuteBatchPanel extends JPanel {
         scroll.getViewport().setBackground(new Color(248, 245, 240));
         scroll.getViewport().setOpaque(true);
 
-        // 初始化提示信息
+        // 初始化日志内容，显示操作指南，避免空白
         logArea.append("═══════════════════════════════════════════════════════════\n");
         logArea.append("  📌 执行日志区域\n");
         logArea.append("  ─────────────────────────────────────────────────────────\n");
