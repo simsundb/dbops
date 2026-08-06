@@ -453,15 +453,7 @@ public class MainFrame extends JFrame {
     }
     // 快捷入口汇总对话框（含三个标签页）
     private void openQualitySummaryDialog() {
-        JDialog dialog = new JDialog(this, "数据质量规则引擎", true);
-        dialog.setSize(1100, 750);
-        dialog.setLocationRelativeTo(this);
-        JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("1.规则配置", new com.sunzh.datacheck.RuleConfigPanel());
-        tabs.addTab("2.生成脚本", new com.sunzh.datacheck.GenerateScriptPanel());
-        tabs.addTab("3.执行批次", new com.sunzh.datacheck.ExecuteBatchPanel());
-        dialog.add(tabs);
-        dialog.setVisible(true);
+        new com.sunzh.datacheck.QualitySummaryDialog(this).setVisible(true);
     }
     // ======================================================
 

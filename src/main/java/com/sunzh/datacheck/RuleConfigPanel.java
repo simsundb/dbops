@@ -2,6 +2,7 @@ package com.sunzh.datacheck;
 
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
+import com.sunzh.ui.components.WidgetFactory;
 import com.sunzh.utils.ThemeUtils;
 import com.sunzh.utils.SvgIconUtils;
 
@@ -111,9 +112,9 @@ public class RuleConfigPanel extends JPanel {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         panel.setOpaque(false);
 
-        JButton addBtn = createPrimaryButton("新增", "plus");
-        JButton editBtn = createPrimaryButton("编辑", "edit");
-        JButton delBtn = createDangerButton("删除", "trash");
+        JButton addBtn = WidgetFactory.primaryButton("新增", "plus");
+        JButton editBtn = WidgetFactory.primaryButton("编辑", "edit");
+        JButton delBtn = WidgetFactory.dangerButton("删除", "trash");
 
         addBtn.addActionListener(e -> showConfigDialog(null));
         editBtn.addActionListener(this::handleEdit);
@@ -130,51 +131,21 @@ public class RuleConfigPanel extends JPanel {
      * 创建统一样式的按钮（主要按钮）
      */
     private JButton createPrimaryButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(ThemeUtils.COLOR_PRIMARY);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(80, 32));
-        return btn;
+        return WidgetFactory.primaryButton(text, icon);
     }
 
     /**
      * 创建危险按钮（删除）
      */
     private JButton createDangerButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(new Color(220, 50, 50));
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(80, 32));
-        return btn;
+        return WidgetFactory.dangerButton(text, icon);
     }
 
     /**
      * 创建样式按钮（刷新）
      */
     private JButton createStyledButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.get(icon, 16, ThemeUtils.COLOR_PRIMARY));
-        btn.setBackground(ThemeUtils.COLOR_BG_CARD);
-        btn.setForeground(ThemeUtils.COLOR_TEXT);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                BorderFactory.createEmptyBorder(4, 12, 4, 12)
-        ));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(80, 32));
-        return btn;
+        return WidgetFactory.outlineButton(text, icon, ThemeUtils.COLOR_PRIMARY);
     }
 
     /**
