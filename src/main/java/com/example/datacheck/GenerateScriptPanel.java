@@ -18,6 +18,10 @@ import java.util.List;
 
 /**
  * 生成检查脚本面板 - 美化版
+ *
+ * 底部按钮说明：
+ *   [编辑选中]  [删除选中]  [保存修改]  [保存并刷新]
+ *   其中“保存并刷新”为金色按钮，保存后自动刷新表格数据
  */
 public class GenerateScriptPanel extends JPanel {
 
@@ -43,6 +47,8 @@ public class GenerateScriptPanel extends JPanel {
         initTable();
         initStatusBar();
         loadDataSources();
+        // 设置面板首选大小，避免对话框过小时按钮被遮挡
+        setPreferredSize(new Dimension(1000, 700));
     }
 
     // ==================== 布局初始化 ====================
