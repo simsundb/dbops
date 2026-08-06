@@ -32,8 +32,10 @@ public class DataSourceDialog extends BaseDialog {
     private JTextField tfUser;
     private JPasswordField tfPassword;
     private JComboBox<String> cbType;
+    private JComboBox<String> cbConnType;   // 新增：连接类型下拉框
 
     private JLabel lblService, lblDatabase, lblSchema;
+    private JLabel lblConnType;             // 新增
 
     private static final int LABEL_WIDTH = 80;
     private static final int FIELD_WIDTH = 280;
@@ -149,7 +151,7 @@ public class DataSourceDialog extends BaseDialog {
 
                 String info = ds.getHost() + ":" + ds.getPort();
                 if ("ORACLE".equals(ds.getType()) && ds.getServiceName() != null) {
-                    info += " / " + ds.getServiceName();
+                    info += " / " + ds.getServiceName() + " (" + (ds.isUseServiceName() ? "Service Name" : "SID") + ")";
                 } else if (ds.getDatabase() != null) {
                     info += " / " + ds.getDatabase();
                 }
@@ -229,7 +231,6 @@ public class DataSourceDialog extends BaseDialog {
 
         gbc.gridx = 1; gbc.weightx = 1;
         cbType = new JComboBox<>(new String[]{"ORACLE", "GAUSSDB"});
-        // ★★★ 修改：将宽度改为 FIELD_WIDTH，与文本框一致 ★★★
         cbType.setPreferredSize(new Dimension(FIELD_WIDTH, FIELD_HEIGHT));
         cbType.setFont(ThemeUtils.FONT_NORMAL);
         cbType.setBackground(ThemeUtils.COLOR_BG_INPUT);
@@ -263,7 +264,6 @@ public class DataSourceDialog extends BaseDialog {
 
         gbc.gridx = 1; gbc.weightx = 1;
         tfPort = new JTextField();
-        // 端口可以保持稍窄，但为了对齐，也设为 FIELD_WIDTH
         tfPort.setPreferredSize(new Dimension(FIELD_WIDTH, FIELD_HEIGHT));
         tfPort.setFont(ThemeUtils.FONT_NORMAL);
         tfPort.setBorder(createInputBorder());
@@ -272,7 +272,7 @@ public class DataSourceDialog extends BaseDialog {
 
         // ---- 服务名 (Oracle) ----
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        lblService = new JLabel("服务名 *");
+        lblService = new JLabel("服务名(Service Name) *");
         lblService.setPreferredSize(new Dimension(LABEL_WIDTH, FIELD_HEIGHT));
         lblService.setFont(ThemeUtils.FONT_SMALL_BOLD);
         lblService.setForeground(ThemeUtils.COLOR_TEXT);
@@ -284,6 +284,22 @@ public class DataSourceDialog extends BaseDialog {
         tfServiceName.setFont(ThemeUtils.FONT_NORMAL);
         tfServiceName.setBorder(createInputBorder());
         formPanel.add(tfServiceName, gbc);
+        row++;
+
+        // ---- 连接类型 (Oracle) ----
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        lblConnType = new JLabel("连接类型 *");
+        lblConnType.setPreferredSize(new Dimension(LABEL_WIDTH, FIELD_HEIGHT));
+        lblConnType.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        lblConnType.setForeground(ThemeUtils.COLOR_TEXT);
+        formPanel.add(lblConnType, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 1;
+        cbConnType = new JComboBox<>(new String[]{"Service Name", "SID"});
+        cbConnType.setPreferredSize(new Dimension(FIELD_WIDTH, FIELD_HEIGHT));
+        cbConnType.setFont(ThemeUtils.FONT_NORMAL);
+        cbConnType.setBackground(ThemeUtils.COLOR_BG_INPUT);
+        formPanel.add(cbConnType, gbc);
         row++;
 
         // ---- 数据库 (GaussDB) ----
@@ -350,7 +366,7 @@ public class DataSourceDialog extends BaseDialog {
         formPanel.add(tfPassword, gbc);
         row++;
 
-        // ---- 按钮（统一风格） ----
+        // ---- 按钮 ----
         JPanel btnPanel = createButtonPanel();
         gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
         gbc.insets = new Insets(12, 6, 0, 6);
@@ -442,6 +458,8 @@ public class DataSourceDialog extends BaseDialog {
 
         lblService.setVisible(isOracle);
         tfServiceName.setVisible(isOracle);
+        lblConnType.setVisible(isOracle);
+        cbConnType.setVisible(isOracle);
 
         lblDatabase.setVisible(!isOracle);
         tfDatabase.setVisible(!isOracle);
@@ -455,7 +473,7 @@ public class DataSourceDialog extends BaseDialog {
     }
 
     // ============================================================
-    // 业务逻辑（保持不变）
+    // 业务逻辑
     // ============================================================
 
     public void loadData() {
@@ -481,6 +499,7 @@ public class DataSourceDialog extends BaseDialog {
 
         if ("ORACLE".equals(ds.getType())) {
             tfServiceName.setText(ds.getServiceName());
+            cbConnType.setSelectedItem(ds.isUseServiceName() ? "Service Name" : "SID");
             tfDatabase.setText("");
             tfSchema.setText("");
         } else {
@@ -497,6 +516,7 @@ public class DataSourceDialog extends BaseDialog {
         tfHost.setText("");
         tfPort.setText("");
         tfServiceName.setText("");
+        cbConnType.setSelectedIndex(0);
         tfDatabase.setText("");
         tfSchema.setText("");
         tfUser.setText("");
@@ -533,7 +553,8 @@ public class DataSourceDialog extends BaseDialog {
             copy = new DataSource(newName, selected.getType(),
                     selected.getHost(), selected.getPort(),
                     selected.getServiceName(),
-                    selected.getUser(), selected.getPassword());
+                    selected.getUser(), selected.getPassword(),
+                    selected.isUseServiceName());
         } else {
             copy = new DataSource(newName, selected.getType(),
                     selected.getHost(), selected.getPort(),
@@ -570,15 +591,18 @@ public class DataSourceDialog extends BaseDialog {
         if ("ORACLE".equals(type)) {
             String serviceName = tfServiceName.getText().trim();
             if (serviceName.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Oracle 请填写服务名");
+                JOptionPane.showMessageDialog(this, "Oracle 请填写服务名(Service Name)");
                 return;
             }
+            boolean useServiceName = "Service Name".equals(cbConnType.getSelectedItem());
+
             if (selected != null) {
                 selected.setName(name);
                 selected.setType(type);
                 selected.setHost(host);
                 selected.setPort(port);
                 selected.setServiceName(serviceName);
+                selected.setUseServiceName(useServiceName);
                 selected.setUser(user);
                 selected.setPassword(pwd);
                 listModel.setElementAt(selected, dataSourceList.getSelectedIndex());
@@ -589,11 +613,12 @@ public class DataSourceDialog extends BaseDialog {
                         return;
                     }
                 }
-                DataSource newDs = new DataSource(name, type, host, port, serviceName, user, pwd);
+                DataSource newDs = new DataSource(name, type, host, port, serviceName, user, pwd, useServiceName);
                 listModel.addElement(newDs);
                 dataSourceList.setSelectedIndex(listModel.size() - 1);
             }
         } else {
+            // GaussDB
             String database = tfDatabase.getText().trim();
             if (database.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "GaussDB 请填写数据库名");
@@ -669,10 +694,11 @@ public class DataSourceDialog extends BaseDialog {
         if ("ORACLE".equals(type)) {
             String serviceName = tfServiceName.getText().trim();
             if (serviceName.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Oracle 请填写服务名");
+                JOptionPane.showMessageDialog(this, "Oracle 请填写服务名(Service Name)");
                 return;
             }
-            temp = new DataSource(name, type, host, port, serviceName, user, pwd);
+            boolean useServiceName = "Service Name".equals(cbConnType.getSelectedItem());
+            temp = new DataSource(name, type, host, port, serviceName, user, pwd, useServiceName);
         } else {
             String database = tfDatabase.getText().trim();
             if (database.isEmpty()) {

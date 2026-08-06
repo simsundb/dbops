@@ -18,6 +18,9 @@ public class DataSource {
     private String password;    // Base64 加密存储
     private String serviceName; // Oracle 专用
 
+    // 新增：Oracle 连接类型，true=Service Name（斜杠），false=SID（冒号），默认 true
+    private boolean useServiceName = true;
+
     public DataSource() {}
 
     // ---- GaussDB 构造方法 ----
@@ -33,9 +36,15 @@ public class DataSource {
         this.password = CryptoUtils.encrypt(password);
     }
 
-    // ---- Oracle 构造方法 ----
+    // ---- Oracle 构造方法（保留兼容，默认 Service Name） ----
     public DataSource(String name, String type, String host, int port, String serviceName,
                       String user, String password) {
+        this(name, type, host, port, serviceName, user, password, true);
+    }
+
+    // ---- Oracle 构造方法（增加连接类型参数） ----
+    public DataSource(String name, String type, String host, int port, String serviceName,
+                      String user, String password, boolean useServiceName) {
         this.name = name;
         this.type = type;
         this.host = host;
@@ -43,6 +52,7 @@ public class DataSource {
         this.serviceName = serviceName;
         this.user = user;
         this.password = CryptoUtils.encrypt(password);
+        this.useServiceName = useServiceName;
     }
 
     // ---- Getter / Setter ----
@@ -67,16 +77,9 @@ public class DataSource {
     public String getUser() { return user; }
     public void setUser(String user) { this.user = user; }
 
-    /**
-     * 获取明文密码（自动解密）
-     */
     public String getPassword() {
         return CryptoUtils.decrypt(password);
     }
-
-    /**
-     * 设置密码（自动加密存储）
-     */
     public void setPassword(String password) {
         this.password = CryptoUtils.encrypt(password);
     }
@@ -87,16 +90,21 @@ public class DataSource {
     public String getServiceName() { return serviceName; }
     public void setServiceName(String serviceName) { this.serviceName = serviceName; }
 
+    public boolean isUseServiceName() { return useServiceName; }
+    public void setUseServiceName(boolean useServiceName) { this.useServiceName = useServiceName; }
+
     /**
      * 根据类型动态构建 JDBC URL
+     * Oracle：根据 useServiceName 决定使用斜杠（Service Name）还是冒号（SID）
      */
     public String buildUrl() {
         if ("ORACLE".equalsIgnoreCase(type)) {
             if (serviceName == null || serviceName.trim().isEmpty()) return "";
-            // 包含 . 或 - 视为 Service Name，使用 / 分隔
-            if (serviceName.contains(".") || serviceName.contains("-")) {
+            if (useServiceName) {
+                // Service Name 格式：jdbc:oracle:thin:@host:port/serviceName
                 return "jdbc:oracle:thin:@" + host + ":" + port + "/" + serviceName;
             } else {
+                // SID 格式：jdbc:oracle:thin:@host:port:serviceName（即 SID）
                 return "jdbc:oracle:thin:@" + host + ":" + port + ":" + serviceName;
             }
         } else if ("GAUSSDB".equalsIgnoreCase(type)) {

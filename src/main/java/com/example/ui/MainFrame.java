@@ -15,6 +15,11 @@ import com.example.ui.dialogs.SettingsDialog;
 import com.example.utils.SvgIconUtils;
 import com.example.utils.ThemeUtils;
 
+// ========== 新增：数据质量规则引擎对话框 ==========
+import com.example.datacheck.RuleConfigDialog;
+import com.example.datacheck.GenerateScriptDialog;
+import com.example.datacheck.ExecuteBatchDialog;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -225,6 +230,33 @@ public class MainFrame extends JFrame {
         sshBackupItem.addActionListener(e -> openSshBackupDialog());
         funcMenu.add(sshBackupItem);
 
+        // ========== 新增：数据质量规则引擎 ==========
+        funcMenu.addSeparator();
+        JMenu qualityMenu = new JMenu("9.数据质量");
+        qualityMenu.setFont(menuFont);
+        qualityMenu.setIcon(SvgIconUtils.get("check", 16, null));
+
+        JMenuItem configItem = new JMenuItem("规则配置");
+        configItem.setFont(itemFont);
+        configItem.setIcon(SvgIconUtils.get("settings", 16, null));
+        configItem.addActionListener(e -> openRuleConfigDialog());
+        qualityMenu.add(configItem);
+
+        JMenuItem genItem = new JMenuItem("生成检查脚本");
+        genItem.setFont(itemFont);
+        genItem.setIcon(SvgIconUtils.get("file-code", 16, null));
+        genItem.addActionListener(e -> openGenerateScriptDialog());
+        qualityMenu.add(genItem);
+
+        JMenuItem execItem = new JMenuItem("执行批次");
+        execItem.setFont(itemFont);
+        execItem.setIcon(SvgIconUtils.get("play", 16, null));
+        execItem.addActionListener(e -> openExecuteBatchDialog());
+        qualityMenu.add(execItem);
+
+        funcMenu.add(qualityMenu);
+        // =========================================
+
         menuBar.add(funcMenu);
 
         JMenu helpMenu = new JMenu("帮助");
@@ -264,7 +296,7 @@ public class MainFrame extends JFrame {
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(190, 200, 215, 150), 1),
                 BorderFactory.createEmptyBorder(40, 60, 40, 60)));
-        card.setMaximumSize(new Dimension(580, 420));
+        card.setMaximumSize(new Dimension(580, 480)); // 略微增高以容纳新按钮
 
         JLabel bigIcon = new JLabel(SvgIconUtils.get("monitor", 48, ThemeUtils.COLOR_PRIMARY));
         bigIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -289,13 +321,14 @@ public class MainFrame extends JFrame {
         quickBtns.setOpaque(false);
         quickBtns.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // ========== 快捷按钮定义（新增第7项：数据质量） ==========
         String[][] features = {
                 {"settings", "数据源", "配置数据库源"},
                 {"compare", "结构对比", "Gauss数据库结构对比:表/列/索引/序列/同义词"},
                 {"transfer", "数据同步", "Excel数据入库和Oracle与Gauss跨库表数据同步"},
                 {"file-code", "SQL执行", "数据库脚本x.sql脚本批量执行"},
                 {"search", "数据库巡检", "Gauss数据库自定义指标巡检,并生成巡检报告"},
-                {"backup", "数据库备份", "通过SSH远程备份GaussDB数据库"}  // 新增快捷入口
+                {"backup", "数据库备份", "通过SSH远程备份GaussDB数据库"}
         };
 
         for (String[] f : features) {
@@ -350,7 +383,8 @@ public class MainFrame extends JFrame {
                     case "数据同步": openDataSyncDialog(); break;
                     case "SQL执行": openScriptRunnerDialog(); break;
                     case "数据库巡检": openCheckModelDialog(); break;
-                    case "数据库备份": openSshBackupDialog(); break;   // 新增
+                    case "数据库备份": openSshBackupDialog(); break;
+                    case "数据质量": openQualitySummaryDialog(); break;   // 新增
                 }
             }
         });
@@ -407,6 +441,30 @@ public class MainFrame extends JFrame {
         dialog.setVisible(true);
     }
 
+    // ========== 新增：数据质量规则引擎对话框 ==========
+    private void openRuleConfigDialog() {
+        new RuleConfigDialog(this).setVisible(true);
+    }
+    private void openGenerateScriptDialog() {
+        new GenerateScriptDialog(this).setVisible(true);
+    }
+    private void openExecuteBatchDialog() {
+        new ExecuteBatchDialog(this).setVisible(true);
+    }
+    // 快捷入口汇总对话框（含三个标签页）
+    private void openQualitySummaryDialog() {
+        JDialog dialog = new JDialog(this, "数据质量规则引擎", true);
+        dialog.setSize(1100, 750);
+        dialog.setLocationRelativeTo(this);
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("1.规则配置", new com.example.datacheck.RuleConfigPanel());
+        tabs.addTab("2.生成脚本", new com.example.datacheck.GenerateScriptPanel());
+        tabs.addTab("3.执行批次", new com.example.datacheck.ExecuteBatchPanel());
+        dialog.add(tabs);
+        dialog.setVisible(true);
+    }
+    // ======================================================
+
     private void showAboutDialog() {
         JOptionPane.showMessageDialog(this,
                 "资源管控中心 · 数据库运维管理平台\n" +
@@ -420,6 +478,7 @@ public class MainFrame extends JFrame {
                         "  6.数据库对象查询\n" +
                         "  7.自定义查询统计\n" +
                         "  8.GaussDB数据库备份\n" +
+                        "  9.数据质量规则引擎\n" +   // 新增
                         "\n作者: 资源管控中心 · SunZhiHui\n" +
                         "时间: 2026-08",
                 "关于", JOptionPane.INFORMATION_MESSAGE);
