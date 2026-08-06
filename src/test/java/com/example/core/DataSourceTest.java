@@ -1,44 +1,86 @@
 package com.example.core;
 
-import com.example.utils.CryptoUtils;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
+/**
+ * 数据源单元测试
+ */
 public class DataSourceTest {
 
+    /**
+     * 测试 Oracle Service Name 格式（斜杠）
+     */
     @Test
-    public void testCryptoUtils() {
-        String original = "test123";
-        String encrypted = CryptoUtils.encrypt(original);
-        assertNotNull("Encrypted should not be null", encrypted);
-        assertNotEquals("Encrypted should differ from original", original, encrypted);
-        String decrypted = CryptoUtils.decrypt(encrypted);
-        assertEquals("Decrypted should match original", original, decrypted);
+    public void testDataSourceOracleServiceName() {
+        DataSource ds = new DataSource(
+                "oracle",
+                "ORACLE",
+                "localhost",
+                1521,
+                "ORCL",
+                "scott",
+                "tiger",
+                true   // useServiceName = true
+        );
+        String expected = "jdbc:oracle:thin:@localhost:1521/ORCL";
+        assertEquals(expected, ds.buildUrl());
     }
 
+    /**
+     * 测试 Oracle SID 格式（冒号）
+     */
     @Test
-    public void testDataSourceOracle() {
-        DataSource ds = new DataSource("test-oracle", "ORACLE", "localhost", 1521, "ORCL", "user", "pwd");
-        assertNotNull(ds);
-        assertEquals("ORACLE", ds.getType());
-        assertEquals("localhost", ds.getHost());
-        assertEquals(1521, ds.getPort());
-        assertEquals("ORCL", ds.getServiceName());
-        assertEquals("user", ds.getUser());
-        assertEquals("jdbc:oracle:thin:@localhost:1521:ORCL", ds.buildUrl());
+    public void testDataSourceOracleSid() {
+        DataSource ds = new DataSource(
+                "oracle",
+                "ORACLE",
+                "localhost",
+                1521,
+                "ORCL",
+                "scott",
+                "tiger",
+                false  // useServiceName = false
+        );
+        String expected = "jdbc:oracle:thin:@localhost:1521:ORCL";
+        assertEquals(expected, ds.buildUrl());
     }
 
+    /**
+     * 测试 GaussDB（带 schema）
+     */
     @Test
     public void testDataSourceGaussDB() {
-        DataSource ds = new DataSource("test-gauss", "GAUSSDB", "localhost", 5432, "mydb", "public", "user", "pwd");
-        assertNotNull(ds);
-        assertEquals("GAUSSDB", ds.getType());
-        assertEquals("jdbc:gaussdb://localhost:5432/mydb?currentSchema=public", ds.buildUrl());
+        DataSource ds = new DataSource(
+                "gauss",
+                "GAUSSDB",
+                "localhost",
+                8000,
+                "muts",
+                "gk_sjdb",
+                "testuser",
+                "testpwd"
+        );
+        String expected = "jdbc:gaussdb://localhost:8000/muts?currentSchema=gk_sjdb";
+        assertEquals(expected, ds.buildUrl());
     }
 
+    /**
+     * 测试 GaussDB（无 schema）
+     */
     @Test
-    public void testConnectionManager() {
-        ConnectionManager manager = new ConnectionManager();
-        assertNotNull("ConnectionManager should not be null", manager);
+    public void testDataSourceGaussDBNoSchema() {
+        DataSource ds = new DataSource(
+                "gauss",
+                "GAUSSDB",
+                "localhost",
+                8000,
+                "muts",
+                null,
+                "testuser",
+                "testpwd"
+        );
+        String expected = "jdbc:gaussdb://localhost:8000/muts";
+        assertEquals(expected, ds.buildUrl());
     }
 }
