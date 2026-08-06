@@ -3,6 +3,8 @@ package com.sunzh.comparison.panels;
 import com.sunzh.comparison.ComparisonDialog;
 import com.sunzh.comparison.model.ComparisonTask;
 import com.sunzh.comparison.ComparisonService;
+import com.sunzh.ui.components.WidgetFactory;
+import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -16,14 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ComparePanel extends JPanel {
-    // 岩系冷调配色
-    private static final Color ACCENT = new Color(76, 110, 138);
-    private static final Color ACCENT_DARK = new Color(56, 82, 105);
-    private static final Color ACCENT_LIGHT = new Color(180, 200, 220);
-    private static final Color BTN_COMPARE = new Color(76, 110, 138);
-    private static final Color BTN_RESET = new Color(190, 130, 70);
-    private static final Color ROW_ALT = new Color(242, 245, 249);
-    private static final Color BORDER_ACCENT = new Color(76, 110, 138);
+    // 主题色映射 - 统一到 ThemeUtils
+    private static final Color ACCENT = ThemeUtils.COLOR_PRIMARY;
+    private static final Color ACCENT_DARK = ThemeUtils.COLOR_PRIMARY_DARK;
+    private static final Color ACCENT_LIGHT = ThemeUtils.COLOR_PRIMARY_LIGHT;
+    private static final Color BTN_COMPARE = ThemeUtils.COLOR_PRIMARY;
+    private static final Color BTN_RESET = ThemeUtils.COLOR_WARNING;
+    private static final Color ROW_ALT = ThemeUtils.COLOR_BG_ALTERNATE;
+    private static final Color BORDER_ACCENT = ThemeUtils.COLOR_PRIMARY;
 
     private final ComparisonDialog parent;
     private DefaultTableModel taskModel;
@@ -62,15 +64,15 @@ public class ComparePanel extends JPanel {
 
         JPanel taskPanel = new JPanel(new BorderLayout(5, 5));
         taskPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(76, 110, 138), 1),
+                BorderFactory.createLineBorder(ACCENT, 1),
                 "任务列表（可多选）",
                 TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 12), new Color(76, 110, 138)));
+                ThemeUtils.FONT_SMALL_BOLD, ACCENT));
 
         JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         toolBar.setOpaque(false);
         chkSelectAll = new JCheckBox("全选/取消全选");
-        chkSelectAll.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        chkSelectAll.setFont(ThemeUtils.FONT_SMALL);
         chkSelectAll.addActionListener(e -> {
             boolean sel = chkSelectAll.isSelected();
             for (int i = 0; i < taskModel.getRowCount(); i++) {
@@ -91,15 +93,15 @@ public class ComparePanel extends JPanel {
         JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        btnPanel.setBackground(new Color(245, 248, 252));
+        btnPanel.setBackground(ThemeUtils.COLOR_BG);
         btnPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(185, 195, 210), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(5, 15, 5, 15)));
 
-        btnCompare = createStyledButton("执行选中对比", new Color(76, 110, 138));
+        btnCompare = createStyledButton("执行选中对比", ACCENT);
         btnCompare.addActionListener(e -> doCompare());
 
-        btnReset = createStyledButton("重置状态", new Color(190, 130, 70));
+        btnReset = createStyledButton("重置状态", BTN_RESET);
         btnReset.addActionListener(e -> resetStatus());
 
         btnPanel.add(btnCompare);
@@ -113,10 +115,10 @@ public class ComparePanel extends JPanel {
 
         JScrollPane summaryScroll = new JScrollPane(summaryTable);
         summaryScroll.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(76, 110, 138), 1),
+                BorderFactory.createLineBorder(ACCENT, 1),
                 "整体情况",
                 TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 12), new Color(76, 110, 138)));
+                ThemeUtils.FONT_SMALL_BOLD, ACCENT));
         summaryScroll.setPreferredSize(new Dimension(800, 120));
         bottomPanel.add(summaryScroll, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.CENTER);
@@ -125,7 +127,7 @@ public class ComparePanel extends JPanel {
     // ----- 样式辅助 -----
     private JButton createStyledButton(String text, Color bgColor) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btn.setFont(ThemeUtils.FONT_BOLD);
         btn.setBackground(bgColor);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
@@ -161,16 +163,16 @@ public class ComparePanel extends JPanel {
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(taskModel);
         table.setRowSorter(sorter);
         table.setRowHeight(26);
-        table.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        table.setGridColor(new Color(205, 210, 218));
-        table.setSelectionBackground(new Color(180, 200, 220));
+        table.setFont(ThemeUtils.FONT_SMALL);
+        table.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
+        table.setSelectionBackground(ACCENT_LIGHT);
         table.setSelectionForeground(Color.WHITE);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("SansSerif", Font.BOLD, 11));
+        header.setFont(ThemeUtils.FONT_SMALL_BOLD);
         header.setForeground(Color.WHITE);
-        header.setBackground(new Color(76, 110, 138));
+        header.setBackground(ACCENT);
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
@@ -178,7 +180,7 @@ public class ComparePanel extends JPanel {
                                                            boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? new Color(242, 245, 249) : Color.WHITE);
+                    c.setBackground(row % 2 == 0 ? ROW_ALT : Color.WHITE);
                 }
                 if (column == 8 && value != null) {
                     String status = value.toString();
@@ -217,7 +219,7 @@ public class ComparePanel extends JPanel {
                 JCheckBox checkBox = new JCheckBox();
                 checkBox.setSelected(value != null && (Boolean) value);
                 checkBox.setHorizontalAlignment(SwingConstants.CENTER);
-                checkBox.setBackground(row % 2 == 0 ? new Color(242, 245, 249) : Color.WHITE);
+                checkBox.setBackground(row % 2 == 0 ? ROW_ALT : Color.WHITE);
                 return checkBox;
             }
         });
@@ -225,9 +227,9 @@ public class ComparePanel extends JPanel {
 
     private void beautifySummaryTable(JTable table) {
         table.setRowHeight(24);
-        table.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        table.setGridColor(new Color(205, 210, 218));
-        table.setSelectionBackground(new Color(180, 200, 220));
+        table.setFont(ThemeUtils.FONT_SMALL);
+        table.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
+        table.setSelectionBackground(ACCENT_LIGHT);
         table.setSelectionForeground(Color.WHITE);
 
         TableColumnModel colModel = table.getColumnModel();
@@ -243,7 +245,7 @@ public class ComparePanel extends JPanel {
                                                            boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? new Color(242, 245, 249) : Color.WHITE);
+                    c.setBackground(row % 2 == 0 ? ROW_ALT : Color.WHITE);
                 }
                 if (column >= 1 && column <= 4) {
                     setHorizontalAlignment(SwingConstants.RIGHT);
@@ -257,9 +259,9 @@ public class ComparePanel extends JPanel {
         });
 
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("SansSerif", Font.BOLD, 12));
+        header.setFont(ThemeUtils.FONT_SMALL_BOLD);
         header.setForeground(Color.WHITE);
-        header.setBackground(new Color(76, 110, 138));
+        header.setBackground(ACCENT);
     }
 
     // ----- 刷新数据 -----

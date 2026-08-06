@@ -253,7 +253,7 @@ public class DataSyncDialog extends BaseDialog {
         btnPanel.setOpaque(false);
         JButton btn = btnSolid("执行同步", PRIMARY, PRIMARY_H, true);
         btn.setIcon(SvgIconUtils.get("play", 16, Color.WHITE));
-        btn.setFont(new Font("SansSerif", Font.BOLD, 16));
+        btn.setFont(FONT_BTN);
         btn.addActionListener(e -> runO2G());
         btnPanel.add(btn);
         panel.add(btnPanel, gbc);
@@ -385,7 +385,7 @@ public class DataSyncDialog extends BaseDialog {
         btnPanel.setOpaque(false);
         JButton btn = btnSolid("执行同步", PRIMARY, PRIMARY_H, true);
         btn.setIcon(SvgIconUtils.get("play", 16, Color.WHITE));
-        btn.setFont(new Font("SansSerif", Font.BOLD, 16));
+        btn.setFont(FONT_BTN);
         btn.addActionListener(e -> runG2O());
         btnPanel.add(btn);
         panel.add(btnPanel, gbc);
@@ -453,7 +453,7 @@ public class DataSyncDialog extends BaseDialog {
         btnPanel.setOpaque(false);
         JButton btn = btnSolid("执行导入", PRIMARY, PRIMARY_H, true);
         btn.setIcon(SvgIconUtils.get("play", 16, Color.WHITE));
-        btn.setFont(new Font("SansSerif", Font.BOLD, 16));
+        btn.setFont(FONT_BTN);
         btn.addActionListener(e -> runE2O());
         btnPanel.add(btn);
         panel.add(btnPanel, gbc);
@@ -521,7 +521,7 @@ public class DataSyncDialog extends BaseDialog {
         btnPanel.setOpaque(false);
         JButton btn = btnSolid("执行导入", PRIMARY, PRIMARY_H, true);
         btn.setIcon(SvgIconUtils.get("play", 16, Color.WHITE));
-        btn.setFont(new Font("SansSerif", Font.BOLD, 16));
+        btn.setFont(FONT_BTN);
         btn.addActionListener(e -> runE2G());
         btnPanel.add(btn);
         panel.add(btnPanel, gbc);

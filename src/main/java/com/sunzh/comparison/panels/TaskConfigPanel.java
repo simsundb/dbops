@@ -4,6 +4,7 @@ import com.sunzh.comparison.ComparisonDialog;
 import com.sunzh.comparison.model.ComparisonTask;
 import com.sunzh.comparison.model.ComparisonTaskConfig;
 import com.sunzh.comparison.ComparisonService;
+import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -47,22 +48,22 @@ public class TaskConfigPanel extends JPanel {
         beautifyConfigTable(configTable);
         JScrollPane configScroll = new JScrollPane(configTable);
         configScroll.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(76, 110, 138), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_PRIMARY, 1),
                 "📋 gk_sjdb_task_config（配置模板表）",
                 TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 12), new Color(76, 110, 138)));
+                ThemeUtils.FONT_SMALL_BOLD, ThemeUtils.COLOR_PRIMARY));
         configScroll.setPreferredSize(new Dimension(600, 150));
         configPanel.add(configScroll, BorderLayout.CENTER);
 
         JPanel configBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
-        configBtnPanel.setBackground(new Color(245, 248, 252));
+        configBtnPanel.setBackground(ThemeUtils.COLOR_BG);
         configBtnPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(185, 195, 210), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(4, 10, 4, 10)));
-        JButton btnRefreshConfig = createStyledButton("刷新", new Color(76, 110, 138));
-        JButton btnSaveConfig = createStyledButton("保存修改", new Color(76, 110, 138));
-        JButton btnAddConfig = createStyledButton("新增配置", new Color(76, 110, 138));
-        JButton btnDelConfig = createStyledButton("删除配置", new Color(190, 100, 90));
+        JButton btnRefreshConfig = createStyledButton("刷新", ThemeUtils.COLOR_PRIMARY);
+        JButton btnSaveConfig = createStyledButton("保存修改", ThemeUtils.COLOR_PRIMARY);
+        JButton btnAddConfig = createStyledButton("新增配置", ThemeUtils.COLOR_PRIMARY);
+        JButton btnDelConfig = createStyledButton("删除配置", ThemeUtils.COLOR_DANGER);
         configBtnPanel.add(btnRefreshConfig);
         configBtnPanel.add(btnSaveConfig);
         configBtnPanel.add(btnAddConfig);
@@ -82,25 +83,25 @@ public class TaskConfigPanel extends JPanel {
         beautifyTaskTable(taskTable);
         JScrollPane taskScroll = new JScrollPane(taskTable);
         taskScroll.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(76, 110, 138), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_PRIMARY, 1),
                 "📋 gk_sjdb_task（任务执行表）",
                 TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 12), new Color(76, 110, 138)));
+                ThemeUtils.FONT_SMALL_BOLD, ThemeUtils.COLOR_PRIMARY));
         taskScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         taskScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         taskScroll.setPreferredSize(new Dimension(600, 250));
         taskPanel.add(taskScroll, BorderLayout.CENTER);
 
         JPanel taskBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
-        taskBtnPanel.setBackground(new Color(245, 248, 252));
+        taskBtnPanel.setBackground(ThemeUtils.COLOR_BG);
         taskBtnPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(185, 195, 210), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(4, 10, 4, 10)));
-        JButton btnRefreshTask = createStyledButton("刷新", new Color(76, 110, 138));
-        JButton btnSaveTask = createStyledButton("保存任务修改", new Color(76, 110, 138));
-        JButton btnAddTask = createStyledButton("新增任务", new Color(76, 110, 138));
-        JButton btnDelTask = createStyledButton("删除任务", new Color(190, 100, 90));
-        JButton btnInitConfig = createStyledButton("初始化配置", new Color(190, 130, 70));
+        JButton btnRefreshTask = createStyledButton("刷新", ThemeUtils.COLOR_PRIMARY);
+        JButton btnSaveTask = createStyledButton("保存任务修改", ThemeUtils.COLOR_PRIMARY);
+        JButton btnAddTask = createStyledButton("新增任务", ThemeUtils.COLOR_PRIMARY);
+        JButton btnDelTask = createStyledButton("删除任务", ThemeUtils.COLOR_DANGER);
+        JButton btnInitConfig = createStyledButton("初始化配置", ThemeUtils.COLOR_WARNING);
         taskBtnPanel.add(btnRefreshTask);
         taskBtnPanel.add(btnSaveTask);
         taskBtnPanel.add(btnAddTask);
@@ -137,7 +138,7 @@ public class TaskConfigPanel extends JPanel {
     // ---------- 辅助方法 ----------
     private JButton createStyledButton(String text, Color bgColor) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("SansSerif", Font.BOLD, 12));
+        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btn.setBackground(bgColor);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
@@ -176,23 +177,23 @@ public class TaskConfigPanel extends JPanel {
                                                            boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? new Color(242, 245, 249) : Color.WHITE);
+                    c.setBackground(row % 2 == 0 ? ThemeUtils.COLOR_BG_ALTERNATE : Color.WHITE);
                 }
                 setHorizontalAlignment(SwingConstants.CENTER);
                 return c;
             }
         });
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("SansSerif", Font.BOLD, 12));
+        header.setFont(ThemeUtils.FONT_SMALL_BOLD);
         header.setForeground(Color.WHITE);
-        header.setBackground(new Color(76, 110, 138));
+        header.setBackground(ThemeUtils.COLOR_PRIMARY);
         header.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(56, 82, 105), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_PRIMARY_DARK, 1),
                 BorderFactory.createEmptyBorder(4, 8, 4, 8)));
         ((DefaultTableCellRenderer) header.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
         table.setRowHeight(24);
-        table.setGridColor(new Color(205, 210, 218));
-        table.setSelectionBackground(new Color(180, 200, 220));
+        table.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
+        table.setSelectionBackground(ThemeUtils.COLOR_PRIMARY_LIGHT);
         table.setSelectionForeground(Color.WHITE);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
     }
@@ -201,9 +202,9 @@ public class TaskConfigPanel extends JPanel {
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(taskModel);
         table.setRowSorter(sorter);
         table.setRowHeight(24);
-        table.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        table.setGridColor(new Color(205, 210, 218));
-        table.setSelectionBackground(new Color(180, 200, 220));
+        table.setFont(ThemeUtils.FONT_SMALL);
+        table.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
+        table.setSelectionBackground(ThemeUtils.COLOR_PRIMARY_LIGHT);
         table.setSelectionForeground(Color.WHITE);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
@@ -213,7 +214,7 @@ public class TaskConfigPanel extends JPanel {
                                                            boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? new Color(242, 245, 249) : Color.WHITE);
+                    c.setBackground(row % 2 == 0 ? ThemeUtils.COLOR_BG_ALTERNATE : Color.WHITE);
                 }
                 if (column == 7 && value != null) {
                     String status = value.toString();
@@ -244,11 +245,11 @@ public class TaskConfigPanel extends JPanel {
         });
 
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("SansSerif", Font.BOLD, 11));
+        header.setFont(ThemeUtils.FONT_SMALL_BOLD);
         header.setForeground(Color.WHITE);
-        header.setBackground(new Color(76, 110, 138));
+        header.setBackground(ThemeUtils.COLOR_PRIMARY);
         header.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(56, 82, 105), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_PRIMARY_DARK, 1),
                 BorderFactory.createEmptyBorder(4, 8, 4, 8)));
         ((DefaultTableCellRenderer) header.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
     }

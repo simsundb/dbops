@@ -3,6 +3,8 @@ package com.sunzh.inspection;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.ui.components.WidgetFactory;
+import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -194,10 +196,8 @@ public class InspectionDialog extends BaseDialog {
 
         // ---- 第二行：所有功能按钮 (右对齐) ----
         JPanel row2 = new JPanel(new FlowLayout(FlowLayout.TRAILING, 8, 0));
-        Dimension btnSize = new Dimension(115, 30);
 
-        refreshButton = new JButton("🔄 刷新配置");
-        refreshButton.setPreferredSize(btnSize);
+        refreshButton = WidgetFactory.infoButton("刷新配置", "refresh");
         refreshButton.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
                 loadConfig();
@@ -206,32 +206,27 @@ public class InspectionDialog extends BaseDialog {
         });
         row2.add(refreshButton);
 
-        editConfigButton = new JButton("📝 编辑 config.yaml");
-        editConfigButton.setPreferredSize(btnSize);
+        editConfigButton = WidgetFactory.infoButton("编辑 config.yaml", "edit");
         editConfigButton.addActionListener(e -> editConfigFile());
         row2.add(editConfigButton);
 
-        openQueryButton = new JButton("📂 打开 query");
-        openQueryButton.setPreferredSize(btnSize);
+        openQueryButton = WidgetFactory.infoButton("打开 query", "folder-open");
         openQueryButton.addActionListener(e -> openFolder(externalQueryDir));
         row2.add(openQueryButton);
 
         // 分隔
         row2.add(Box.createHorizontalStrut(20));
 
-        startButton = new JButton("▶ 开始巡检");
-        startButton.setPreferredSize(btnSize);
+        startButton = WidgetFactory.successButton("开始巡检", "play");
         startButton.setEnabled(false);
         startButton.addActionListener(e -> startInspection());
         row2.add(startButton);
 
-        clearLogButton = new JButton("🗑 清空日志");
-        clearLogButton.setPreferredSize(btnSize);
+        clearLogButton = WidgetFactory.infoButton("清空日志", "clear");
         clearLogButton.addActionListener(e -> { if (logArea != null) logArea.setText(""); });
         row2.add(clearLogButton);
 
-        openReportsButton = new JButton("📁 打开报告");
-        openReportsButton.setPreferredSize(btnSize);
+        openReportsButton = WidgetFactory.infoButton("打开报告", "report");
         openReportsButton.addActionListener(e -> openFolder(reportsDir));
         row2.add(openReportsButton);
 
@@ -245,8 +240,8 @@ public class InspectionDialog extends BaseDialog {
 
         tableModel = new TaskTableModel();
         taskTable = new JTable(tableModel);
+        WidgetFactory.applyTableStyle(taskTable);
         taskTable.setRowHeight(25);
-        taskTable.setFont(new Font("SansSerif", Font.PLAIN, 12));
         taskTable.getSelectionModel().addListSelectionListener(e -> {
             int row = taskTable.getSelectedRow();
             if (row >= 0 && row < tasks.size()) {

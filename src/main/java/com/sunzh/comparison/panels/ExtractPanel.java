@@ -1,6 +1,8 @@
 package com.sunzh.comparison.panels;
 
 import com.sunzh.comparison.ComparisonDialog;
+import com.sunzh.ui.components.WidgetFactory;
+import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -13,17 +15,17 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 
 public class ExtractPanel extends JPanel {
-    // 岩系冷调配色 - 提取面板专用色
-    private static final Color ACCENT = new Color(76, 110, 138);
-    private static final Color ACCENT_DARK = new Color(56, 82, 105);
-    private static final Color ACCENT_LIGHT = new Color(180, 200, 220);
-    private static final Color BG_PANEL = new Color(245, 248, 252);
-    private static final Color BORDER_COLOR = new Color(190, 200, 215);
-    private static final Color ROW_ALT = new Color(242, 245, 249);
-    private static final Color BTN_EXTRACT = new Color(90, 150, 120);
-    private static final Color BTN_VIEW = ACCENT;
-    private static final Color BTN_CLEAR = new Color(190, 100, 90);
-    private static final Color BTN_CLEAN = new Color(180, 80, 70);
+    // 主题色映射 - 统一到 ThemeUtils
+    private static final Color ACCENT = ThemeUtils.COLOR_PRIMARY;
+    private static final Color ACCENT_DARK = ThemeUtils.COLOR_PRIMARY_DARK;
+    private static final Color ACCENT_LIGHT = ThemeUtils.COLOR_PRIMARY_LIGHT;
+    private static final Color BG_PANEL = ThemeUtils.COLOR_BG_CARD;
+    private static final Color BORDER_COLOR = ThemeUtils.COLOR_BORDER;
+    private static final Color ROW_ALT = ThemeUtils.COLOR_BG_ALTERNATE;
+    private static final Color BTN_EXTRACT = ThemeUtils.COLOR_SUCCESS;
+    private static final Color BTN_VIEW = ThemeUtils.COLOR_PRIMARY;
+    private static final Color BTN_CLEAR = ThemeUtils.COLOR_WARNING;
+    private static final Color BTN_CLEAN = ThemeUtils.COLOR_DANGER;
 
     private final ComparisonDialog parent;
     private final boolean isSource;
@@ -55,25 +57,25 @@ public class ExtractPanel extends JPanel {
                 "选择模式（可多选）",
                 TitledBorder.LEFT,
                 TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 13),
+                ThemeUtils.FONT_BOLD,
                 ACCENT));
 
         JPanel schemaTopBar = new JPanel(new BorderLayout());
         cbAllSchema = new JCheckBox("ALL（所有模式）");
-        cbAllSchema.setFont(new Font("SansSerif", Font.BOLD, 14));
+        cbAllSchema.setFont(ThemeUtils.FONT_BOLD);
         schemaTopBar.add(cbAllSchema, BorderLayout.WEST);
 
         JPanel rightBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
         rightBtnPanel.setOpaque(false);
 
         JButton btnRefreshSchema = new JButton("刷新");
-        btnRefreshSchema.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        btnRefreshSchema.setFont(ThemeUtils.FONT_SMALL);
         btnRefreshSchema.setFocusPainted(false);
         btnRefreshSchema.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnRefreshSchema.addActionListener(e -> refreshData());
 
         JButton btnAddSchema = new JButton("添加");
-        btnAddSchema.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        btnAddSchema.setFont(ThemeUtils.FONT_SMALL);
         btnAddSchema.setFocusPainted(false);
         btnAddSchema.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnAddSchema.addActionListener(e -> addManualSchema());
@@ -105,7 +107,7 @@ public class ExtractPanel extends JPanel {
                 "抽取类型",
                 TitledBorder.LEFT,
                 TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 13),
+                ThemeUtils.FONT_BOLD,
                 ACCENT));
 
         JPanel checkboxPanel = new JPanel(new GridBagLayout());
@@ -116,7 +118,7 @@ public class ExtractPanel extends JPanel {
         gbc.weightx = 1;
 
         cbAll = new JCheckBox("ALL（全类型抽取）");
-        cbAll.setFont(new Font("SansSerif", Font.BOLD, 14));
+        cbAll.setFont(ThemeUtils.FONT_BOLD);
         gbc.gridx = 0;
         gbc.gridy = 0;
         checkboxPanel.add(cbAll, gbc);
@@ -134,7 +136,7 @@ public class ExtractPanel extends JPanel {
         cbSequence = new JCheckBox("SEQUENCE（序列）");
         cbSynonym = new JCheckBox("SYNONYM（同义词）");
 
-        Font subFont = new Font("SansSerif", Font.PLAIN, 13);
+        Font subFont = ThemeUtils.FONT_NORMAL;
         cbTable.setFont(subFont);
         cbColumn.setFont(subFont);
         cbIndex.setFont(subFont);
@@ -202,7 +204,7 @@ public class ExtractPanel extends JPanel {
                 BorderFactory.createLineBorder(ACCENT, 1),
                 "抽取日志 - gk_sjdb_extract_log",
                 TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 12), ACCENT));
+                ThemeUtils.FONT_SMALL_BOLD, ACCENT));
         logTableScroll.setPreferredSize(new Dimension(800, 200));
         centerPanel.add(logTableScroll, BorderLayout.CENTER);
         add(centerPanel, BorderLayout.CENTER);
@@ -280,7 +282,7 @@ public class ExtractPanel extends JPanel {
 
     private JButton createStyledButton(String text, Color bgColor) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("SansSerif", Font.BOLD, 13));
+        btn.setFont(ThemeUtils.FONT_BOLD);
         btn.setBackground(bgColor);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
@@ -316,7 +318,7 @@ public class ExtractPanel extends JPanel {
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(logTableModel);
         table.setRowSorter(sorter);
         table.setRowHeight(26);
-        table.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        table.setFont(ThemeUtils.FONT_SMALL);
         table.setGridColor(new Color(205, 210, 218));
         table.setSelectionBackground(ACCENT_LIGHT);
         table.setSelectionForeground(Color.BLACK);
@@ -364,7 +366,7 @@ public class ExtractPanel extends JPanel {
         });
 
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("SansSerif", Font.BOLD, 12));
+        header.setFont(ThemeUtils.FONT_SMALL_BOLD);
         header.setForeground(Color.WHITE);
         header.setBackground(ACCENT);
         header.setBorder(BorderFactory.createCompoundBorder(
@@ -386,7 +388,7 @@ public class ExtractPanel extends JPanel {
             }
         }
         JCheckBox cb = new JCheckBox(schema);
-        cb.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        cb.setFont(ThemeUtils.FONT_NORMAL);
         cb.addActionListener(e -> updateAllSchemaState());
         schemaCheckBoxes.put(schema, cb);
         schemaCheckboxPanel.add(cb);
@@ -425,7 +427,7 @@ public class ExtractPanel extends JPanel {
                 String schemaName = rs.getString(1);
                 if (schemaName.isEmpty()) continue;
                 JCheckBox cb = new JCheckBox(schemaName);
-                cb.setFont(new Font("SansSerif", Font.PLAIN, 13));
+                cb.setFont(ThemeUtils.FONT_NORMAL);
                 cb.addActionListener(e -> updateAllSchemaState());
                 schemaCheckBoxes.put(schemaName, cb);
                 schemaCheckboxPanel.add(cb);
@@ -555,7 +557,7 @@ public class ExtractPanel extends JPanel {
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         JLabel lblInfo = new JLabel("当前日志总数: " + totalCount + " 条 (仅 " + targetType + " 端)");
-        lblInfo.setFont(new Font("SansSerif", Font.BOLD, 13));
+        lblInfo.setFont(ThemeUtils.FONT_BOLD);
         lblInfo.setForeground(ACCENT);
         panel.add(lblInfo);
 

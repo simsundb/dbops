@@ -233,11 +233,11 @@ public class GenerateScriptPanel extends JPanel {
         detailTable.setIntercellSpacing(new Dimension(10, 2));
 
         // 表头样式
-        detailTable.getTableHeader().setFont(new Font("Microsoft YaHei", Font.BOLD, 13));
-        detailTable.getTableHeader().setBackground(new Color(240, 243, 248));
-        detailTable.getTableHeader().setForeground(ThemeUtils.COLOR_TEXT);
+        detailTable.getTableHeader().setFont(ThemeUtils.FONT_SMALL_BOLD);
+        detailTable.getTableHeader().setBackground(ThemeUtils.COLOR_TABLE_HEADER_BG);
+        detailTable.getTableHeader().setForeground(ThemeUtils.COLOR_TABLE_HEADER_TEXT);
         detailTable.getTableHeader().setPreferredSize(new Dimension(0, 32));
-        detailTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, ThemeUtils.COLOR_PRIMARY));
+        detailTable.getTableHeader().setBorder(BorderFactory.createEmptyBorder());
 
         // 居中对齐
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
@@ -258,12 +258,12 @@ public class GenerateScriptPanel extends JPanel {
 
         JScrollBar verticalBar = tableScrollPane.getVerticalScrollBar();
         verticalBar.setPreferredSize(new Dimension(10, 0));
-        verticalBar.setBackground(new Color(248, 245, 240));
+        verticalBar.setBackground(ThemeUtils.COLOR_BG);
         verticalBar.setBorder(BorderFactory.createEmptyBorder());
 
         JScrollBar horizontalBar = tableScrollPane.getHorizontalScrollBar();
         horizontalBar.setPreferredSize(new Dimension(0, 10));
-        horizontalBar.setBackground(new Color(248, 245, 240));
+        horizontalBar.setBackground(ThemeUtils.COLOR_BG);
         horizontalBar.setBorder(BorderFactory.createEmptyBorder());
 
         tableScrollPane.setBorder(BorderFactory.createCompoundBorder(

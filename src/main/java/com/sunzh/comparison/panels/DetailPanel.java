@@ -1,13 +1,22 @@
 package com.sunzh.comparison.panels;
 
 import com.sunzh.comparison.ComparisonDialog;
-import org.apache.poi.ss.usermodel.*;
+import com.sunzh.utils.ThemeUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -24,15 +33,15 @@ public class DetailPanel extends JPanel {
     private JButton btnExportCurrent;
     private JButton btnExportAll;
 
-    // 使用 ThemeUtils 岩系冷调配色
-    private static final java.awt.Color THEME_ACCENT = new java.awt.Color(76, 110, 138);
-    private static final java.awt.Color THEME_ACCENT_DARK = new java.awt.Color(56, 82, 105);
-    private static final java.awt.Color BG_ALTERNATE = new java.awt.Color(242, 245, 249);
-    private static final java.awt.Color BG_PANEL = new java.awt.Color(245, 248, 252);
+    // 主题色映射 - 统一到 ThemeUtils
+    private static final Color THEME_ACCENT = ThemeUtils.COLOR_PRIMARY;
+    private static final Color THEME_ACCENT_DARK = ThemeUtils.COLOR_PRIMARY_DARK;
+    private static final Color BG_ALTERNATE = ThemeUtils.COLOR_BG_ALTERNATE;
+    private static final Color BG_PANEL = ThemeUtils.COLOR_BG_CARD;
 
     public DetailPanel(ComparisonDialog parent) {
         this.parent = parent;
-        setLayout(new java.awt.BorderLayout(10, 10));
+        setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         initUI();
         SwingUtilities.invokeLater(this::refreshData);
@@ -40,18 +49,18 @@ public class DetailPanel extends JPanel {
 
     private void initUI() {
         // ---- 查询条件区域 ----
-        JPanel topPanel = new JPanel(new java.awt.GridBagLayout());
+        JPanel topPanel = new JPanel(new GridBagLayout());
         topPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new java.awt.Color(190, 200, 215), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(10, 15, 10, 15)));
         topPanel.setBackground(BG_PANEL);
 
-        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
-        gbc.insets = new java.awt.Insets(5, 8, 5, 8);
-        gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 8, 5, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
 
-        java.awt.Font labelFont = new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12);
+        Font labelFont = ThemeUtils.FONT_SMALL_BOLD;
 
         // 对象类型
         gbc.gridx = 0;
@@ -64,8 +73,8 @@ public class DetailPanel extends JPanel {
         gbc.gridx = 1;
         gbc.weightx = 0.3;
         typeCombo = new JComboBox<>(new String[]{"表", "列", "索引", "序列", "同义词"});
-        typeCombo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 13));
-        typeCombo.setBackground(java.awt.Color.WHITE);
+        typeCombo.setFont(ThemeUtils.FONT_NORMAL);
+        typeCombo.setBackground(Color.WHITE);
         topPanel.add(typeCombo, gbc);
 
         // JOB_ID
@@ -78,9 +87,9 @@ public class DetailPanel extends JPanel {
         gbc.gridx = 3;
         gbc.weightx = 0.5;
         tfJobId = new JTextField(15);
-        tfJobId.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 13));
+        tfJobId.setFont(ThemeUtils.FONT_NORMAL);
         tfJobId.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new java.awt.Color(190, 200, 215), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(4, 6, 4, 6)));
         topPanel.add(tfJobId, gbc);
 
@@ -105,7 +114,7 @@ public class DetailPanel extends JPanel {
         btnExportAll.addActionListener(e -> exportAllTypes());
         topPanel.add(btnExportAll, gbc);
 
-        add(topPanel, java.awt.BorderLayout.NORTH);
+        add(topPanel, BorderLayout.NORTH);
 
         // ---- 明细表格 ----
         detailModel = new DefaultTableModel();
@@ -119,23 +128,23 @@ public class DetailPanel extends JPanel {
                 BorderFactory.createLineBorder(THEME_ACCENT, 1),
                 "对比明细结果",
                 TitledBorder.LEFT, TitledBorder.TOP,
-                new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12), THEME_ACCENT));
-        scrollPane.setPreferredSize(new java.awt.Dimension(800, 300));
+                ThemeUtils.FONT_SMALL_BOLD, THEME_ACCENT));
+        scrollPane.setPreferredSize(new Dimension(800, 300));
 
-        add(scrollPane, java.awt.BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     // ----- 创建统一样式按钮 -----
-    private JButton createStyledButton(String text, java.awt.Color bgColor) {
+    private JButton createStyledButton(String text, Color bgColor) {
         JButton btn = new JButton(text);
-        btn.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 13));
+        btn.setFont(ThemeUtils.FONT_BOLD);
         btn.setBackground(bgColor);
-        btn.setForeground(java.awt.Color.WHITE);
+        btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(bgColor.darker(), 1),
                 BorderFactory.createEmptyBorder(8, 18, 8, 18)));
-        btn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setOpaque(true);
         btn.setHorizontalTextPosition(SwingConstants.CENTER);
         btn.setVerticalTextPosition(SwingConstants.CENTER);
@@ -164,18 +173,18 @@ public class DetailPanel extends JPanel {
     private void beautifyDetailTable(JTable table) {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.setRowHeight(24);
-        table.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12));
-        table.setGridColor(new java.awt.Color(205, 210, 218));
-        table.setSelectionBackground(new java.awt.Color(180, 200, 220));
-        table.setSelectionForeground(java.awt.Color.BLACK);
+        table.setFont(ThemeUtils.FONT_SMALL);
+        table.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
+        table.setSelectionBackground(ThemeUtils.COLOR_PRIMARY_LIGHT);
+        table.setSelectionForeground(Color.BLACK);
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
-            public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
+            public Component getTableCellRendererComponent(JTable table, Object value,
                                                            boolean isSelected, boolean hasFocus, int row, int column) {
-                java.awt.Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? BG_ALTERNATE : java.awt.Color.WHITE);
+                    c.setBackground(row % 2 == 0 ? BG_ALTERNATE : Color.WHITE);
                 }
                 ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
                 return c;
@@ -183,41 +192,13 @@ public class DetailPanel extends JPanel {
         });
 
         JTableHeader header = table.getTableHeader();
-        header.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
-        header.setForeground(java.awt.Color.WHITE);
+        header.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        header.setForeground(Color.WHITE);
         header.setBackground(THEME_ACCENT);
         header.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(THEME_ACCENT_DARK, 1),
                 BorderFactory.createEmptyBorder(4, 8, 4, 8)));
         ((DefaultTableCellRenderer) header.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
-
-        table.setRowHeight(24);
-        table.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12));
-        table.setGridColor(new java.awt.Color(205, 210, 218));
-        table.setSelectionBackground(new java.awt.Color(180, 200, 220));
-        table.setSelectionForeground(java.awt.Color.BLACK);
-
-        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
-                                                           boolean isSelected, boolean hasFocus, int row, int column) {
-                java.awt.Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? BG_ALTERNATE : java.awt.Color.WHITE);
-                }
-                ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
-                return c;
-            }
-        });
-
-        JTableHeader header2 = table.getTableHeader();
-        header2.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
-        header2.setForeground(java.awt.Color.WHITE);
-        header2.setBackground(THEME_ACCENT);
-        header2.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(THEME_ACCENT_DARK, 1),
-                BorderFactory.createEmptyBorder(4, 8, 4, 8)));
-        ((DefaultTableCellRenderer) header2.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
     }
 
     // ----- 刷新数据 -----
@@ -229,8 +210,8 @@ public class DetailPanel extends JPanel {
     private void autoResizeColumns(JTable table) {
         if (table.getColumnCount() == 0) return;
         TableColumnModel colModel = table.getColumnModel();
-        java.awt.Font headerFont = table.getTableHeader().getFont();
-        java.awt.Font dataFont = table.getFont();
+        Font headerFont = table.getTableHeader().getFont();
+        Font dataFont = table.getFont();
 
         for (int col = 0; col < table.getColumnCount(); col++) {
             int maxWidth = 0;
@@ -238,7 +219,7 @@ public class DetailPanel extends JPanel {
 
             Object headerValue = column.getHeaderValue();
             if (headerValue != null) {
-                java.awt.FontMetrics fm = table.getFontMetrics(headerFont);
+                FontMetrics fm = table.getFontMetrics(headerFont);
                 int width = fm.stringWidth(headerValue.toString()) + 20;
                 maxWidth = Math.max(maxWidth, width);
             }
@@ -247,7 +228,7 @@ public class DetailPanel extends JPanel {
             for (int row = 0; row < rowCount; row++) {
                 Object value = table.getValueAt(row, col);
                 if (value != null) {
-                    java.awt.FontMetrics fm = table.getFontMetrics(dataFont);
+                    FontMetrics fm = table.getFontMetrics(dataFont);
                     int width = fm.stringWidth(value.toString()) + 20;
                     maxWidth = Math.max(maxWidth, width);
                 }
@@ -472,7 +453,7 @@ public class DetailPanel extends JPanel {
 
             Row headerRow = sheet.createRow(0);
             CellStyle headerStyle = workbook.createCellStyle();
-            Font headerFont = workbook.createFont();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
             headerFont.setBold(true);
             headerFont.setColor(IndexedColors.WHITE.getIndex());
             headerStyle.setFont(headerFont);

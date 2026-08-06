@@ -72,8 +72,8 @@ public abstract class BaseDialog extends JDialog {
                 int shadow = shadowSize;
                 int w = getWidth();
                 int h = getHeight();
-                // 绘制半透明阴影矩形（偏移 4px）
-                g2d.setColor(new Color(0, 0, 0, 40));
+                // 绘制柔和阴影（半透明黑，右下偏移）
+                g2d.setColor(new Color(0, 0, 0, 55));
                 g2d.fillRoundRect(shadow / 2, shadow / 2, w - shadow, h - shadow, cornerRadius, cornerRadius);
                 g2d.dispose();
             }
@@ -90,9 +90,9 @@ public abstract class BaseDialog extends JDialog {
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth();
                 int h = getHeight();
-                // 白色背景，带微弱渐变
-                GradientPaint gp = new GradientPaint(0, 0, new Color(252, 253, 255),
-                        0, h, new Color(245, 248, 250));
+                // 浅灰渐变背景（纯白到浅灰，现代运维风格）
+                GradientPaint gp = new GradientPaint(0, 0, ThemeUtils.COLOR_BG_CARD,
+                        0, h, ThemeUtils.COLOR_BG);
                 g2d.setPaint(gp);
                 g2d.fillRoundRect(0, 0, w, h, cornerRadius, cornerRadius);
                 g2d.dispose();

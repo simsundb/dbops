@@ -36,7 +36,10 @@
       "Bash(java -cp \"target/gkzx-dbops-1.0.jar:/tmp/uirp\" UIRenderPreview)",
       "Bash(java -cp \"target/gkzx-dbops-1.0.jar:/tmp/uirp\" ColorProbe2)",
       "Bash(javac -encoding UTF-8 -cp \"target/gkzx-dbops-1.0.jar\" -d /tmp/uirp DialogRenderPreview.java)",
-      "Bash(java -cp \"target/gkzx-dbops-1.0.jar:/tmp/uirp\" DialogRenderPreview)"
+      "Bash(java -cp \"target/gkzx-dbops-1.0.jar:/tmp/uirp\" DialogRenderPreview)",
+      "Bash(sed -i '' 's|new Color\\(205, 210, 218\\)|ThemeUtils.COLOR_BORDER_LIGHT|g' src/main/java/com/sunzh/comparison/panels/ComparePanel.java)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(kill 85843)"
     ]
   }
 }

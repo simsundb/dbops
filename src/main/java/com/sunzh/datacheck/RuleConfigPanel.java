@@ -170,11 +170,11 @@ public class RuleConfigPanel extends JPanel {
         table.setIntercellSpacing(new Dimension(10, 2));
 
         // 表头样式
-        table.getTableHeader().setFont(new Font("Microsoft YaHei", Font.BOLD, 13));
-        table.getTableHeader().setBackground(new Color(240, 243, 248));
-        table.getTableHeader().setForeground(ThemeUtils.COLOR_TEXT);
+        table.getTableHeader().setFont(ThemeUtils.FONT_SMALL_BOLD);
+        table.getTableHeader().setBackground(ThemeUtils.COLOR_TABLE_HEADER_BG);
+        table.getTableHeader().setForeground(ThemeUtils.COLOR_TABLE_HEADER_TEXT);
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
-        table.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, ThemeUtils.COLOR_PRIMARY));
+        table.getTableHeader().setBorder(BorderFactory.createEmptyBorder());
 
         // 对齐方式
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
@@ -209,13 +209,13 @@ public class RuleConfigPanel extends JPanel {
         // 【3】美化垂直滚动条
         JScrollBar verticalBar = scroll.getVerticalScrollBar();
         verticalBar.setPreferredSize(new Dimension(10, 0));
-        verticalBar.setBackground(new Color(248, 245, 240));
+        verticalBar.setBackground(ThemeUtils.COLOR_BG);
         verticalBar.setBorder(BorderFactory.createEmptyBorder());
 
         // 【4】美化水平滚动条
         JScrollBar horizontalBar = scroll.getHorizontalScrollBar();
         horizontalBar.setPreferredSize(new Dimension(0, 10));
-        horizontalBar.setBackground(new Color(248, 245, 240));
+        horizontalBar.setBackground(ThemeUtils.COLOR_BG);
         horizontalBar.setBorder(BorderFactory.createEmptyBorder());
 
         // 【5】滚动面板边框（增加排序提示）

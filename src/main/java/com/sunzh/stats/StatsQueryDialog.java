@@ -50,20 +50,20 @@ public class StatsQueryDialog extends BaseDialog {
 
     // ---- 主题颜色 ----
     private static final Color BG = ThemeUtils.COLOR_BG;
-    private static final Color CARD = Color.WHITE;
+    private static final Color CARD = ThemeUtils.COLOR_BG_CARD;
     private static final Color PRIMARY = ThemeUtils.COLOR_PRIMARY;
-    private static final Color HEADER_BG = new Color(230, 234, 240);
-    private static final Color TABLE_HEADER_BG = new Color(45, 62, 80);
-    private static final Color TABLE_HEADER_FG = Color.WHITE;
+    private static final Color HEADER_BG = ThemeUtils.COLOR_BG;
+    private static final Color TABLE_HEADER_BG = ThemeUtils.COLOR_TABLE_HEADER_BG;
+    private static final Color TABLE_HEADER_FG = ThemeUtils.COLOR_TABLE_HEADER_TEXT;
     private static final Color BORDER = ThemeUtils.COLOR_BORDER;
     private static final Color TEXT = ThemeUtils.COLOR_TEXT;
     private static final Color TEXT_SEC = ThemeUtils.COLOR_TEXT_SECONDARY;
 
-    private static final Font FONT_TITLE = new Font("SansSerif", Font.BOLD, 18);
-    private static final Font FONT_BTN = new Font("SansSerif", Font.BOLD, 13);
-    private static final Font FONT_NORMAL = new Font("SansSerif", Font.PLAIN, 13);
-    private static final Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 12);
-    private static final Font FONT_BOLD = new Font("SansSerif", Font.BOLD, 13);
+    private static final Font FONT_TITLE = ThemeUtils.FONT_SUBTITLE;
+    private static final Font FONT_BTN = ThemeUtils.FONT_BOLD;
+    private static final Font FONT_NORMAL = ThemeUtils.FONT_NORMAL;
+    private static final Font FONT_SMALL = ThemeUtils.FONT_SMALL;
+    private static final Font FONT_BOLD = ThemeUtils.FONT_BOLD;
 
     private static final int CARD_MAX_HEIGHT = 490;
     private static final int TABLE_PREFERRED_HEIGHT = 230;
@@ -547,7 +547,7 @@ public class StatsQueryDialog extends BaseDialog {
 
             // ---- 导出按钮 ----
             JButton expBtn = new JButton("⬇ 导出");
-            expBtn.setFont(new Font("SansSerif", Font.PLAIN, 11));
+            expBtn.setFont(ThemeUtils.FONT_SMALL);
             expBtn.setBackground(new Color(239, 248, 237));
             expBtn.setForeground(new Color(29, 143, 40));
             expBtn.setFocusPainted(false);
@@ -558,7 +558,7 @@ public class StatsQueryDialog extends BaseDialog {
 
             // ---- 图表按钮 ----
             JButton chartBtn = new JButton("📊 图表");
-            chartBtn.setFont(new Font("SansSerif", Font.PLAIN, 11));
+            chartBtn.setFont(ThemeUtils.FONT_SMALL);
             chartBtn.setBackground(new Color(233, 242, 252));
             chartBtn.setForeground(new Color(33, 102, 206));
             chartBtn.setFocusPainted(false);
@@ -807,7 +807,7 @@ public class StatsQueryDialog extends BaseDialog {
                 PiePlot<String> plot = (PiePlot<String>) chart.getPlot();
                 plot.setBackgroundPaint(Color.WHITE);
                 plot.setOutlineVisible(false);
-                plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 11));
+                plot.setLabelFont(ThemeUtils.FONT_SMALL);
                 // 切片较多时标签容易挤在一起，只保留名称+百分比，完整数值放图例里看
                 plot.setLabelGenerator(categoryCount > 8
                         ? new StandardPieSectionLabelGenerator("{0}: {2}")
@@ -872,8 +872,8 @@ public class StatsQueryDialog extends BaseDialog {
 
                 // ---- X 轴（分类轴）：文字太长/太多就自动倾斜，避免被截断看不见 ----
                 CategoryAxis domainAxis = plot.getDomainAxis();
-                domainAxis.setLabelFont(new Font("SansSerif", Font.BOLD, 12));
-                domainAxis.setTickLabelFont(new Font("SansSerif", Font.PLAIN, 11));
+                domainAxis.setLabelFont(ThemeUtils.FONT_SMALL_BOLD);
+                domainAxis.setTickLabelFont(ThemeUtils.FONT_SMALL);
                 domainAxis.setCategoryMargin(valCols.size() > 1 ? 0.25 : 0.15);
                 domainAxis.setMaximumCategoryLabelWidthRatio(100f); // 不强制截断标签
                 if (categoryCount > 12 || maxLabelLen > 10) {
@@ -890,8 +890,8 @@ public class StatsQueryDialog extends BaseDialog {
                 // ---- Y 轴（数值轴）：千分位分隔，数字更好读 ----
                 if (plot.getRangeAxis() instanceof NumberAxis) {
                     NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-                    rangeAxis.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
-                    rangeAxis.setTickLabelFont(new Font("SansSerif", Font.PLAIN, 11));
+                    rangeAxis.setLabelFont(ThemeUtils.FONT_SMALL);
+                    rangeAxis.setTickLabelFont(ThemeUtils.FONT_SMALL);
                     rangeAxis.setNumberFormatOverride(NumberFormat.getNumberInstance());
                     rangeAxis.setAutoRangeIncludesZero(true);
                 }
@@ -907,7 +907,7 @@ public class StatsQueryDialog extends BaseDialog {
                         renderer.setSeriesOutlinePaint(i, Color.WHITE);
                     }
                     renderer.setDefaultItemLabelsVisible(valCols.size() == 1 && categoryCount <= 15);
-                    renderer.setDefaultItemLabelFont(new Font("SansSerif", Font.PLAIN, 10));
+                    renderer.setDefaultItemLabelFont(ThemeUtils.FONT_SMALL);
                     renderer.setDefaultItemLabelPaint(new Color(78, 88, 102));
                 } else if (kind == ChartKind.AREA) {
                     AreaRenderer renderer = (AreaRenderer) plot.getRenderer();
@@ -930,7 +930,7 @@ public class StatsQueryDialog extends BaseDialog {
                         renderer.setSeriesPaint(i, PIE_PALETTE[i % PIE_PALETTE.length]);
                     }
                     renderer.setDefaultItemLabelsVisible(valCols.size() == 1 && categoryCount <= 20);
-                    renderer.setDefaultItemLabelFont(new Font("SansSerif", Font.PLAIN, 10));
+                    renderer.setDefaultItemLabelFont(ThemeUtils.FONT_SMALL);
                     renderer.setDefaultItemLabelPaint(new Color(78, 88, 102));
                 }
             }
@@ -939,10 +939,10 @@ public class StatsQueryDialog extends BaseDialog {
             chart.setBackgroundPaint(Color.WHITE);
             chart.setBorderVisible(false);
             chart.setPadding(new RectangleInsets(8, 8, 8, 8));
-            chart.getTitle().setFont(new Font("SansSerif", Font.BOLD, 17));
+            chart.getTitle().setFont(ThemeUtils.FONT_SUBTITLE);
             chart.getTitle().setPaint(new Color(53, 63, 79));
             if (chart.getLegend() != null) {
-                chart.getLegend().setItemFont(new Font("SansSerif", Font.PLAIN, 12));
+                chart.getLegend().setItemFont(ThemeUtils.FONT_SMALL);
                 chart.getLegend().setBackgroundPaint(Color.WHITE);
                 chart.getLegend().setBorder(0, 0, 0, 0);
             }
