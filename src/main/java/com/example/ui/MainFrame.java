@@ -236,19 +236,19 @@ public class MainFrame extends JFrame {
         qualityMenu.setFont(menuFont);
         qualityMenu.setIcon(SvgIconUtils.get("check", 16, null));
 
-        JMenuItem configItem = new JMenuItem("规则配置");
+        JMenuItem configItem = new JMenuItem("1.检查和清洗规则配置");
         configItem.setFont(itemFont);
         configItem.setIcon(SvgIconUtils.get("settings", 16, null));
         configItem.addActionListener(e -> openRuleConfigDialog());
         qualityMenu.add(configItem);
 
-        JMenuItem genItem = new JMenuItem("生成检查脚本");
+        JMenuItem genItem = new JMenuItem("2.针对表生成检查和数据清洗脚本");
         genItem.setFont(itemFont);
         genItem.setIcon(SvgIconUtils.get("file-code", 16, null));
         genItem.addActionListener(e -> openGenerateScriptDialog());
         qualityMenu.add(genItem);
 
-        JMenuItem execItem = new JMenuItem("执行批次");
+        JMenuItem execItem = new JMenuItem("3.执行检查和数据清洗");
         execItem.setFont(itemFont);
         execItem.setIcon(SvgIconUtils.get("play", 16, null));
         execItem.addActionListener(e -> openExecuteBatchDialog());
@@ -259,7 +259,7 @@ public class MainFrame extends JFrame {
 
         menuBar.add(funcMenu);
 
-        JMenu helpMenu = new JMenu("帮助");
+        JMenu helpMenu = new JMenu("帮助!");
         helpMenu.setFont(menuFont);
         JMenuItem aboutItem = new JMenuItem("关于");
         aboutItem.setFont(itemFont);

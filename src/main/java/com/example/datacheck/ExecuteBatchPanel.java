@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -17,12 +18,13 @@ import java.util.List;
 /**
  * 执行批次面板 - 美化版（含明细查询）
  * 布局：明细表格 60% + 执行日志 40%，日志默认可见
+ * 支持点击列头排序，支持横向滚动，列宽自适应
  */
 public class ExecuteBatchPanel extends JPanel {
 
     // ==================== 组件定义 ====================
     private JComboBox<String> batchCombo;
-    private JButton executeBtn, refreshBtn, queryBtn;
+    private JButton executeBtn, queryBtn;
     private JTextArea logArea;
     private JTable detailTable;
     private DetailTableModel detailTableModel;
@@ -34,6 +36,7 @@ public class ExecuteBatchPanel extends JPanel {
     private JLabel statusLabel;
     private String currentBatchId;
     private JSplitPane splitPane;
+    private JScrollPane tableScrollPane;
 
     // ==================== 构造方法 ====================
 
@@ -51,7 +54,6 @@ public class ExecuteBatchPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBackground(ThemeUtils.COLOR_BG);
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        // 设置面板首选大小，使对话框默认更大
         setPreferredSize(new Dimension(1100, 750));
     }
 
@@ -73,7 +75,6 @@ public class ExecuteBatchPanel extends JPanel {
                 BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
 
-        // 参数面板
         JPanel paramPanel = new JPanel(new GridBagLayout());
         paramPanel.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -117,10 +118,8 @@ public class ExecuteBatchPanel extends JPanel {
         ));
         paramPanel.add(batchCombo, gbc);
 
-        // ========== 第2行：按钮 ==========
+        // 第2行按钮
         row++;
-
-        // 查询按钮
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.weightx = 0;
@@ -129,7 +128,6 @@ public class ExecuteBatchPanel extends JPanel {
         queryBtn.addActionListener(e -> queryDetail());
         paramPanel.add(queryBtn, gbc);
 
-        // 执行按钮
         gbc.gridx = 1;
         gbc.weightx = 0;
         executeBtn = createSuccessButton("执行批次", "play");
@@ -137,51 +135,23 @@ public class ExecuteBatchPanel extends JPanel {
         executeBtn.addActionListener(e -> executeSelectedBatch());
         paramPanel.add(executeBtn, gbc);
 
-        // 刷新批次列表按钮
-        gbc.gridx = 2;
-        gbc.weightx = 0;
-        refreshBtn = createStyledButton("刷新批次", "refresh");
-        refreshBtn.setPreferredSize(new Dimension(110, 34));
-        refreshBtn.addActionListener(e -> loadBatchIds());
-        paramPanel.add(refreshBtn, gbc);
-
-        // 刷新明细按钮
-        gbc.gridx = 3;
-        gbc.weightx = 0;
-        JButton refreshDetailBtn = createStyledButton("刷新明细", "refresh");
-        refreshDetailBtn.setPreferredSize(new Dimension(110, 34));
-        refreshDetailBtn.addActionListener(e -> {
-            if (currentBatchId != null) {
-                loadDetailData(currentBatchId);
-            } else {
-                JOptionPane.showMessageDialog(this, "请先选择批次并点击「查询明细」", "提示", JOptionPane.WARNING_MESSAGE);
-            }
-        });
-        paramPanel.add(refreshDetailBtn, gbc);
-
         topPanel.add(paramPanel, BorderLayout.CENTER);
         add(topPanel, BorderLayout.NORTH);
     }
 
     /**
      * 中间区域：明细表格（上） + 日志（下）
-     * 使用比例分割，保证日志区域始终可见
      */
     private void initContentPanel() {
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        // 使用比例分割：明细 60%，日志 40%
         splitPane.setResizeWeight(0.6);
         splitPane.setDividerLocation(0.6);
         splitPane.setBorder(BorderFactory.createEmptyBorder());
         splitPane.setOpaque(false);
         splitPane.setDividerSize(6);
 
-        // ---- 上半部分：明细表格 ----
         JPanel tablePanel = createTablePanel();
-
-        // ---- 下半部分：日志区域 ----
         JPanel logPanel = createLogPanel();
-        // 设置日志区域最小高度，防止被压缩到看不见
         logPanel.setMinimumSize(new Dimension(0, 150));
 
         splitPane.setTopComponent(tablePanel);
@@ -191,7 +161,7 @@ public class ExecuteBatchPanel extends JPanel {
     }
 
     /**
-     * 创建明细表格面板
+     * 创建明细表格面板 - 启用列排序，支持横向滚动
      */
     private JPanel createTablePanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -199,6 +169,11 @@ public class ExecuteBatchPanel extends JPanel {
 
         detailTableModel = new DetailTableModel();
         detailTable = new JTable(detailTableModel);
+
+        // 启用列排序
+        detailTable.setAutoCreateRowSorter(true);
+        // 关闭自动调整列宽，启用横向滚动
+        detailTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         // 表格基础样式
         detailTable.setRowHeight(30);
@@ -218,44 +193,34 @@ public class ExecuteBatchPanel extends JPanel {
         detailTable.getTableHeader().setPreferredSize(new Dimension(0, 32));
         detailTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, ThemeUtils.COLOR_PRIMARY));
 
-        // 对齐方式
+        // 居中对齐
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i < detailTable.getColumnCount(); i++) {
             detailTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
-        // 设置列宽
-        detailTable.getColumnModel().getColumn(0).setPreferredWidth(60);
-        detailTable.getColumnModel().getColumn(1).setPreferredWidth(100);
-        detailTable.getColumnModel().getColumn(2).setPreferredWidth(120);
-        detailTable.getColumnModel().getColumn(3).setPreferredWidth(50);
-        detailTable.getColumnModel().getColumn(4).setPreferredWidth(70);
-        detailTable.getColumnModel().getColumn(5).setPreferredWidth(70);
-        detailTable.getColumnModel().getColumn(6).setPreferredWidth(70);
-        detailTable.getColumnModel().getColumn(7).setPreferredWidth(70);
-        detailTable.getColumnModel().getColumn(8).setPreferredWidth(60);
+        // 滚动面板
+        tableScrollPane = new JScrollPane(detailTable);
+        tableScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        tableScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tableScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        tableScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
 
-        JScrollPane scroll = new JScrollPane(detailTable);
-        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        scroll.getHorizontalScrollBar().setUnitIncrement(16);
-
-        JScrollBar verticalBar = scroll.getVerticalScrollBar();
+        JScrollBar verticalBar = tableScrollPane.getVerticalScrollBar();
         verticalBar.setPreferredSize(new Dimension(10, 0));
         verticalBar.setBackground(new Color(248, 245, 240));
         verticalBar.setBorder(BorderFactory.createEmptyBorder());
 
-        JScrollBar horizontalBar = scroll.getHorizontalScrollBar();
+        JScrollBar horizontalBar = tableScrollPane.getHorizontalScrollBar();
         horizontalBar.setPreferredSize(new Dimension(0, 10));
         horizontalBar.setBackground(new Color(248, 245, 240));
         horizontalBar.setBorder(BorderFactory.createEmptyBorder());
 
-        scroll.setBorder(BorderFactory.createCompoundBorder(
+        tableScrollPane.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                        "📋 批次明细数据",
+                        "📋 批次明细数据（点击列头排序）",
                         TitledBorder.LEFT,
                         TitledBorder.TOP,
                         new Font("Microsoft YaHei", Font.BOLD, 14),
@@ -263,15 +228,70 @@ public class ExecuteBatchPanel extends JPanel {
                 ),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
-        scroll.getViewport().setBackground(Color.WHITE);
-        scroll.getViewport().setOpaque(true);
+        tableScrollPane.getViewport().setBackground(Color.WHITE);
+        tableScrollPane.getViewport().setOpaque(true);
 
-        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(tableScrollPane, BorderLayout.CENTER);
         return panel;
     }
 
     /**
-     * 创建日志面板 - 带初始提示，确保日志区域默认可见
+     * 调整列宽以适应内容
+     */
+    private void adjustColumnWidths() {
+        if (detailTable.getRowCount() == 0) {
+            setDefaultColumnWidths();
+            return;
+        }
+
+        try {
+            int minWidth = 60;
+            int maxWidth = 300;
+            int headerPadding = 15;
+
+            for (int col = 0; col < detailTable.getColumnCount(); col++) {
+                TableColumn column = detailTable.getColumnModel().getColumn(col);
+                String headerText = detailTable.getColumnName(col);
+                int headerWidth = getTextWidth(headerText) + headerPadding;
+
+                int maxDataWidth = headerWidth;
+                for (int row = 0; row < Math.min(detailTable.getRowCount(), 200); row++) {
+                    Object value = detailTable.getValueAt(row, col);
+                    if (value != null) {
+                        int textWidth = getTextWidth(value.toString()) + 10;
+                        if (textWidth > maxDataWidth) {
+                            maxDataWidth = textWidth;
+                        }
+                    }
+                }
+
+                int preferredWidth = Math.min(Math.max(maxDataWidth, minWidth), maxWidth);
+                column.setPreferredWidth(preferredWidth);
+                column.setMinWidth(Math.min(preferredWidth, 80));
+                column.setMaxWidth(maxWidth);
+            }
+        } catch (Exception e) {
+            setDefaultColumnWidths();
+        }
+    }
+
+    private int getTextWidth(String text) {
+        Font font = detailTable.getFont();
+        FontMetrics fm = detailTable.getFontMetrics(font);
+        return fm.stringWidth(text);
+    }
+
+    private void setDefaultColumnWidths() {
+        int[] widths = {60, 100, 100, 120, 120, 50, 70, 70, 70, 70, 80};
+        for (int i = 0; i < Math.min(widths.length, detailTable.getColumnCount()); i++) {
+            TableColumn col = detailTable.getColumnModel().getColumn(i);
+            col.setPreferredWidth(widths[i]);
+            col.setMinWidth(Math.min(widths[i], 80));
+        }
+    }
+
+    /**
+     * 创建日志面板 - 带初始提示
      */
     private JPanel createLogPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -312,11 +332,11 @@ public class ExecuteBatchPanel extends JPanel {
         scroll.getViewport().setBackground(new Color(248, 245, 240));
         scroll.getViewport().setOpaque(true);
 
-        // 初始化日志内容，显示操作指南，避免空白
+        // 初始化日志
         logArea.append("═══════════════════════════════════════════════════════════\n");
         logArea.append("  📌 执行日志区域\n");
         logArea.append("  ─────────────────────────────────────────────────────────\n");
-        logArea.append("  1. 选择数据源 → 点击「刷新批次」加载批次列表\n");
+        logArea.append("  1. 选择数据源 → 自动加载批次列表\n");
         logArea.append("  2. 选择批次 → 点击「查询明细」查看数据\n");
         logArea.append("  3. 选择批次 → 点击「执行批次」执行检查和清洗\n");
         logArea.append("═══════════════════════════════════════════════════════════\n");
@@ -325,9 +345,8 @@ public class ExecuteBatchPanel extends JPanel {
         return panel;
     }
 
-    /**
-     * 创建标签
-     */
+    // ==================== 辅助方法 ====================
+
     private JLabel createLabel(String text) {
         JLabel label = new JLabel(text);
         label.setFont(ThemeUtils.FONT_NORMAL);
@@ -336,9 +355,6 @@ public class ExecuteBatchPanel extends JPanel {
         return label;
     }
 
-    /**
-     * 创建主要按钮
-     */
     private JButton createPrimaryButton(String text, String icon) {
         JButton btn = new JButton(text);
         btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
@@ -351,9 +367,6 @@ public class ExecuteBatchPanel extends JPanel {
         return btn;
     }
 
-    /**
-     * 创建成功按钮
-     */
     private JButton createSuccessButton(String text, String icon) {
         JButton btn = new JButton(text);
         btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
@@ -367,24 +380,6 @@ public class ExecuteBatchPanel extends JPanel {
     }
 
     /**
-     * 创建样式按钮
-     */
-    private JButton createStyledButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.get(icon, 16, ThemeUtils.COLOR_PRIMARY));
-        btn.setBackground(ThemeUtils.COLOR_BG_CARD);
-        btn.setForeground(ThemeUtils.COLOR_TEXT);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                BorderFactory.createEmptyBorder(4, 12, 4, 12)
-        ));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
-    }
-
-    /**
      * 底部状态栏
      */
     private void initStatusBar() {
@@ -392,7 +387,7 @@ public class ExecuteBatchPanel extends JPanel {
         statusPanel.setOpaque(false);
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        statusLabel = new JLabel("就绪");
+        statusLabel = new JLabel("💡 点击列头可排序");
         statusLabel.setFont(ThemeUtils.FONT_SMALL);
         statusLabel.setForeground(ThemeUtils.COLOR_TEXT_SECONDARY);
         statusPanel.add(statusLabel);
@@ -436,9 +431,6 @@ public class ExecuteBatchPanel extends JPanel {
 
     // ==================== 业务逻辑 ====================
 
-    /**
-     * 加载批次列表
-     */
     private void loadBatchIds() {
         DataSource ds = getSelectedDataSource();
         if (ds == null) {
@@ -482,9 +474,6 @@ public class ExecuteBatchPanel extends JPanel {
         }.execute();
     }
 
-    /**
-     * 查询明细数据
-     */
     private void queryDetail() {
         String batchId = (String) batchCombo.getSelectedItem();
         if (batchId == null || batchId.isEmpty() || batchId.startsWith("--")) {
@@ -496,9 +485,6 @@ public class ExecuteBatchPanel extends JPanel {
         loadDetailData(batchId);
     }
 
-    /**
-     * 加载指定批次的明细数据
-     */
     private void loadDetailData(String batchId) {
         DataSource ds = getSelectedDataSource();
         if (ds == null) {
@@ -520,6 +506,8 @@ public class ExecuteBatchPanel extends JPanel {
                     detailTableModel.setData(list);
                     setStatus("加载成功，批次: " + batchId + "，共 " + list.size() + " 条记录");
                     logArea.append("已加载批次 " + batchId + " 的明细数据，共 " + list.size() + " 条记录\n");
+                    // 加载完成后调整列宽
+                    SwingUtilities.invokeLater(() -> adjustColumnWidths());
                 } catch (Exception e) {
                     setStatus("加载失败");
                     logArea.append("加载明细失败: " + e.getCause().getMessage() + "\n");
@@ -532,9 +520,6 @@ public class ExecuteBatchPanel extends JPanel {
         }.execute();
     }
 
-    /**
-     * 执行选中的批次
-     */
     private void executeSelectedBatch() {
         String batchId = (String) batchCombo.getSelectedItem();
         if (batchId == null || batchId.isEmpty() || batchId.startsWith("--")) {
@@ -570,7 +555,6 @@ public class ExecuteBatchPanel extends JPanel {
                     logArea.append("✅ 批次执行成功！\n");
                     setStatus("执行成功");
                     displayBatchSummary(batchId, ds);
-                    // 执行完成后自动刷新明细
                     loadDetailData(batchId);
                 } catch (Exception ex) {
                     logArea.append("❌ 执行失败: " + ex.getCause().getMessage() + "\n");
@@ -583,9 +567,6 @@ public class ExecuteBatchPanel extends JPanel {
         }.execute();
     }
 
-    /**
-     * 显示批次执行汇总
-     */
     private void displayBatchSummary(String batchId, DataSource ds) {
         try {
             List<DataCheckDetail> list = detailDao.findByBatchId(batchId, ds);
@@ -603,10 +584,10 @@ public class ExecuteBatchPanel extends JPanel {
             logArea.append("  ├─────────────────────────────────────────────────┤\n");
             logArea.append("  │  检查阶段: 成功=" + String.format("%-3d", checkSuccess) +
                     "  失败=" + String.format("%-3d", checkError) +
-                    "  等待=" + String.format("%-3d", checkWaiting) + "     │\n");
+                    "  不需要检查=" + String.format("%-3d", checkWaiting) + "     │\n");
             logArea.append("  │  清洗阶段: 成功=" + String.format("%-3d", cleanSuccess) +
                     "  失败=" + String.format("%-3d", cleanError) +
-                    "  等待=" + String.format("%-3d", cleanWaiting) + "     │\n");
+                    "  不需要检查=" + String.format("%-3d", cleanWaiting) + "     │\n");
             logArea.append("  └─────────────────────────────────────────────────┘\n");
         } catch (SQLException e) {
             logArea.append("获取明细汇总失败: " + e.getMessage() + "\n");
@@ -619,7 +600,8 @@ public class ExecuteBatchPanel extends JPanel {
 
     private static class DetailTableModel extends AbstractTableModel {
         private static final String[] COLUMNS = {
-                "log_id", "列名", "规则名称", "优先级", "检查状态", "异常行数", "清洗状态", "清洗行数", "执行标志"
+                "log_id", "表所有者", "表名", "列名", "规则名称",
+                "优先级", "检查状态", "异常行数", "清洗状态", "清洗行数", "执行标志"
         };
         private List<DataCheckDetail> data = new ArrayList<>();
 
@@ -655,26 +637,18 @@ public class ExecuteBatchPanel extends JPanel {
         public Object getValueAt(int row, int col) {
             DataCheckDetail d = data.get(row);
             switch (col) {
-                case 0:
-                    return d.getLogId();
-                case 1:
-                    return d.getColumnName();
-                case 2:
-                    return d.getRuleName();
-                case 3:
-                    return d.getPriority();
-                case 4:
-                    return d.getCheckStatus();
-                case 5:
-                    return d.getCheckRowCount();
-                case 6:
-                    return d.getCleanStatus();
-                case 7:
-                    return d.getCleanRowCount();
-                case 8:
-                    return d.getExecFlag();
-                default:
-                    return null;
+                case 0:  return d.getLogId();
+                case 1:  return d.getTableOwner();
+                case 2:  return d.getTableName();
+                case 3:  return d.getColumnName();
+                case 4:  return d.getRuleName();
+                case 5:  return d.getPriority();
+                case 6:  return d.getCheckStatus();
+                case 7:  return d.getCheckRowCount();
+                case 8:  return d.getCleanStatus();
+                case 9:  return d.getCleanRowCount();
+                case 10: return d.getExecFlag();
+                default: return null;
             }
         }
     }

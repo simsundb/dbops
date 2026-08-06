@@ -17,6 +17,7 @@ import java.util.List;
 
 /**
  * 数据校验规则配置面板 - 美化版
+ * 支持点击列头排序
  */
 public class RuleConfigPanel extends JPanel {
 
@@ -177,11 +178,14 @@ public class RuleConfigPanel extends JPanel {
     }
 
     /**
-     * 表格区域 - 增加滚动条
+     * 表格区域 - 增加滚动条和列排序
      */
     private void initTable() {
         tableModel = new ConfigTableModel();
         table = new JTable(tableModel);
+
+        // ★★★ 启用列排序 ★★★
+        table.setAutoCreateRowSorter(true);
 
         // 表格基础样式
         table.setRowHeight(30);
@@ -223,7 +227,7 @@ public class RuleConfigPanel extends JPanel {
         // ==================== 滚动面板配置 ====================
         JScrollPane scroll = new JScrollPane(table);
 
-        // 【1】设置滚动条策略：始终显示垂直滚动条，水平滚动条按需显示
+        // 【1】设置滚动条策略
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
@@ -243,11 +247,11 @@ public class RuleConfigPanel extends JPanel {
         horizontalBar.setBackground(new Color(248, 245, 240));
         horizontalBar.setBorder(BorderFactory.createEmptyBorder());
 
-        // 【5】滚动面板边框
+        // 【5】滚动面板边框（增加排序提示）
         scroll.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                        "📋 规则列表",
+                        "📋 规则列表（点击列头排序）",
                         TitledBorder.LEFT,
                         TitledBorder.TOP,
                         new Font("Microsoft YaHei", Font.BOLD, 14),
@@ -257,11 +261,6 @@ public class RuleConfigPanel extends JPanel {
         ));
         scroll.getViewport().setBackground(Color.WHITE);
         scroll.getViewport().setOpaque(true);
-
-        // 【6】添加滚动条监听（可选：显示行数信息）
-        scroll.getVerticalScrollBar().addAdjustmentListener(e -> {
-            // 可以在此添加滚动监听，比如加载更多数据
-        });
 
         add(scroll, BorderLayout.CENTER);
     }
@@ -274,7 +273,7 @@ public class RuleConfigPanel extends JPanel {
         statusPanel.setOpaque(false);
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        statusLabel = new JLabel("就绪");
+        statusLabel = new JLabel("💡 点击列头可排序");
         statusLabel.setFont(ThemeUtils.FONT_SMALL);
         statusLabel.setForeground(ThemeUtils.COLOR_TEXT_SECONDARY);
         statusPanel.add(statusLabel);
@@ -289,22 +288,27 @@ public class RuleConfigPanel extends JPanel {
     }
 
     private void handleEdit(ActionEvent e) {
-        int row = table.getSelectedRow();
-        if (row >= 0) {
-            showConfigDialog(tableModel.getRowData(row));
-        } else {
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) {
             JOptionPane.showMessageDialog(this, "请选择一条记录", "提示", JOptionPane.WARNING_MESSAGE);
+            return;
         }
+        // ★★★ 将视图索引转换为模型索引 ★★★
+        int modelRow = table.convertRowIndexToModel(viewRow);
+        showConfigDialog(tableModel.getRowData(modelRow));
     }
 
     private void handleDelete(ActionEvent e) {
-        int row = table.getSelectedRow();
-        if (row < 0) {
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) {
             JOptionPane.showMessageDialog(this, "请选择一条记录", "提示", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        DataCheckConfig config = tableModel.getRowData(row);
+        // ★★★ 将视图索引转换为模型索引 ★★★
+        int modelRow = table.convertRowIndexToModel(viewRow);
+        DataCheckConfig config = tableModel.getRowData(modelRow);
+
         int confirm = JOptionPane.showConfirmDialog(
                 this,
                 "确定删除规则ID = " + config.getRuleId() + " ？",
@@ -481,7 +485,7 @@ public class RuleConfigPanel extends JPanel {
     }
 
     // ================================================================
-    //  编辑对话框（美化版）
+    //  编辑对话框（保持不变）
     // ================================================================
 
     private class ConfigDialog extends JDialog {
@@ -508,7 +512,6 @@ public class RuleConfigPanel extends JPanel {
             setBackground(Color.WHITE);
             setLayout(new BorderLayout(10, 10));
 
-            // 内容面板
             JPanel contentPanel = new JPanel(new GridBagLayout());
             contentPanel.setBackground(Color.WHITE);
             contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 15, 20));
@@ -518,10 +521,8 @@ public class RuleConfigPanel extends JPanel {
             gbc.fill = GridBagConstraints.HORIZONTAL;
             gbc.weightx = 0;
 
-            // 构建表单
             buildForm(contentPanel, gbc);
 
-            // 按钮面板
             JPanel btnPanel = buildButtonPanel();
             add(contentPanel, BorderLayout.CENTER);
             add(btnPanel, BorderLayout.SOUTH);
@@ -535,108 +536,69 @@ public class RuleConfigPanel extends JPanel {
         private void buildForm(JPanel panel, GridBagConstraints gbc) {
             int row = 0;
 
-            // 规则ID
-            gbc.gridx = 0;
-            gbc.gridy = row;
+            gbc.gridx = 0; gbc.gridy = row;
             panel.add(createLabel("规则ID:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             ruleIdField = createTextField(12, false);
             panel.add(ruleIdField, gbc);
 
-            // 数据库类型
-            gbc.gridx = 0;
-            gbc.gridy = ++row;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = ++row; gbc.weightx = 0;
             panel.add(createLabel("数据库类型:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             dbTypeCombo = new JComboBox<>(new String[]{"ORACLE", "GAUSSDB"});
             dbTypeCombo.setFont(ThemeUtils.FONT_NORMAL);
             dbTypeCombo.setBackground(Color.WHITE);
             panel.add(dbTypeCombo, gbc);
 
-            // 规则类型
-            gbc.gridx = 0;
-            gbc.gridy = ++row;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = ++row; gbc.weightx = 0;
             panel.add(createLabel("规则类型:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             ruleTypeField = createTextField(15, true);
             panel.add(ruleTypeField, gbc);
 
-            // 规则名称
-            gbc.gridx = 0;
-            gbc.gridy = ++row;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = ++row; gbc.weightx = 0;
             panel.add(createLabel("规则名称:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             ruleNameField = createTextField(15, true);
             panel.add(ruleNameField, gbc);
 
-            // 执行标志
-            gbc.gridx = 0;
-            gbc.gridy = ++row;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = ++row; gbc.weightx = 0;
             panel.add(createLabel("执行标志:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             execFlagCombo = new JComboBox<>(new String[]{"Y", "N"});
             execFlagCombo.setFont(ThemeUtils.FONT_NORMAL);
             execFlagCombo.setBackground(Color.WHITE);
             panel.add(execFlagCombo, gbc);
 
-            // 适用数据类型
-            gbc.gridx = 0;
-            gbc.gridy = ++row;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = ++row; gbc.weightx = 0;
             panel.add(createLabel("适用数据类型:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             applyDataTypeCombo = new JComboBox<>(new String[]{"STRING", "NUMBER", "DATE", "ALL"});
             applyDataTypeCombo.setFont(ThemeUtils.FONT_NORMAL);
             applyDataTypeCombo.setBackground(Color.WHITE);
             panel.add(applyDataTypeCombo, gbc);
 
-            // 检查条件
-            gbc.gridx = 0;
-            gbc.gridy = ++row;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = ++row; gbc.weightx = 0;
             panel.add(createLabel("检查条件:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             checkConditionField = createTextField(20, true);
             panel.add(checkConditionField, gbc);
 
-            // 清洗表达式
-            gbc.gridx = 0;
-            gbc.gridy = ++row;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = ++row; gbc.weightx = 0;
             panel.add(createLabel("清洗表达式:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             cleanExpressionField = createTextField(20, true);
             panel.add(cleanExpressionField, gbc);
 
-            // 优先级
-            gbc.gridx = 0;
-            gbc.gridy = ++row;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = ++row; gbc.weightx = 0;
             panel.add(createLabel("优先级:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             priorityField = createTextField(5, true);
             panel.add(priorityField, gbc);
 
-            // 描述
-            gbc.gridx = 0;
-            gbc.gridy = ++row;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = ++row; gbc.weightx = 0;
             panel.add(createLabel("描述:"), gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             ruleDescField = createTextField(20, true);
             panel.add(ruleDescField, gbc);
         }
@@ -684,19 +646,14 @@ public class RuleConfigPanel extends JPanel {
 
             btnPanel.add(okBtn);
             btnPanel.add(cancelBtn);
-
             return btnPanel;
         }
 
-        /**
-         * 填充已有数据到表单
-         */
         private void populateFormData() {
             if (config == null) {
                 ruleIdField.setText("自动");
                 return;
             }
-
             ruleIdField.setText(String.valueOf(config.getRuleId()));
             dbTypeCombo.setSelectedItem(config.getDbType());
             ruleTypeField.setText(config.getRuleType());
@@ -709,9 +666,6 @@ public class RuleConfigPanel extends JPanel {
             ruleDescField.setText(config.getRuleDesc());
         }
 
-        /**
-         * 保存表单数据
-         */
         private void save() {
             try {
                 DataCheckConfig c = new DataCheckConfig();
