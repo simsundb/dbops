@@ -4,21 +4,28 @@ import com.sunzh.utils.SvgIconUtils;
 import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 
 /**
- * 功能对话框基类 — 自定义标题栏（岩系冷调）
+ * 功能对话框基类 — 现代圆角 + 轻阴影风格
  * 所有功能对话框继承此类，统一管理窗口行为和外观
  * 子类调用 super(owner, title, iconName) 设置标题和图标
  */
 public abstract class BaseDialog extends JDialog {
+
     protected JFrame owner;
-    private String titleText;
-    private String iconName;
+    private final String titleText;
+    private final String iconName;
     protected JPanel mainContentPanel;
+    private final int cornerRadius = 20;          // 圆角大小
+    private final int shadowSize = 8;             // 阴影尺寸
 
     public BaseDialog(JFrame owner, String title) {
         this(owner, title, null);
@@ -34,28 +41,76 @@ public abstract class BaseDialog extends JDialog {
 
         buildRootPanel();
         initUI();                      // 子类构建界面
-        applyAdaptiveSize();           // ★ 自适应屏幕尺寸 + 最小尺寸
+        applyAdaptiveSize();
         setLocationRelativeTo(owner);
-        setResizable(true);            // 允许用户调整大小
+        setResizable(true);
+
+        // 使窗口透明（用于圆角 + 阴影）
+        setBackground(new Color(0, 0, 0, 0));
+        // 监听尺寸变化，更新圆角形状
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                setShape(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius));
+            }
+        });
+        // 初始形状
+        SwingUtilities.invokeLater(() -> {
+            setShape(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius));
+        });
     }
 
     private void buildRootPanel() {
-        JPanel root = new JPanel(new BorderLayout());
-        root.setBackground(ThemeUtils.COLOR_BG);
+        // 根面板：带阴影的圆角容器
+        JPanel root = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // 绘制阴影（右下方向偏移）
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int shadow = shadowSize;
+                int w = getWidth();
+                int h = getHeight();
+                // 绘制半透明阴影矩形（偏移 4px）
+                g2d.setColor(new Color(0, 0, 0, 40));
+                g2d.fillRoundRect(shadow / 2, shadow / 2, w - shadow, h - shadow, cornerRadius, cornerRadius);
+                g2d.dispose();
+            }
+        };
+        root.setOpaque(false);
+        root.setBorder(BorderFactory.createEmptyBorder(shadowSize / 2, shadowSize / 2, shadowSize / 2, shadowSize / 2));
 
-        // 自定义标题栏
-        root.add(createTitleBar(), BorderLayout.NORTH);
+        // 主内容面板（带圆角背景）
+        JPanel content = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int w = getWidth();
+                int h = getHeight();
+                // 白色背景，带微弱渐变
+                GradientPaint gp = new GradientPaint(0, 0, new Color(252, 253, 255),
+                        0, h, new Color(245, 248, 250));
+                g2d.setPaint(gp);
+                g2d.fillRoundRect(0, 0, w, h, cornerRadius, cornerRadius);
+                g2d.dispose();
+            }
+        };
+        content.setOpaque(false);
+        content.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        // 内容区域（留给子类填充）
+        // 标题栏
+        content.add(createTitleBar(), BorderLayout.NORTH);
+
+        // 内容区域（留给子类填充），设置内边距
         mainContentPanel = new JPanel(new BorderLayout());
         mainContentPanel.setOpaque(false);
-        root.add(mainContentPanel, BorderLayout.CENTER);
+        mainContentPanel.setBorder(new EmptyBorder(12, 16, 16, 16));
+        content.add(mainContentPanel, BorderLayout.CENTER);
 
-        // 外边框阴影效果
-        root.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                BorderFactory.createEmptyBorder()));
-
+        root.add(content, BorderLayout.CENTER);
         setContentPane(root);
     }
 
@@ -65,7 +120,6 @@ public abstract class BaseDialog extends JDialog {
         int width = (int) (screen.width * 0.8);
         int height = (int) (screen.height * 0.8);
         setSize(width, height);
-        // 设置最小尺寸，防止用户拖拽过小导致界面错乱
         setMinimumSize(new Dimension(900, 650));
     }
 
@@ -75,37 +129,44 @@ public abstract class BaseDialog extends JDialog {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
+                Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
-                GradientPaint gp = new GradientPaint(0, 0, new Color(50, 74, 97), w, 0, new Color(72, 102, 132));
+                // 渐变：深蓝到稍亮蓝（现代运维风格标题栏）
+                GradientPaint gp = new GradientPaint(0, 0, ThemeUtils.COLOR_HEADER_BG,
+                        0, h, ThemeUtils.COLOR_HEADER_BG.brighter());
                 g2d.setPaint(gp);
-                g2d.fillRect(0, 0, w, h);
-                g2d.setColor(new Color(130, 170, 210, 50));
-                g2d.drawLine(0, h - 1, w, h - 1);
+                g2d.fillRoundRect(0, 0, w, h, cornerRadius, cornerRadius);
+                // 仅顶部圆角，底部不圆
+                g2d.fillRect(0, cornerRadius / 2, w, h - cornerRadius / 2);
+                // 底部细发光线条
+                g2d.setColor(new Color(160, 190, 220, 80));
+                g2d.setStroke(new BasicStroke(1.2f));
+                g2d.drawLine(10, h - 1, w - 10, h - 1);
+                g2d.dispose();
             }
         };
-        titleBar.setPreferredSize(new Dimension(0, 46));
+        titleBar.setPreferredSize(new Dimension(0, 52));
         titleBar.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 4));
+        titleBar.setOpaque(false);
 
         // 左侧占位（保持标题居中）
         JPanel leftSpacer = new JPanel();
         leftSpacer.setOpaque(false);
-        leftSpacer.setPreferredSize(new Dimension(40, 46));
+        leftSpacer.setPreferredSize(new Dimension(40, 52));
         titleBar.add(leftSpacer, BorderLayout.WEST);
 
-        // 中央：图标 + 标题（完全垂直水平居中）
+        // 中央：图标 + 标题
         JPanel centerPanel = new JPanel(new GridBagLayout());
         centerPanel.setOpaque(false);
-
         GridBagConstraints cb = new GridBagConstraints();
         cb.gridx = 0;
         cb.gridy = 0;
         cb.anchor = GridBagConstraints.CENTER;
-        cb.insets = new Insets(0, 0, 0, 8);
+        cb.insets = new Insets(0, 0, 0, 10);
 
         if (iconName != null && !iconName.trim().isEmpty()) {
-            JLabel iconLbl = new JLabel(SvgIconUtils.get(iconName, 20, new Color(200, 218, 235)));
+            JLabel iconLbl = new JLabel(SvgIconUtils.get(iconName, 22, new Color(200, 218, 235)));
             iconLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
             centerPanel.add(iconLbl, cb);
             cb.insets = new Insets(0, 0, 0, 0);
@@ -113,8 +174,10 @@ public abstract class BaseDialog extends JDialog {
         }
 
         JLabel titleLbl = new JLabel(titleText);
-        titleLbl.setFont(new Font("Microsoft YaHei", Font.BOLD, 15));
-        titleLbl.setForeground(new Color(232, 240, 248));
+        titleLbl.setFont(ThemeUtils.FONT_SUBTITLE);
+        titleLbl.setForeground(ThemeUtils.COLOR_HEADER_TEXT);
+        // 增加字距
+        titleLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         centerPanel.add(titleLbl, cb);
 
         titleBar.add(centerPanel, BorderLayout.CENTER);
@@ -122,23 +185,39 @@ public abstract class BaseDialog extends JDialog {
         // 右侧：关闭按钮
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rightPanel.setOpaque(false);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 
-        JButton closeBtn = new JButton();
-        closeBtn.setPreferredSize(new Dimension(32, 32));
+        JButton closeBtn = new JButton() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isRollover()) {
+                    g2d.setColor(new Color(255, 255, 255, 30));
+                    g2d.fillOval(0, 0, getWidth(), getHeight());
+                }
+                if (getModel().isPressed()) {
+                    g2d.setColor(new Color(255, 255, 255, 50));
+                    g2d.fillOval(0, 0, getWidth(), getHeight());
+                }
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+        closeBtn.setPreferredSize(new Dimension(36, 36));
         closeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         closeBtn.setFocusPainted(false);
         closeBtn.setBorderPainted(false);
         closeBtn.setContentAreaFilled(false);
         closeBtn.setOpaque(false);
-        closeBtn.setIcon(createCloseIcon(16, new Color(190, 208, 225)));
-        closeBtn.setRolloverIcon(createCloseIcon(16, new Color(245, 100, 95)));
+        closeBtn.setIcon(createCloseIcon(18, new Color(190, 208, 225)));
+        closeBtn.setRolloverIcon(createCloseIcon(18, new Color(245, 120, 115)));
         closeBtn.addActionListener(e -> dispose());
         rightPanel.add(closeBtn);
 
         titleBar.add(rightPanel, BorderLayout.EAST);
 
-        // 拖动窗口（整个标题栏）
+        // 拖拽监听
         DragListener dl = new DragListener();
         titleBar.addMouseListener(dl);
         titleBar.addMouseMotionListener(dl);
@@ -146,14 +225,14 @@ public abstract class BaseDialog extends JDialog {
         return titleBar;
     }
 
-    /** 绘制关闭按钮的 X 图标 */
+    /** 绘制关闭按钮的 X 图标（更精致） */
     private ImageIcon createCloseIcon(int size, Color color) {
         BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setStroke(new BasicStroke(2));
+        g.setStroke(new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g.setColor(color);
-        int p = 3;
+        int p = 4;
         g.drawLine(p, p, size - p, size - p);
         g.drawLine(size - p, p, p, size - p);
         g.dispose();
@@ -175,6 +254,7 @@ public abstract class BaseDialog extends JDialog {
         }
     }
 
+    /** 子类必须实现此方法构建界面 */
     protected abstract void initUI();
 
     @Override
@@ -183,7 +263,8 @@ public abstract class BaseDialog extends JDialog {
         super.setVisible(visible);
     }
 
+    /** 子类可重写，用于刷新数据 */
     public void refresh() {
-        // 子类可重写
+        // 默认无操作
     }
 }

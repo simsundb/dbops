@@ -4,6 +4,7 @@ import com.sunzh.comparison.panels.*;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.ui.components.WidgetFactory;
 import com.sunzh.utils.ThemeUtils;
 import com.sunzh.utils.SvgIconUtils;
 
@@ -42,7 +43,7 @@ public class ComparisonDialog extends BaseDialog {
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         topPanel.setOpaque(false);
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
-        topPanel.add(SvgIconUtils.label("database", "数据源:", 14, ThemeUtils.COLOR_TEXT));
+        topPanel.add(WidgetFactory.iconLabelWithText("database", "数据源:", 14, ThemeUtils.COLOR_TEXT));
         dataSourceCombo = new JComboBox<>();
         loadDataSources();
         topPanel.add(dataSourceCombo);

@@ -3,7 +3,9 @@ package com.sunzh.sync;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.ui.components.WidgetFactory;
 import com.sunzh.utils.SvgIconUtils;
+import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -19,31 +21,30 @@ import java.util.concurrent.*;
 
 public class DataSyncDialog extends BaseDialog {
 
-    // -------------------- 颜色和字体 --------------------
-    private static final Color BG           = new Color(240, 242, 245);
-    private static final Color CARD         = Color.WHITE;
-    private static final Color PRIMARY      = new Color(70, 110, 150);
-    private static final Color PRIMARY_H    = new Color(55, 90, 130);
-    private static final Color DANGER       = new Color(221, 68, 68);
-    private static final Color DANGER_H     = new Color(187, 34, 34);
-    private static final Color WARN         = new Color(230, 138, 0);
-    private static final Color TEXT         = new Color(34, 51, 68);
-    private static final Color TEXT_SEC     = new Color(136, 153, 170);
-    // private static final Color BORDER       = new Color(221, 224, 230);
-        private static final Color BORDER       = new Color(210, 215, 222);
-    private static final Color INPUT_BG     = new Color(250, 251, 252);
-    private static final Color LOG_BG       = new Color(26, 26, 30);
-    private static final Color LOG_FG       = new Color(204, 221, 238);
-    private static final Color LOG_INFO     = new Color(102, 187, 255);
-    private static final Color LOG_OK       = new Color(85, 204, 119);
-    private static final Color LOG_ERR      = new Color(255, 102, 102);
+    // -------------------- 颜色和字体（统一映射到 ThemeUtils） --------------------
+    private static final Color BG           = ThemeUtils.COLOR_BG;
+    private static final Color CARD         = ThemeUtils.COLOR_BG_CARD;
+    private static final Color PRIMARY      = ThemeUtils.COLOR_PRIMARY;
+    private static final Color PRIMARY_H    = ThemeUtils.COLOR_PRIMARY_DARK;
+    private static final Color DANGER       = ThemeUtils.COLOR_DANGER;
+    private static final Color DANGER_H     = ThemeUtils.COLOR_DANGER_LIGHT;
+    private static final Color WARN         = ThemeUtils.COLOR_WARNING;
+    private static final Color TEXT         = ThemeUtils.COLOR_TEXT;
+    private static final Color TEXT_SEC     = ThemeUtils.COLOR_TEXT_SECONDARY;
+    private static final Color BORDER       = ThemeUtils.COLOR_BORDER;
+    private static final Color INPUT_BG     = ThemeUtils.COLOR_BG_INPUT;
+    private static final Color LOG_BG       = ThemeUtils.COLOR_LOG_BG;
+    private static final Color LOG_FG       = ThemeUtils.COLOR_LOG_TEXT;
+    private static final Color LOG_INFO     = ThemeUtils.COLOR_LOG_INFO;
+    private static final Color LOG_OK       = ThemeUtils.COLOR_LOG_SUCCESS;
+    private static final Color LOG_ERR      = ThemeUtils.COLOR_LOG_ERROR;
 
-    private static final Font FONT_TITLE = new Font("SansSerif", Font.BOLD, 18);
-    private static final Font FONT_BTN   = new Font("SansSerif", Font.BOLD, 14);
+    private static final Font FONT_TITLE = ThemeUtils.FONT_SUBTITLE;
+    private static final Font FONT_BTN   = ThemeUtils.FONT_BOLD;
     private static final Font FONT_LOG   = new Font("Monospaced", Font.PLAIN, 12);
-    private static final Font FONT_FIELD = new Font("SansSerif", Font.PLAIN, 13);
-    private static final Font FONT_BOLD  = new Font("SansSerif", Font.BOLD, 13);
-    private static final Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 12);
+    private static final Font FONT_FIELD = ThemeUtils.FONT_NORMAL;
+    private static final Font FONT_BOLD  = ThemeUtils.FONT_BOLD;
+    private static final Font FONT_SMALL = ThemeUtils.FONT_SMALL;
 
     // -------------------- UI 组件 --------------------
     private JTextArea logArea;
@@ -179,7 +180,7 @@ public class DataSyncDialog extends BaseDialog {
         mapTopPanel.setLayout(new BoxLayout(mapTopPanel, BoxLayout.Y_AXIS));
         mapTopPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel mapTitle = SvgIconUtils.labelWithFont("table", "表映射", FONT_BOLD, TEXT);
+        JLabel mapTitle = WidgetFactory.labelWithFont("table", "表映射", FONT_BOLD, TEXT);
         mapTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         mapTopPanel.add(mapTitle);
         mapTopPanel.add(Box.createVerticalStrut(4));
@@ -313,7 +314,7 @@ public class DataSyncDialog extends BaseDialog {
         mapTopPanel.setLayout(new BoxLayout(mapTopPanel, BoxLayout.Y_AXIS));
         mapTopPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel mapTitle = SvgIconUtils.labelWithFont("table", "表映射", FONT_BOLD, TEXT);
+        JLabel mapTitle = WidgetFactory.labelWithFont("table", "表映射", FONT_BOLD, TEXT);
         mapTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         mapTopPanel.add(mapTitle);
         mapTopPanel.add(Box.createVerticalStrut(4));
@@ -537,7 +538,7 @@ public class DataSyncDialog extends BaseDialog {
 
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
-        top.add(SvgIconUtils.labelWithFont("log", "执行日志", FONT_BOLD, TEXT), BorderLayout.WEST);
+        top.add(WidgetFactory.labelWithFont("log", "执行日志", FONT_BOLD, TEXT), BorderLayout.WEST);
 
         btnStop = new JButton("终止任务");
         btnStop.setIcon(SvgIconUtils.get("stop", 14, Color.WHITE));

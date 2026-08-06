@@ -22,7 +22,13 @@
       "Bash(sed -i '' 's/上标题\"📋 数据源列表\"/上标题\"数据源列表\"/g' /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/java/com/example/datasource/DataSourceDialog.java)",
       "Bash(sed -i '' 's/\"📋 数据源列表\"/\"数据源列表\"/g' /Users/sunzh.mac/Downloads/12.aliyunp_sync/99.db_project/src/main/java/com/example/datasource/DataSourceDialog.java)",
       "Bash(mvn clean *)",
-      "Bash(mvn test *)"
+      "Bash(mvn test *)",
+      "Bash(nohup java -jar target/gkzx-dbops-1.0.jar)",
+      "Bash(echo \"PID=$!\")",
+      "Read(//tmp/**)",
+      "Bash(awk '{print \"RUNNING PID=\"$2}')",
+      "Bash(screencapture -x /tmp/db_theme_screenshot.png)",
+      "Bash(kill 78310)"
     ]
   }
 }

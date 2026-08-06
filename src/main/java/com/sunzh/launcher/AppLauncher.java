@@ -1,6 +1,7 @@
 package com.sunzh.launcher;
 
 import com.sunzh.ui.MainFrame;
+import com.sunzh.ui.components.WidgetFactory;
 import com.sunzh.utils.ThemeUtils;
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -17,7 +18,10 @@ public class AppLauncher {
             // 2. 然后应用自定义主题配置
             ThemeUtils.applyFlatLafTheme();
 
-            // 3. 额外 UI 调整
+            // 3. 全局组件样式（字体等）
+            WidgetFactory.applyGlobalStyles();
+
+            // 4. 额外 UI 调整
             UIManager.put("TabbedPane.tabInsets", new Insets(8, 16, 8, 16));
             UIManager.put("Table.showGrid", false);
 

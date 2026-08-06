@@ -4,9 +4,8 @@ import com.sunzh.core.ConnectionManager;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
-import com.sunzh.ui.components.CustomButton;
+import com.sunzh.ui.components.WidgetFactory;
 import com.sunzh.utils.ThemeUtils;
-import com.sunzh.utils.SvgIconUtils;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -111,10 +110,7 @@ public class DataSourceDialog extends BaseDialog {
         listScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         panel.add(listScroll, BorderLayout.CENTER);
 
-        JButton btnRefresh = new CustomButton("刷新列表", ThemeUtils.COLOR_PRIMARY);
-        btnRefresh.setIcon(SvgIconUtils.getWhite("refresh", 16));
-        btnRefresh.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btnRefresh.setPreferredSize(new Dimension(110, 32));
+        JButton btnRefresh = WidgetFactory.primaryButton("刷新列表", "refresh");
         btnRefresh.addActionListener(e -> loadData());
 
         JPanel btnBottom = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 4));
@@ -394,39 +390,22 @@ public class DataSourceDialog extends BaseDialog {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         panel.setOpaque(false);
 
-        Dimension btnSize = new Dimension(90, 34);
-
-        JButton btnAdd = new CustomButton("新增", ThemeUtils.COLOR_PRIMARY);
-        btnAdd.setIcon(SvgIconUtils.getWhite("plus", 16));
-        btnAdd.setPreferredSize(btnSize);
-        btnAdd.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        JButton btnAdd = WidgetFactory.primaryButton("新增", "plus");
         btnAdd.addActionListener(e -> {
             dataSourceList.clearSelection();
             clearForm();
         });
 
-        JButton btnCopy = new CustomButton("复制", ThemeUtils.COLOR_PRIMARY);
-        btnCopy.setIcon(SvgIconUtils.getWhite("copy", 16));
-        btnCopy.setPreferredSize(btnSize);
-        btnCopy.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        JButton btnCopy = WidgetFactory.primaryButton("复制", "copy");
         btnCopy.addActionListener(e -> copyDataSource());
 
-        btnSave = new CustomButton("保存", ThemeUtils.COLOR_PRIMARY);
-        btnSave.setIcon(SvgIconUtils.getWhite("save", 16));
-        btnSave.setPreferredSize(btnSize);
-        btnSave.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        btnSave = WidgetFactory.primaryButton("保存", "save");
         btnSave.addActionListener(e -> saveDataSource());
 
-        btnDelete = new CustomButton("删除", ThemeUtils.COLOR_DANGER);
-        btnDelete.setIcon(SvgIconUtils.getWhite("trash", 16));
-        btnDelete.setPreferredSize(btnSize);
-        btnDelete.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        btnDelete = WidgetFactory.dangerButton("删除", "trash");
         btnDelete.addActionListener(e -> deleteSelected());
 
-        btnTest = new CustomButton("测试连接", ThemeUtils.COLOR_PRIMARY);
-        btnTest.setIcon(SvgIconUtils.getWhite("connection", 16));
-        btnTest.setPreferredSize(new Dimension(110, 34));
-        btnTest.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        btnTest = WidgetFactory.primaryButtonLarge("测试连接", "connection");
         btnTest.addActionListener(e -> testConnection());
 
         panel.add(btnAdd);
@@ -443,9 +422,7 @@ public class DataSourceDialog extends BaseDialog {
         panel.setBackground(ThemeUtils.COLOR_BG);
         panel.setBorder(BorderFactory.createEmptyBorder(8, 10, 4, 10));
 
-        JButton btnClose = new CustomButton("关闭", ThemeUtils.COLOR_SECONDARY);
-        btnClose.setFont(ThemeUtils.FONT_BOLD);
-        btnClose.setPreferredSize(new Dimension(80, 32));
+        JButton btnClose = WidgetFactory.closeButton("关闭");
         btnClose.addActionListener(e -> dispose());
         panel.add(btnClose);
 

@@ -2,6 +2,7 @@ package com.sunzh.datacheck;
 
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
+import com.sunzh.ui.components.WidgetFactory;
 import com.sunzh.utils.ThemeUtils;
 import com.sunzh.utils.SvgIconUtils;
 
@@ -356,27 +357,11 @@ public class ExecuteBatchPanel extends JPanel {
     }
 
     private JButton createPrimaryButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(ThemeUtils.COLOR_PRIMARY);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 16));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+        return WidgetFactory.primaryButton(text, icon);
     }
 
     private JButton createSuccessButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(ThemeUtils.COLOR_SUCCESS);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 16));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+        return WidgetFactory.successButton(text, icon);
     }
 
     /**

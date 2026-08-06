@@ -3,6 +3,7 @@ package com.sunzh.ui.dialogs;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.ui.components.WidgetFactory;
 import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
@@ -123,14 +124,7 @@ public class ObjectQueryDialog extends BaseDialog {
         };
         resultTable = new JTable(tableModel);
         resultTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        resultTable.setRowHeight(26);
-        resultTable.setFont(ThemeUtils.FONT_NORMAL);
-        resultTable.getTableHeader().setFont(ThemeUtils.FONT_SMALL_BOLD);
-        resultTable.getTableHeader().setBackground(ThemeUtils.COLOR_PRIMARY);
-        resultTable.getTableHeader().setForeground(Color.WHITE);
-        resultTable.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
-        resultTable.setSelectionBackground(ThemeUtils.COLOR_PRIMARY);
-        resultTable.setSelectionForeground(Color.WHITE);
+        WidgetFactory.applyTableStyle(resultTable);
 
         JScrollPane scrollPane = new JScrollPane(resultTable);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());

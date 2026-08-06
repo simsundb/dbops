@@ -25,8 +25,7 @@ import java.util.Map;
  *   SvgIconUtils.get("search", 24, Color.RED)
  *   // 纯色按钮上的白色图标
  *   SvgIconUtils.getWhite("play", 20)
- *   // 生成带图标和文字按钮
- *   SvgIconUtils.button("sync", "同步", ThemeUtils.COLOR_PRIMARY)
+ *   // 带图标和文字的按钮/标签请使用 com.sunzh.ui.components.WidgetFactory
  *
  * 添加新图标：
  *   1. 下载 SVG 到 src/main/resources/icons/ 目录
@@ -138,90 +137,6 @@ public class SvgIconUtils {
     /** 成功色（绿色）图标：用于成功状态 */
     public static ImageIcon getSuccess(String name, int size) {
         return get(name, size, ThemeUtils.COLOR_SUCCESS);
-    }
-
-    // ================================================================
-    //  按钮工厂 — 生成带图标和文字的 JButton
-    // ================================================================
-
-    /**
-     * 创建一个包含 SVG 图标和文字的按钮。
-     * 图标为白色 16px，按钮使用指定背景色。
-     *
-     * @param iconName SVG 文件名（不含 .svg）
-     * @param text     按钮文字
-     * @param bgColor  按钮背景色
-     */
-    public static JButton button(String iconName, String text, Color bgColor) {
-        ImageIcon icon = get(iconName, 16, Color.WHITE);
-        JButton btn = new JButton(text, icon);
-        btn.setFont(ThemeUtils.FONT_BOLD);
-        btn.setBackground(bgColor);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setOpaque(true);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(bgColor.darker(), 1),
-                BorderFactory.createEmptyBorder(6, 14, 6, 14)));
-        btn.setIconTextGap(6);
-        return btn;
-    }
-
-    /**
-     * 创建一个带图标的 Outline 风格按钮（白色底 + 彩色边框+文字）。
-     *
-     * @param iconName SVG 文件名
-     * @param text     按钮文字
-     * @param color    边框和文字颜色
-     */
-    public static JButton outlineButton(String iconName, String text, Color color) {
-        ImageIcon icon = get(iconName, 16, color);
-        JButton btn = new JButton(text, icon);
-        btn.setFont(ThemeUtils.FONT_BOLD);
-        btn.setForeground(color);
-        btn.setBackground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setOpaque(true);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(color, 1),
-                BorderFactory.createEmptyBorder(5, 12, 5, 12)));
-        btn.setIconTextGap(6);
-        return btn;
-    }
-
-    // ================================================================
-    //  Label 工厂 — 生成带图标的 JLabel
-    // ================================================================
-
-    /** 创建一个带图标的标签（图标 16px，主题色） */
-    public static JLabel label(String iconName, String text) {
-        JLabel label = new JLabel(text, get(iconName, 16), SwingConstants.LEADING);
-        label.setIconTextGap(6);
-        return label;
-    }
-
-    /** 创建一个带图标的标签，指定图标的尺寸和颜色，文字使用默认字体 */
-    public static JLabel label(String iconName, String text, int iconSize, Color color) {
-        JLabel label = new JLabel(text, get(iconName, iconSize, color), SwingConstants.LEADING);
-        label.setIconTextGap(6);
-        return label;
-    }
-
-    /** 创建一个带图标的标签，指定图标尺寸、颜色和文字字体（仅设置图标大小） */
-    public static JLabel labelWithFont(String iconName, String text, Font font, Color color) {
-        int size = font.getSize();
-        JLabel label = new JLabel(text, get(iconName, size, color), SwingConstants.LEADING);
-        label.setIconTextGap(6);
-        label.setFont(font);
-        label.setForeground(color);
-        return label;
-    }
-
-    /** 创建一个只有图标的 JLabel */
-    public static JLabel iconLabel(String iconName, int size, Color color) {
-        return new JLabel(get(iconName, size, color));
     }
 
     // ================================================================

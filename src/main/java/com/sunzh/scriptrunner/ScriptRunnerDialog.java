@@ -3,9 +3,8 @@ package com.sunzh.scriptrunner;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
-import com.sunzh.ui.components.CustomButton;
+import com.sunzh.ui.components.WidgetFactory;
 import com.sunzh.utils.ThemeUtils;
-import com.sunzh.utils.SvgIconUtils;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -128,10 +127,8 @@ public class ScriptRunnerDialog extends BaseDialog {
         sourceCombo.setPreferredSize(new Dimension(250, 30));
         sourcePanel.add(sourceCombo);
 
-        JButton btnRefreshDs = new CustomButton("刷新", ThemeUtils.COLOR_INFO);
-        btnRefreshDs.setIcon(SvgIconUtils.getWhite("refresh", 16));
+        JButton btnRefreshDs = WidgetFactory.infoButton("刷新", "refresh");
         btnRefreshDs.setPreferredSize(new Dimension(80, 28));
-        btnRefreshDs.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnRefreshDs.addActionListener(e -> loadDataSources());
         sourcePanel.add(btnRefreshDs);
 
@@ -139,17 +136,13 @@ public class ScriptRunnerDialog extends BaseDialog {
 
         JPanel fileBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
         fileBtnPanel.setOpaque(false);
-        btnSelectFiles = new CustomButton("选择SQL文件", ThemeUtils.COLOR_PRIMARY);
-        btnSelectFiles.setIcon(SvgIconUtils.getWhite("folder-open", 16));
+        btnSelectFiles = WidgetFactory.primaryButton("选择SQL文件", "folder-open");
         btnSelectFiles.setPreferredSize(new Dimension(120, 30));
-        btnSelectFiles.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnSelectFiles.addActionListener(e -> selectFiles());
         fileBtnPanel.add(btnSelectFiles);
 
-        btnClearFiles = new CustomButton("清空列表", ThemeUtils.COLOR_SECONDARY);
-        btnClearFiles.setIcon(SvgIconUtils.getWhite("clear", 16));
+        btnClearFiles = WidgetFactory.secondaryButton("清空列表", "clear");
         btnClearFiles.setPreferredSize(new Dimension(100, 30));
-        btnClearFiles.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnClearFiles.addActionListener(e -> {
             fileListModel.clear();
             updateFileStats();
@@ -206,24 +199,20 @@ public class ScriptRunnerDialog extends BaseDialog {
         JPanel execPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 8));
         execPanel.setOpaque(false);
 
-        btnExecute = new CustomButton("执行SQL", ThemeUtils.COLOR_SUCCESS);
-        btnExecute.setIcon(SvgIconUtils.getWhite("play", 16));
+        btnExecute = WidgetFactory.successButton("执行SQL", "play");
         btnExecute.setPreferredSize(new Dimension(140, 36));
         btnExecute.setFont(ThemeUtils.FONT_BOLD);
         btnExecute.addActionListener(e -> executeSQLFiles());
         execPanel.add(btnExecute);
 
-        btnInitMigrationTables = new CustomButton("基础表初始化", ThemeUtils.COLOR_INFO);
-        btnInitMigrationTables.setIcon(SvgIconUtils.getWhite("database", 16));
+        btnInitMigrationTables = WidgetFactory.infoButton("基础表初始化", "database");
         btnInitMigrationTables.setPreferredSize(new Dimension(150, 36));
         btnInitMigrationTables.setFont(ThemeUtils.FONT_BOLD);
         btnInitMigrationTables.addActionListener(e -> initMigrationTables());
         execPanel.add(btnInitMigrationTables);
 
-        JButton btnClearLog = new CustomButton("清空日志", ThemeUtils.COLOR_SECONDARY);
-        btnClearLog.setIcon(SvgIconUtils.getWhite("clear", 16));
+        JButton btnClearLog = WidgetFactory.secondaryButton("清空日志", "clear");
         btnClearLog.setPreferredSize(new Dimension(100, 36));
-        btnClearLog.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnClearLog.addActionListener(e -> logArea.setText(""));
         execPanel.add(btnClearLog);
 
@@ -277,31 +266,23 @@ public class ScriptRunnerDialog extends BaseDialog {
         failureSourceCombo.setPreferredSize(new Dimension(200, 28));
         toolBar.add(failureSourceCombo);
 
-        JButton btnRefresh = new CustomButton("刷新", ThemeUtils.COLOR_INFO);
-        btnRefresh.setIcon(SvgIconUtils.getWhite("refresh", 16));
+        JButton btnRefresh = WidgetFactory.infoButton("刷新", "refresh");
         btnRefresh.setPreferredSize(new Dimension(80, 30));
-        btnRefresh.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnRefresh.addActionListener(e -> loadFailureData(currentMode));
         toolBar.add(btnRefresh);
 
-        btnSummary = new CustomButton("汇总", ThemeUtils.COLOR_WARNING);
-        btnSummary.setIcon(SvgIconUtils.getWhite("report", 16));
+        btnSummary = WidgetFactory.warningButton("汇总", "report");
         btnSummary.setPreferredSize(new Dimension(80, 30));
-        btnSummary.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnSummary.addActionListener(e -> loadFailureData("汇总"));
         toolBar.add(btnSummary);
 
-        btnDetail = new CustomButton("明细", ThemeUtils.COLOR_PRIMARY);
-        btnDetail.setIcon(SvgIconUtils.getWhite("list", 16));
+        btnDetail = WidgetFactory.primaryButton("明细", "list");
         btnDetail.setPreferredSize(new Dimension(80, 30));
-        btnDetail.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnDetail.addActionListener(e -> loadFailureData("明细"));
         toolBar.add(btnDetail);
 
-        btnExportExcel = new CustomButton("导出Excel", ThemeUtils.COLOR_SUCCESS);
-        btnExportExcel.setIcon(SvgIconUtils.getWhite("export", 16));
+        btnExportExcel = WidgetFactory.successButton("导出Excel", "export");
         btnExportExcel.setPreferredSize(new Dimension(100, 30));
-        btnExportExcel.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnExportExcel.addActionListener(e -> exportFailureExcel());
         toolBar.add(btnExportExcel);
 
