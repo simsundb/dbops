@@ -35,10 +35,13 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         // 原生标题栏文字不含 emoji（Windows 标题栏字体无彩色 emoji 字形，会显示为方框），
-        // 图标统一由 applyWindowIcon 渲染的窗口图标提供（标题栏左上角 + 任务栏）
-        setTitle("资源管控中心 · 数据库运维管理平台v1.0");
+        // 图标统一由 applyWindowIcon 渲染的窗口图标提供（标题栏左上角 + 任务栏）。
+        // setTitle 被注释以去掉原生标题栏文字与顶栏品牌区的重复（见 createHeaderContent）；
+        // 居中由 applyAdaptiveSize() 末尾的 setLocationRelativeTo(null) 完成。
+//        setTitle("资源管控中心 · 数据库运维管理平台v1.0");
+        // 关键：关闭主窗口必须退出程序，否则进程会残留（只能在任务管理器结束）
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+//        setLocationRelativeTo(null);
 
         SvgIconUtils.applyWindowIcon(this);
         store = new DataSourceStore();
@@ -96,8 +99,8 @@ public class MainFrame extends JFrame {
     private JPanel createHeaderContent() {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
-        header.setPreferredSize(new Dimension(0, 58));
-        header.setBorder(BorderFactory.createEmptyBorder(8, 22, 4, 22));
+        header.setPreferredSize(new Dimension(0, 52));
+        header.setBorder(BorderFactory.createEmptyBorder(6, 22, 2, 22));
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         leftPanel.setOpaque(false);
@@ -178,7 +181,7 @@ public class MainFrame extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         // 透出顶栏海军蓝渐变
         menuBar.setOpaque(false);
-        menuBar.setBorder(BorderFactory.createEmptyBorder(0, 16, 8, 16));
+        menuBar.setBorder(BorderFactory.createEmptyBorder(0, 16, 6, 16));
 
         // 字体与全局一致：顶层菜单用粗体14，下拉项用常规14
         Font menuFont = ThemeUtils.FONT_BOLD;
@@ -328,20 +331,21 @@ public class MainFrame extends JFrame {
         card.setBackground(new Color(255, 255, 255, 235));
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                BorderFactory.createEmptyBorder(40, 60, 40, 60)));
+                BorderFactory.createEmptyBorder(28, 60, 28, 60)));
         // 固定卡片尺寸：宽 600（内容区 478，可排 3 个按钮/行 × 2 行），
-        // 高度 440 保证在最小窗口（900×650）下也完整可见，最下行图标不再被截断。
+        // 高度 420 保证在最小窗口（900×650）下也完整可见，最下行图标不再被截断。
         // 不能只设 maximumSize：GridBagLayout 布局时按 preferredSize 取宽，
         // 默认窗口下卡片会按 960（单行 6 按钮）溢出，最右侧被截断。
-        card.setPreferredSize(new Dimension(600, 440));
-        card.setMaximumSize(new Dimension(600, 440));
+        card.setPreferredSize(new Dimension(600, 420));
+        card.setMaximumSize(new Dimension(600, 420));
 
         JLabel bigIcon = new JLabel(SvgIconUtils.get("monitor", 36, ThemeUtils.COLOR_PRIMARY));
         bigIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
         card.add(bigIcon);
         card.add(Box.createVerticalStrut(14));
 
-        JLabel welcome = new JLabel("欢迎使用资源管控中心·数据库运维管理平台", JLabel.CENTER);
+        // 平台名已显示在顶部品牌区，这里只写"欢迎使用"，避免重复
+        JLabel welcome = new JLabel("欢迎使用", JLabel.CENTER);
         welcome.setFont(new Font("Microsoft YaHei", Font.BOLD, 22));
         welcome.setForeground(ThemeUtils.COLOR_TEXT);
         welcome.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -448,7 +452,8 @@ public class MainFrame extends JFrame {
     // ---- 底部状态栏 ----
     private JPanel createStatusBar() {
         statusBar = new StatusBar();
-        statusBar.setLeftText("资源管控中心 · 数据库运维管理平台 | SunZH");
+        // 平台名已显示在顶部品牌区，状态栏保持简洁的"就绪"，避免重复
+        statusBar.setLeftText("就绪");
         return statusBar;
     }
 
@@ -534,7 +539,7 @@ public class MainFrame extends JFrame {
                         "  7.自定义查询统计\n" +
                         "  8.GaussDB数据库备份\n" +
                         "  9.数据质量规则引擎\n" +   // 新增
-                        "\n作者: 资源管控中心 · SunZhiHui\n" +
+                        "\n作者: 资源管控中心 · SunZh\n" +
                         "时间: 2026-08",
                 "关于", JOptionPane.INFORMATION_MESSAGE);
     }
