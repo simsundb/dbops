@@ -23,7 +23,7 @@ buildNumber.properties
 *.swo
 *~
 # 编辑器临时文件
-*.java.tmp.*
+*.tmp.*
 
 # OS
 .DS_Store
@@ -32,5 +32,14 @@ Thumbs.db
 # Logs
 *.log
 
-# 配置文件（可选择性忽略）
+# 本地配置（仅本机使用，不入库）
 DATASOURCE.JSON
+/config.yaml
+/conf/ssh/ssh_profiles.json
+/conf/inspection/config.yaml
+/conf/inspection/reports/
+/reports/
+.claude/settings.local.json
+/Edit1.txt
+*.xlsx
+hs_err_pid*.log
