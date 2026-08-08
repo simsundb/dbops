@@ -22,6 +22,8 @@ buildNumber.properties
 *.swp
 *.swo
 *~
+# 编辑器临时文件
+*.java.tmp.*
 
 # OS
 .DS_Store
