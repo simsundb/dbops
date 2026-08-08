@@ -127,54 +127,24 @@ public class RuleConfigPanel extends JPanel {
     }
 
     /**
-     * 创建统一样式的按钮（主要按钮）
+     * 创建统一样式的按钮（主要按钮）— Azure Pro 工厂
      */
     private JButton createPrimaryButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(ThemeUtils.COLOR_PRIMARY);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(80, 32));
-        return btn;
+        return SvgIconUtils.button(icon, text, ThemeUtils.COLOR_PRIMARY);
     }
 
     /**
-     * 创建危险按钮（删除）
+     * 创建危险按钮（删除）— Azure Pro 工厂
      */
     private JButton createDangerButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(new Color(220, 50, 50));
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(80, 32));
-        return btn;
+        return SvgIconUtils.button(icon, text, ThemeUtils.COLOR_DANGER);
     }
 
     /**
-     * 创建样式按钮（刷新）
+     * 创建描边按钮（刷新）— Azure Pro 工厂
      */
     private JButton createStyledButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.get(icon, 16, ThemeUtils.COLOR_PRIMARY));
-        btn.setBackground(ThemeUtils.COLOR_BG_CARD);
-        btn.setForeground(ThemeUtils.COLOR_TEXT);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                BorderFactory.createEmptyBorder(4, 12, 4, 12)
-        ));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(80, 32));
-        return btn;
+        return SvgIconUtils.outlineButton(icon, text, ThemeUtils.COLOR_PRIMARY);
     }
 
     /**
@@ -190,18 +160,18 @@ public class RuleConfigPanel extends JPanel {
         // 表格基础样式
         table.setRowHeight(30);
         table.setFont(ThemeUtils.FONT_NORMAL);
-        table.setBackground(Color.WHITE);
-        table.setSelectionBackground(new Color(220, 235, 250));
+        table.setBackground(ThemeUtils.COLOR_BG_CARD);
+        table.setSelectionBackground(ThemeUtils.COLOR_TABLE_SELECTION);
         table.setSelectionForeground(ThemeUtils.COLOR_TEXT);
-        table.setGridColor(new Color(230, 235, 240));
+        table.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
         table.setShowGrid(true);
         table.setShowVerticalLines(false);
         table.setIntercellSpacing(new Dimension(10, 2));
 
         // 表头样式
-        table.getTableHeader().setFont(new Font("Microsoft YaHei", Font.BOLD, 13));
-        table.getTableHeader().setBackground(new Color(240, 243, 248));
-        table.getTableHeader().setForeground(ThemeUtils.COLOR_TEXT);
+        table.getTableHeader().setFont(ThemeUtils.FONT_SMALL_BOLD);
+        table.getTableHeader().setBackground(ThemeUtils.COLOR_TABLE_HEADER_BG);
+        table.getTableHeader().setForeground(ThemeUtils.COLOR_TABLE_HEADER_TEXT);
         table.getTableHeader().setPreferredSize(new Dimension(0, 32));
         table.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, ThemeUtils.COLOR_PRIMARY));
 
@@ -238,28 +208,28 @@ public class RuleConfigPanel extends JPanel {
         // 【3】美化垂直滚动条
         JScrollBar verticalBar = scroll.getVerticalScrollBar();
         verticalBar.setPreferredSize(new Dimension(10, 0));
-        verticalBar.setBackground(new Color(248, 245, 240));
+        verticalBar.setBackground(ThemeUtils.COLOR_BG);
         verticalBar.setBorder(BorderFactory.createEmptyBorder());
 
         // 【4】美化水平滚动条
         JScrollBar horizontalBar = scroll.getHorizontalScrollBar();
         horizontalBar.setPreferredSize(new Dimension(0, 10));
-        horizontalBar.setBackground(new Color(248, 245, 240));
+        horizontalBar.setBackground(ThemeUtils.COLOR_BG);
         horizontalBar.setBorder(BorderFactory.createEmptyBorder());
 
         // 【5】滚动面板边框（增加排序提示）
         scroll.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                        "📋 规则列表（点击列头排序）",
+                        "规则列表（点击列头排序）",
                         TitledBorder.LEFT,
                         TitledBorder.TOP,
-                        new Font("Microsoft YaHei", Font.BOLD, 14),
+                        ThemeUtils.FONT_SUBTITLE,
                         ThemeUtils.COLOR_PRIMARY
                 ),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
-        scroll.getViewport().setBackground(Color.WHITE);
+        scroll.getViewport().setBackground(ThemeUtils.COLOR_BG_CARD);
         scroll.getViewport().setOpaque(true);
 
         add(scroll, BorderLayout.CENTER);
@@ -273,7 +243,7 @@ public class RuleConfigPanel extends JPanel {
         statusPanel.setOpaque(false);
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        statusLabel = new JLabel("💡 点击列头可排序");
+        statusLabel = new JLabel("点击列头可排序");
         statusLabel.setFont(ThemeUtils.FONT_SMALL);
         statusLabel.setForeground(ThemeUtils.COLOR_TEXT_SECONDARY);
         statusPanel.add(statusLabel);
@@ -627,11 +597,13 @@ public class RuleConfigPanel extends JPanel {
             btnPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, ThemeUtils.COLOR_BORDER));
 
             JButton okBtn = new JButton("保存");
-            okBtn.setFont(new Font("Microsoft YaHei", Font.BOLD, 14));
+            okBtn.setFont(ThemeUtils.FONT_BOLD);
             okBtn.setBackground(ThemeUtils.COLOR_PRIMARY);
-            okBtn.setForeground(Color.WHITE);
+            okBtn.setForeground(ThemeUtils.COLOR_TEXT_LIGHT);
             okBtn.setFocusPainted(false);
-            okBtn.setPreferredSize(new Dimension(100, 36));
+            okBtn.setBorder(BorderFactory.createEmptyBorder(
+                    ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X, ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X));
+            okBtn.setPreferredSize(new Dimension(0, ThemeUtils.BTN_HEIGHT));
             okBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
             okBtn.addActionListener(e -> save());
 
@@ -640,7 +612,11 @@ public class RuleConfigPanel extends JPanel {
             cancelBtn.setBackground(ThemeUtils.COLOR_BG_CARD);
             cancelBtn.setForeground(ThemeUtils.COLOR_TEXT);
             cancelBtn.setFocusPainted(false);
-            cancelBtn.setPreferredSize(new Dimension(100, 36));
+            cancelBtn.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
+                    BorderFactory.createEmptyBorder(
+                            ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X, ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X)));
+            cancelBtn.setPreferredSize(new Dimension(0, ThemeUtils.BTN_HEIGHT));
             cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
             cancelBtn.addActionListener(e -> dispose());
 

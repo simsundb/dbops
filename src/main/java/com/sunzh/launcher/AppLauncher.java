@@ -18,8 +18,11 @@ public class AppLauncher {
             ThemeUtils.applyFlatLafTheme();
 
             // 3. 额外 UI 调整
-            UIManager.put("TabbedPane.tabInsets", new Insets(8, 16, 8, 16));
+            UIManager.put("TabbedPane.tabInsets", new Insets(10, 18, 10, 18));
             UIManager.put("Table.showGrid", false);
+            UIManager.put("defaultFont", ThemeUtils.FONT_NORMAL);
+            UIManager.put("Component.focusWidth", 0);
+            UIManager.put("Component.arrowType", "triangle");
 
         } catch (Exception e) {
             e.printStackTrace();

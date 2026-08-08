@@ -66,7 +66,7 @@ public class ExecuteBatchPanel extends JPanel {
         topPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                        "⚙️ 执行控制",
+                        "执行控制",
                         TitledBorder.LEFT,
                         TitledBorder.TOP,
                         ThemeUtils.FONT_SUBTITLE,
@@ -94,7 +94,7 @@ public class ExecuteBatchPanel extends JPanel {
         dataSourceCombo = new JComboBox<>();
         dataSourceCombo.setPreferredSize(new Dimension(200, 32));
         dataSourceCombo.setFont(ThemeUtils.FONT_NORMAL);
-        dataSourceCombo.setBackground(Color.WHITE);
+        dataSourceCombo.setBackground(ThemeUtils.COLOR_BG_INPUT);
         dataSourceCombo.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(2, 8, 2, 8)
@@ -111,7 +111,7 @@ public class ExecuteBatchPanel extends JPanel {
         batchCombo = new JComboBox<>();
         batchCombo.setPreferredSize(new Dimension(280, 32));
         batchCombo.setFont(ThemeUtils.FONT_NORMAL);
-        batchCombo.setBackground(Color.WHITE);
+        batchCombo.setBackground(ThemeUtils.COLOR_BG_INPUT);
         batchCombo.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(2, 8, 2, 8)
@@ -124,14 +124,12 @@ public class ExecuteBatchPanel extends JPanel {
         gbc.gridy = row;
         gbc.weightx = 0;
         queryBtn = createPrimaryButton("查询明细", "search");
-        queryBtn.setPreferredSize(new Dimension(110, 34));
         queryBtn.addActionListener(e -> queryDetail());
         paramPanel.add(queryBtn, gbc);
 
         gbc.gridx = 1;
         gbc.weightx = 0;
         executeBtn = createSuccessButton("执行批次", "play");
-        executeBtn.setPreferredSize(new Dimension(110, 34));
         executeBtn.addActionListener(e -> executeSelectedBatch());
         paramPanel.add(executeBtn, gbc);
 
@@ -178,18 +176,18 @@ public class ExecuteBatchPanel extends JPanel {
         // 表格基础样式
         detailTable.setRowHeight(30);
         detailTable.setFont(ThemeUtils.FONT_NORMAL);
-        detailTable.setBackground(Color.WHITE);
-        detailTable.setSelectionBackground(new Color(220, 235, 250));
+        detailTable.setBackground(ThemeUtils.COLOR_BG_CARD);
+        detailTable.setSelectionBackground(ThemeUtils.COLOR_TABLE_SELECTION);
         detailTable.setSelectionForeground(ThemeUtils.COLOR_TEXT);
-        detailTable.setGridColor(new Color(230, 235, 240));
+        detailTable.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
         detailTable.setShowGrid(true);
         detailTable.setShowVerticalLines(false);
         detailTable.setIntercellSpacing(new Dimension(10, 2));
 
         // 表头样式
-        detailTable.getTableHeader().setFont(new Font("Microsoft YaHei", Font.BOLD, 13));
-        detailTable.getTableHeader().setBackground(new Color(240, 243, 248));
-        detailTable.getTableHeader().setForeground(ThemeUtils.COLOR_TEXT);
+        detailTable.getTableHeader().setFont(ThemeUtils.FONT_SMALL_BOLD);
+        detailTable.getTableHeader().setBackground(ThemeUtils.COLOR_TABLE_HEADER_BG);
+        detailTable.getTableHeader().setForeground(ThemeUtils.COLOR_TABLE_HEADER_TEXT);
         detailTable.getTableHeader().setPreferredSize(new Dimension(0, 32));
         detailTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, ThemeUtils.COLOR_PRIMARY));
 
@@ -209,26 +207,26 @@ public class ExecuteBatchPanel extends JPanel {
 
         JScrollBar verticalBar = tableScrollPane.getVerticalScrollBar();
         verticalBar.setPreferredSize(new Dimension(10, 0));
-        verticalBar.setBackground(new Color(248, 245, 240));
+        verticalBar.setBackground(ThemeUtils.COLOR_BG);
         verticalBar.setBorder(BorderFactory.createEmptyBorder());
 
         JScrollBar horizontalBar = tableScrollPane.getHorizontalScrollBar();
         horizontalBar.setPreferredSize(new Dimension(0, 10));
-        horizontalBar.setBackground(new Color(248, 245, 240));
+        horizontalBar.setBackground(ThemeUtils.COLOR_BG);
         horizontalBar.setBorder(BorderFactory.createEmptyBorder());
 
         tableScrollPane.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                        "📋 批次明细数据（点击列头排序）",
+                        "批次明细数据（点击列头排序）",
                         TitledBorder.LEFT,
                         TitledBorder.TOP,
-                        new Font("Microsoft YaHei", Font.BOLD, 14),
+                        ThemeUtils.FONT_SUBTITLE,
                         ThemeUtils.COLOR_PRIMARY
                 ),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
-        tableScrollPane.getViewport().setBackground(Color.WHITE);
+        tableScrollPane.getViewport().setBackground(ThemeUtils.COLOR_BG_CARD);
         tableScrollPane.getViewport().setOpaque(true);
 
         panel.add(tableScrollPane, BorderLayout.CENTER);
@@ -300,9 +298,9 @@ public class ExecuteBatchPanel extends JPanel {
 
         logArea = new JTextArea();
         logArea.setEditable(false);
-        logArea.setFont(new Font("Consolas", Font.PLAIN, 13));
-        logArea.setBackground(new Color(248, 245, 240));
-        logArea.setForeground(ThemeUtils.COLOR_TEXT);
+        logArea.setFont(ThemeUtils.FONT_LOG);
+        logArea.setBackground(ThemeUtils.COLOR_LOG_BG);
+        logArea.setForeground(ThemeUtils.COLOR_LOG_TEXT);
         logArea.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         logArea.setLineWrap(true);
         logArea.setWrapStyleWord(true);
@@ -315,21 +313,21 @@ public class ExecuteBatchPanel extends JPanel {
 
         JScrollBar verticalBar = scroll.getVerticalScrollBar();
         verticalBar.setPreferredSize(new Dimension(10, 0));
-        verticalBar.setBackground(new Color(248, 245, 240));
+        verticalBar.setBackground(ThemeUtils.COLOR_LOG_BG);
         verticalBar.setBorder(BorderFactory.createEmptyBorder());
 
         scroll.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                        "📋 执行日志",
+                        "执行日志",
                         TitledBorder.LEFT,
                         TitledBorder.TOP,
-                        new Font("Microsoft YaHei", Font.BOLD, 14),
+                        ThemeUtils.FONT_SUBTITLE,
                         ThemeUtils.COLOR_PRIMARY
                 ),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
-        scroll.getViewport().setBackground(new Color(248, 245, 240));
+        scroll.getViewport().setBackground(ThemeUtils.COLOR_LOG_BG);
         scroll.getViewport().setOpaque(true);
 
         // 初始化日志
@@ -356,27 +354,11 @@ public class ExecuteBatchPanel extends JPanel {
     }
 
     private JButton createPrimaryButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(ThemeUtils.COLOR_PRIMARY);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 16));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+        return SvgIconUtils.button(icon, text, ThemeUtils.COLOR_PRIMARY);
     }
 
     private JButton createSuccessButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(ThemeUtils.COLOR_SUCCESS);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 16));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+        return SvgIconUtils.button(icon, text, ThemeUtils.COLOR_SUCCESS);
     }
 
     /**
@@ -387,7 +369,7 @@ public class ExecuteBatchPanel extends JPanel {
         statusPanel.setOpaque(false);
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        statusLabel = new JLabel("💡 点击列头可排序");
+        statusLabel = new JLabel("点击列头可排序");
         statusLabel.setFont(ThemeUtils.FONT_SMALL);
         statusLabel.setForeground(ThemeUtils.COLOR_TEXT_SECONDARY);
         statusPanel.add(statusLabel);

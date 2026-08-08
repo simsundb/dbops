@@ -35,7 +35,7 @@ public class DetailPanel extends JPanel {
         setLayout(new java.awt.BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         initUI();
-        SwingUtilities.invokeLater(this::refreshData);
+        // 不在打开对话框时自动连接数据库，由用户选择数据源/点击刷新后连接
     }
 
     private void initUI() {

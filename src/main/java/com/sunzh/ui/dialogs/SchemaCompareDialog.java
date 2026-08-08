@@ -50,27 +50,5 @@ public class SchemaCompareDialog extends BaseDialog {
         centerPanel.add(hintLabel, gbc);
 
         add(centerPanel, BorderLayout.CENTER);
-
-        // 底部关闭按钮
-        JPanel bottomPanel = createBottomPanel();
-        add(bottomPanel, BorderLayout.SOUTH);
-    }
-
-    private JPanel createBottomPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        panel.setBackground(new Color(245, 247, 250));
-        panel.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
-
-        JButton btnClose = new JButton("关闭");
-        btnClose.setFont(new Font("Microsoft YaHei", Font.BOLD, 12));
-        btnClose.setBackground(new Color(108, 117, 125));
-        btnClose.setForeground(Color.WHITE);
-        btnClose.setFocusPainted(false);
-        btnClose.setBorder(BorderFactory.createEmptyBorder(6, 20, 6, 20));
-        btnClose.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnClose.addActionListener(e -> dispose());
-        panel.add(btnClose);
-
-        return panel;
     }
 }

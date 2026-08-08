@@ -83,7 +83,6 @@ public class DataSyncDialog extends BaseDialog {
         mainContentPanel.add(createLogPanel(), BorderLayout.SOUTH);
 
         // setSize(1280, 900);
-        setLocationRelativeTo(owner);
         refreshAllCombos();
     }
 

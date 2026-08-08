@@ -66,7 +66,7 @@ public class GenerateScriptPanel extends JPanel {
         topPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                        "📝 生成脚本参数",
+                        "生成脚本参数",
                         TitledBorder.LEFT,
                         TitledBorder.TOP,
                         ThemeUtils.FONT_SUBTITLE,
@@ -94,7 +94,7 @@ public class GenerateScriptPanel extends JPanel {
         dataSourceCombo = new JComboBox<>();
         dataSourceCombo.setPreferredSize(new Dimension(180, 32));
         dataSourceCombo.setFont(ThemeUtils.FONT_NORMAL);
-        dataSourceCombo.setBackground(Color.WHITE);
+        dataSourceCombo.setBackground(ThemeUtils.COLOR_BG_INPUT);
         dataSourceCombo.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(2, 8, 2, 8)
@@ -142,7 +142,7 @@ public class GenerateScriptPanel extends JPanel {
         gbc.weightx = 0.8;
         dbTypeCombo = new JComboBox<>(new String[]{"ORACLE", "GAUSSDB"});
         dbTypeCombo.setFont(ThemeUtils.FONT_NORMAL);
-        dbTypeCombo.setBackground(Color.WHITE);
+        dbTypeCombo.setBackground(ThemeUtils.COLOR_BG_INPUT);
         dbTypeCombo.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(2, 8, 2, 8)
@@ -154,17 +154,14 @@ public class GenerateScriptPanel extends JPanel {
         btnPanel.setOpaque(false);
 
         generateBtn = createPrimaryButton("生成脚本", "play");
-        generateBtn.setPreferredSize(new Dimension(120, 34));
         generateBtn.addActionListener(e -> generateScript());
         btnPanel.add(generateBtn);
 
         JButton refreshBtn = createStyledButton("刷新明细", "refresh");
-        refreshBtn.setPreferredSize(new Dimension(120, 34));
         refreshBtn.addActionListener(e -> loadLatestBatch());
         btnPanel.add(refreshBtn);
 
         JButton saveRefreshBtn = createSaveRefreshButton("保存并刷新", "save");
-        saveRefreshBtn.setPreferredSize(new Dimension(130, 34));
         saveRefreshBtn.addActionListener(e -> saveChanges(true));
         btnPanel.add(saveRefreshBtn);
 
@@ -190,69 +187,23 @@ public class GenerateScriptPanel extends JPanel {
     }
 
     private JButton createPrimaryButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(ThemeUtils.COLOR_PRIMARY);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 16));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+        return SvgIconUtils.button(icon, text, ThemeUtils.COLOR_PRIMARY);
     }
 
     private JButton createStyledButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.get(icon, 16, ThemeUtils.COLOR_PRIMARY));
-        btn.setBackground(ThemeUtils.COLOR_BG_CARD);
-        btn.setForeground(ThemeUtils.COLOR_TEXT);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                BorderFactory.createEmptyBorder(4, 12, 4, 12)
-        ));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+        return SvgIconUtils.outlineButton(icon, text, ThemeUtils.COLOR_PRIMARY);
     }
 
     private JButton createSaveRefreshButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(new Color(200, 155, 75));
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(130, 32));
-        return btn;
+        return SvgIconUtils.button(icon, text, ThemeUtils.COLOR_WARNING);
     }
 
     private JButton createSuccessButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(ThemeUtils.COLOR_SUCCESS);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(110, 32));
-        return btn;
+        return SvgIconUtils.button(icon, text, ThemeUtils.COLOR_SUCCESS);
     }
 
     private JButton createDangerButton(String text, String icon) {
-        JButton btn = new JButton(text);
-        btn.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        btn.setIcon(SvgIconUtils.getWhite(icon, 14));
-        btn.setBackground(new Color(190, 65, 55));
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(110, 32));
-        return btn;
+        return SvgIconUtils.button(icon, text, ThemeUtils.COLOR_DANGER);
     }
 
     // ==================== 表格初始化 ====================
@@ -269,18 +220,18 @@ public class GenerateScriptPanel extends JPanel {
         // 表格基础样式
         detailTable.setRowHeight(30);
         detailTable.setFont(ThemeUtils.FONT_NORMAL);
-        detailTable.setBackground(Color.WHITE);
-        detailTable.setSelectionBackground(new Color(220, 235, 250));
+        detailTable.setBackground(ThemeUtils.COLOR_BG_CARD);
+        detailTable.setSelectionBackground(ThemeUtils.COLOR_TABLE_SELECTION);
         detailTable.setSelectionForeground(ThemeUtils.COLOR_TEXT);
-        detailTable.setGridColor(new Color(230, 235, 240));
+        detailTable.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
         detailTable.setShowGrid(true);
         detailTable.setShowVerticalLines(false);
         detailTable.setIntercellSpacing(new Dimension(10, 2));
 
         // 表头样式
-        detailTable.getTableHeader().setFont(new Font("Microsoft YaHei", Font.BOLD, 13));
-        detailTable.getTableHeader().setBackground(new Color(240, 243, 248));
-        detailTable.getTableHeader().setForeground(ThemeUtils.COLOR_TEXT);
+        detailTable.getTableHeader().setFont(ThemeUtils.FONT_SMALL_BOLD);
+        detailTable.getTableHeader().setBackground(ThemeUtils.COLOR_TABLE_HEADER_BG);
+        detailTable.getTableHeader().setForeground(ThemeUtils.COLOR_TABLE_HEADER_TEXT);
         detailTable.getTableHeader().setPreferredSize(new Dimension(0, 32));
         detailTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, ThemeUtils.COLOR_PRIMARY));
 
@@ -303,26 +254,26 @@ public class GenerateScriptPanel extends JPanel {
 
         JScrollBar verticalBar = tableScrollPane.getVerticalScrollBar();
         verticalBar.setPreferredSize(new Dimension(10, 0));
-        verticalBar.setBackground(new Color(248, 245, 240));
+        verticalBar.setBackground(ThemeUtils.COLOR_BG);
         verticalBar.setBorder(BorderFactory.createEmptyBorder());
 
         JScrollBar horizontalBar = tableScrollPane.getHorizontalScrollBar();
         horizontalBar.setPreferredSize(new Dimension(0, 10));
-        horizontalBar.setBackground(new Color(248, 245, 240));
+        horizontalBar.setBackground(ThemeUtils.COLOR_BG);
         horizontalBar.setBorder(BorderFactory.createEmptyBorder());
 
         tableScrollPane.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
-                        "📋 明细记录（双击行或单击执行标志列快速切换）",
+                        "明细记录（双击行或单击执行标志列快速切换）",
                         TitledBorder.LEFT,
                         TitledBorder.TOP,
-                        new Font("Microsoft YaHei", Font.BOLD, 14),
+                        ThemeUtils.FONT_SUBTITLE,
                         ThemeUtils.COLOR_PRIMARY
                 ),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
-        tableScrollPane.getViewport().setBackground(Color.WHITE);
+        tableScrollPane.getViewport().setBackground(ThemeUtils.COLOR_BG_CARD);
         tableScrollPane.getViewport().setOpaque(true);
 
         add(tableScrollPane, BorderLayout.CENTER);
@@ -713,7 +664,7 @@ public class GenerateScriptPanel extends JPanel {
         statusPanel.setOpaque(false);
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        statusLabel = new JLabel("💡 点击列头排序，双击行或单击执行标志列切换 Y/N，点击保存按钮生效");
+        statusLabel = new JLabel("点击列头排序，双击行或单击执行标志列切换 Y/N，点击保存按钮生效");
         statusLabel.setFont(ThemeUtils.FONT_SMALL);
         statusLabel.setForeground(ThemeUtils.COLOR_TEXT_SECONDARY);
         statusPanel.add(statusLabel);

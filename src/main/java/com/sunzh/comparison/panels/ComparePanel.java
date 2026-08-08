@@ -33,6 +33,7 @@ public class ComparePanel extends JPanel {
     private JCheckBox chkSelectAll;
     private JButton btnCompare;
     private JButton btnReset;
+    private JLabel statusLabel;
 
     private static final String[] TASK_COLUMNS = {
             "选择", "JOB_ID", "任务名称", "任务描述", "源模式", "目标模式", "对比类型",
@@ -46,7 +47,7 @@ public class ComparePanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         initUI();
-        SwingUtilities.invokeLater(this::refreshData);
+        // 不在打开对话框时自动连接数据库，由用户选择数据源/点击刷新后连接
     }
 
     private void initUI() {
@@ -120,6 +121,13 @@ public class ComparePanel extends JPanel {
         summaryScroll.setPreferredSize(new Dimension(800, 120));
         bottomPanel.add(summaryScroll, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.CENTER);
+
+        // 底部状态条：数据库连接/刷新失败时在此显示友好提示（切页签自动刷新失败不弹模态框）
+        statusLabel = new JLabel("", SwingConstants.CENTER);
+        statusLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        statusLabel.setForeground(new Color(150, 60, 60));
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+        add(statusLabel, BorderLayout.SOUTH);
     }
 
     // ----- 样式辅助 -----
@@ -264,6 +272,7 @@ public class ComparePanel extends JPanel {
 
     // ----- 刷新数据 -----
     public void refreshData() {
+        statusLabel.setText("");
         taskModel.setRowCount(0);
         try (Connection conn = parent.getConnection()) {
             ComparisonService service = new ComparisonService(conn);
@@ -297,8 +306,7 @@ public class ComparePanel extends JPanel {
                 });
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "刷新任务列表失败: " + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+            statusLabel.setText("⚠ " + e.getMessage());
         }
         chkSelectAll.setSelected(false);
         autoResizeColumns(taskTable);

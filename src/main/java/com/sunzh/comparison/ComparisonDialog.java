@@ -13,8 +13,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Properties;
 
 public class ComparisonDialog extends BaseDialog {
+    /** 数据库连接超时：Oracle 毫秒，GaussDB/Postgres 秒 */
+    private static final int CONNECT_TIMEOUT_MS = 10_000;
+    private static final int CONNECT_TIMEOUT_SECONDS = 10;
     private JComboBox<DataSource> dataSourceCombo;
     private JTabbedPane tabbedPane;
     private ExtractPanel sourceExtractPanel;
@@ -76,8 +80,6 @@ public class ComparisonDialog extends BaseDialog {
         });
 
         mainContentPanel.add(tabbedPane, BorderLayout.CENTER);
-
-        setLocationRelativeTo(owner);
     }
 
     private void loadDataSources() {
@@ -114,19 +116,32 @@ public class ComparisonDialog extends BaseDialog {
         String url = ds.buildUrl();
         String user = ds.getUser();
         String password = ds.getPassword();
-        return DriverManager.getConnection(url, user, password);
+        Properties props = new Properties();
+        props.setProperty("user", user);
+        props.setProperty("password", password);
+        // 设置连接超时，避免数据库不可达时长时间阻塞界面
+        if ("ORACLE".equalsIgnoreCase(ds.getType())) {
+            props.setProperty("oracle.net.CONNECT_TIMEOUT", String.valueOf(CONNECT_TIMEOUT_MS));
+            props.setProperty("oracle.jdbc.ReadTimeout", String.valueOf(CONNECT_TIMEOUT_MS));
+        } else {
+            props.setProperty("loginTimeout", String.valueOf(CONNECT_TIMEOUT_SECONDS));
+            props.setProperty("connectTimeout", String.valueOf(CONNECT_TIMEOUT_SECONDS));
+        }
+        try {
+            return DriverManager.getConnection(url, props);
+        } catch (SQLException e) {
+            // 包装为友好提示：包含数据源名称/主机端口，Swing 内可直接显示（不会像控制台那样中文乱码）
+            throw new SQLException("无法连接数据源 [" + ds.getName() + "]（" + ds.getHost() + ":" + ds.getPort() + "）。\n请检查主机/端口/账号/密码配置及网络连通性。\n原因：" + e.getMessage(), e);
+        }
     }
 
+    /**
+     * 打开对话框时调用（BaseDialog.setVisible -> refresh）。
+     * 这里只重载数据源下拉框（读本地 JSON，很快），
+     * 绝不连接数据库——连接只发生在用户选择数据源 / 切换页签 / 点击刷新之后。
+     */
     @Override
     public void refresh() {
         loadDataSources();
-        // 刷新所有面板（可选）
-        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-            Component comp = tabbedPane.getComponentAt(i);
-            if (comp instanceof ExtractPanel) ((ExtractPanel) comp).refreshData();
-            else if (comp instanceof TaskConfigPanel) ((TaskConfigPanel) comp).refreshData();
-            else if (comp instanceof ComparePanel) ((ComparePanel) comp).refreshData();
-            else if (comp instanceof DetailPanel) ((DetailPanel) comp).refreshData();
-        }
     }
 }

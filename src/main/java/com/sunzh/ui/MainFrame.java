@@ -149,6 +149,11 @@ public class MainFrame extends JFrame {
         timeLabel.setForeground(new Color(190, 205, 220));
         rightPanel.add(timeLabel);
 
+        JSeparator sep2 = new JSeparator(JSeparator.VERTICAL);
+        sep2.setForeground(new Color(255, 255, 255, 40));
+        sep2.setPreferredSize(new Dimension(1, 18));
+        rightPanel.add(sep2);
+
         header.add(rightPanel, BorderLayout.EAST);
         return header;
     }
@@ -296,7 +301,12 @@ public class MainFrame extends JFrame {
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(190, 200, 215, 150), 1),
                 BorderFactory.createEmptyBorder(40, 60, 40, 60)));
-        card.setMaximumSize(new Dimension(580, 480)); // 略微增高以容纳新按钮
+        // 固定卡片尺寸：宽 600（内容区 480，可排 3 个按钮/行 × 2 行），
+        // 任何窗口大小（含最小 900 宽）下 6 个按钮都完整可见、居中。
+        // 不能只设 maximumSize：GridBagLayout 布局时按 preferredSize 取宽，
+        // 默认窗口下卡片会按 960（单行 6 按钮）溢出，最右侧被截断。
+        card.setPreferredSize(new Dimension(600, 470));
+        card.setMaximumSize(new Dimension(600, 470));
 
         JLabel bigIcon = new JLabel(SvgIconUtils.get("monitor", 48, ThemeUtils.COLOR_PRIMARY));
         bigIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -454,7 +464,12 @@ public class MainFrame extends JFrame {
     // 快捷入口汇总对话框（含三个标签页）
     private void openQualitySummaryDialog() {
         JDialog dialog = new JDialog(this, "数据质量规则引擎", true);
-        dialog.setSize(1100, 750);
+        // 统一自适应大小 + 居中
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        int w = Math.min(1200, (int) (screen.width * 0.85));
+        int h = Math.min(800, (int) (screen.height * 0.85));
+        dialog.setSize(w, h);
+        dialog.setMinimumSize(new Dimension(Math.min(900, w), Math.min(600, h)));
         dialog.setLocationRelativeTo(this);
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("1.规则配置", new com.sunzh.datacheck.RuleConfigPanel());

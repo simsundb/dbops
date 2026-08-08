@@ -3,6 +3,7 @@ package com.sunzh.ssh;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.utils.SvgIconUtils;
 import com.sunzh.utils.ThemeUtils;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ChannelExec;
@@ -50,7 +51,7 @@ public class SshBackupDialog extends BaseDialog {
     private JComboBox<DataSource> dataSourceCombo;
 
     private JButton saveProfileBtn, deleteProfileBtn, newProfileBtn;
-    private JButton executeBtn, stopBtn, closeBtn, clearLogBtn;
+    private JButton executeBtn, stopBtn, clearLogBtn;
     private JButton viewDirBtn;
 
     private JTextArea logArea;
@@ -82,14 +83,20 @@ public class SshBackupDialog extends BaseDialog {
         JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
         rightPanel.setBackground(ThemeUtils.COLOR_BG);
 
-        JPanel topRight = createFormPanel();
-        rightPanel.add(topRight, BorderLayout.NORTH);
+        // 配置详情 + 备份参数 放入可滚动区域，保证任何窗口大小下所有输入框都可见、不被截断
+        JPanel formArea = new JPanel();
+        formArea.setLayout(new BoxLayout(formArea, BoxLayout.Y_AXIS));
+        formArea.setBackground(ThemeUtils.COLOR_BG);
+        formArea.add(createFormPanel());
+        formArea.add(Box.createVerticalStrut(10));
+        formArea.add(createBackupParamsPanel());
 
-        JPanel centerRight = createBackupParamsPanel();
-        rightPanel.add(centerRight, BorderLayout.CENTER);
+        JScrollPane formScroll = new JScrollPane(formArea);
+        formScroll.setBorder(BorderFactory.createEmptyBorder());
+        formScroll.getVerticalScrollBar().setUnitIncrement(16);
 
-        JPanel bottomRight = createBottomPanel();
-        rightPanel.add(bottomRight, BorderLayout.SOUTH);
+        rightPanel.add(formScroll, BorderLayout.CENTER);
+        rightPanel.add(createBottomPanel(), BorderLayout.SOUTH);
 
         mainSplit.setRightComponent(rightPanel);
         add(mainSplit, BorderLayout.CENTER);
@@ -99,10 +106,6 @@ public class SshBackupDialog extends BaseDialog {
             loadProfile(profiles.get(0));
         }
 
-        // ★ 扩大窗口尺寸
-        setSize(1300, 900);
-        setLocationRelativeTo(owner);
-        setResizable(true);
     }
 
     private JPanel createProfileListPanel() {
@@ -136,13 +139,11 @@ public class SshBackupDialog extends BaseDialog {
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 4));
         btnPanel.setOpaque(false);
-        newProfileBtn = new JButton("➕ 新建");
-        newProfileBtn.setFont(ThemeUtils.FONT_SMALL);
+        newProfileBtn = SvgIconUtils.outlineButton("plus", "新建", ThemeUtils.COLOR_PRIMARY);
         newProfileBtn.addActionListener(e -> createNewProfile());
         btnPanel.add(newProfileBtn);
 
-        deleteProfileBtn = new JButton("🗑 删除");
-        deleteProfileBtn.setFont(ThemeUtils.FONT_SMALL);
+        deleteProfileBtn = SvgIconUtils.button("trash", "删除", ThemeUtils.COLOR_DANGER);
         deleteProfileBtn.addActionListener(e -> deleteProfile());
         btnPanel.add(deleteProfileBtn);
 
@@ -168,7 +169,7 @@ public class SshBackupDialog extends BaseDialog {
         gbc.weightx = 0;
         gbc.weighty = 0;
 
-        Dimension fieldSize = new Dimension(180, 24);
+        Dimension fieldSize = new Dimension(220, ThemeUtils.INPUT_HEIGHT);
 
         addLabel(panel, gbc, "配置名称:", 0, 0);
         nameField = createField(15, fieldSize);
@@ -221,13 +222,9 @@ public class SshBackupDialog extends BaseDialog {
         addComponent(panel, gbc, backupDirField, 3, 5);
 
         gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 4;
+        gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.CENTER;
-        saveProfileBtn = new JButton("💾 保存");
-        saveProfileBtn.setBackground(ThemeUtils.COLOR_PRIMARY);
-        saveProfileBtn.setForeground(Color.WHITE);
-        saveProfileBtn.setFocusPainted(false);
-        saveProfileBtn.setBorderPainted(false);
-        saveProfileBtn.setPreferredSize(new Dimension(80, 28));
+        saveProfileBtn = SvgIconUtils.button("save", "保存", ThemeUtils.COLOR_SUCCESS);
         saveProfileBtn.addActionListener(e -> saveCurrentProfile());
         panel.add(saveProfileBtn, gbc);
 
@@ -251,7 +248,8 @@ public class SshBackupDialog extends BaseDialog {
 
     private void addComponent(JPanel panel, GridBagConstraints gbc, JComponent comp, int x, int y) {
         gbc.gridx = x; gbc.gridy = y;
-        gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        // 输入框横向拉伸填满窗口，两个输入列各占 0.5 权重
+        gbc.weightx = 0.5; gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(comp, gbc);
     }
 
@@ -301,12 +299,12 @@ public class SshBackupDialog extends BaseDialog {
 
         addParamLabel(panel, gbc, "格式:", 0, 2, labelSize);
         formatCombo = new JComboBox<>(new String[]{"自定义 (-F c)", "纯文本 (-F p)"});
-        formatCombo.setPreferredSize(new Dimension(180, 25));
+        formatCombo.setPreferredSize(new Dimension(220, ThemeUtils.INPUT_HEIGHT));
         addParamComponent(panel, gbc, formatCombo, 1, 2);
 
         addParamLabel(panel, gbc, "模式名:", 0, 3, labelSize);
         schemaField = new JTextField();
-        schemaField.setPreferredSize(new Dimension(200, 25));
+        schemaField.setPreferredSize(new Dimension(240, ThemeUtils.INPUT_HEIGHT));
         schemaField.setEnabled(false);
         addParamComponent(panel, gbc, schemaField, 1, 3);
 
@@ -318,11 +316,11 @@ public class SshBackupDialog extends BaseDialog {
         tableHint.setForeground(ThemeUtils.COLOR_TEXT_HINT);
         tablePanel.add(tableHint, BorderLayout.NORTH);
 
-        tableListArea = new JTextArea(3, 20);
+        tableListArea = new JTextArea(4, 24);
         tableListArea.setLineWrap(true);
         tableListArea.setEnabled(false);
         JScrollPane tableScroll = new JScrollPane(tableListArea);
-        tableScroll.setPreferredSize(new Dimension(250, 65));
+        tableScroll.setPreferredSize(new Dimension(320, 92));
         tablePanel.add(tableScroll, BorderLayout.CENTER);
         addParamComponent(panel, gbc, tablePanel, 1, 4);
 
@@ -338,7 +336,7 @@ public class SshBackupDialog extends BaseDialog {
         addParamComponent(panel, gbc, dataSourceLabel, 0, 6);
 
         dataSourceCombo = new JComboBox<>();
-        dataSourceCombo.setPreferredSize(new Dimension(200, 25));
+        dataSourceCombo.setPreferredSize(new Dimension(220, ThemeUtils.INPUT_HEIGHT));
         dataSourceCombo.setVisible(false);
         refreshDataSourceCombo();
         addParamComponent(panel, gbc, dataSourceCombo, 1, 6);
@@ -380,7 +378,8 @@ public class SshBackupDialog extends BaseDialog {
 
     private void addParamComponent(JPanel panel, GridBagConstraints gbc, JComponent comp, int x, int y) {
         gbc.gridx = x; gbc.gridy = y;
-        gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        // 组件列横向拉伸填满窗口
+        gbc.weightx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(comp, gbc);
     }
 
@@ -405,21 +404,11 @@ public class SshBackupDialog extends BaseDialog {
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
         btnPanel.setOpaque(false);
-        executeBtn = new JButton("▶ 执行备份");
-        executeBtn.setBackground(ThemeUtils.COLOR_PRIMARY);
-        executeBtn.setForeground(Color.WHITE);
-        executeBtn.setFocusPainted(false);
-        executeBtn.setBorderPainted(false);
-        executeBtn.setPreferredSize(new Dimension(120, 34));
+        executeBtn = SvgIconUtils.button("play", "执行备份", ThemeUtils.COLOR_PRIMARY);
         executeBtn.addActionListener(e -> executeBackup());
         btnPanel.add(executeBtn);
 
-        stopBtn = new JButton("⏹ 终止");
-        stopBtn.setBackground(ThemeUtils.COLOR_DANGER);
-        stopBtn.setForeground(Color.WHITE);
-        stopBtn.setFocusPainted(false);
-        stopBtn.setBorderPainted(false);
-        stopBtn.setPreferredSize(new Dimension(100, 34));
+        stopBtn = SvgIconUtils.button("stop", "终止", ThemeUtils.COLOR_DANGER);
         stopBtn.setEnabled(false);
         stopBtn.addActionListener(e -> stopBackup());
         btnPanel.add(stopBtn);
@@ -430,39 +419,20 @@ public class SshBackupDialog extends BaseDialog {
         progressBar.setVisible(false);
         btnPanel.add(progressBar);
 
-        clearLogBtn = new JButton("🧹 清空日志");
-        clearLogBtn.setBackground(new Color(180, 190, 200));
-        clearLogBtn.setForeground(Color.WHITE);
-        clearLogBtn.setFocusPainted(false);
-        clearLogBtn.setBorderPainted(false);
-        clearLogBtn.setPreferredSize(new Dimension(100, 34));
+        clearLogBtn = SvgIconUtils.outlineButton("clear", "清空日志", ThemeUtils.COLOR_PRIMARY);
         clearLogBtn.addActionListener(e -> logArea.setText(""));
         btnPanel.add(clearLogBtn);
 
-        viewDirBtn = new JButton("📂 查看备份目录");
-        viewDirBtn.setBackground(new Color(70, 130, 180));
-        viewDirBtn.setForeground(Color.WHITE);
-        viewDirBtn.setFocusPainted(false);
-        viewDirBtn.setBorderPainted(false);
-        viewDirBtn.setPreferredSize(new Dimension(140, 34));
+        viewDirBtn = SvgIconUtils.outlineButton("folder-open", "查看备份目录", ThemeUtils.COLOR_PRIMARY);
         viewDirBtn.addActionListener(e -> viewBackupDir());
         btnPanel.add(viewDirBtn);
-
-        closeBtn = new JButton("✕ 关闭");
-        closeBtn.setBackground(new Color(160, 170, 185));
-        closeBtn.setForeground(Color.WHITE);
-        closeBtn.setFocusPainted(false);
-        closeBtn.setBorderPainted(false);
-        closeBtn.setPreferredSize(new Dimension(90, 34));
-        closeBtn.addActionListener(e -> dispose());
-        btnPanel.add(closeBtn);
 
         // ★ 增加日志文本框的行数，并设置字体
         logArea = new JTextArea(12, 60);  // 从6行增加到12行
         logArea.setEditable(false);
-        logArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        logArea.setBackground(new Color(26, 26, 30));
-        logArea.setForeground(new Color(204, 221, 238));
+        logArea.setFont(ThemeUtils.FONT_LOG);
+        logArea.setBackground(ThemeUtils.COLOR_LOG_BG);
+        logArea.setForeground(ThemeUtils.COLOR_LOG_TEXT);
         JScrollPane logScroll = new JScrollPane(logArea);
         logScroll.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER),
@@ -621,7 +591,7 @@ public class SshBackupDialog extends BaseDialog {
 
                     publish("✅ SSH 连接成功");
                     publish("");
-                    publish("📂 查看远程目录: " + normalizedDir);
+                    publish("查看远程目录: " + normalizedDir);
                     publish("--------------------------------------------------");
 
                     String lsCmd = "ls -lh " + normalizedDir + " | sort -k5 -h";

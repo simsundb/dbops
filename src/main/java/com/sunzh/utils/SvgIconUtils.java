@@ -145,8 +145,8 @@ public class SvgIconUtils {
     // ================================================================
 
     /**
-     * 创建一个包含 SVG 图标和文字的按钮。
-     * 图标为白色 16px，按钮使用指定背景色。
+     * 创建一个包含 SVG 图标和文字的实心按钮。
+     * 图标为白色 16px，按钮使用指定背景色，统一尺寸与 hover/按下态。
      *
      * @param iconName SVG 文件名（不含 .svg）
      * @param text     按钮文字
@@ -161,15 +161,18 @@ public class SvgIconUtils {
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setOpaque(true);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(bgColor.darker(), 1),
-                BorderFactory.createEmptyBorder(6, 14, 6, 14)));
+        btn.setBorder(BorderFactory.createEmptyBorder(
+                ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X, ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X));
         btn.setIconTextGap(6);
+        fitHeight(btn);
+        btn.putClientProperty("JButton.base", bgColor);
+        btn.putClientProperty("JButton.hover", bgColor.brighter());
+        btn.putClientProperty("JButton.pressed", bgColor.darker());
         return btn;
     }
 
     /**
-     * 创建一个带图标的 Outline 风格按钮（白色底 + 彩色边框+文字）。
+     * 创建一个带图标的 Outline 风格按钮（白色底 + 彩色边框+文字），统一尺寸。
      *
      * @param iconName SVG 文件名
      * @param text     按钮文字
@@ -180,14 +183,41 @@ public class SvgIconUtils {
         JButton btn = new JButton(text, icon);
         btn.setFont(ThemeUtils.FONT_BOLD);
         btn.setForeground(color);
-        btn.setBackground(Color.WHITE);
+        btn.setBackground(ThemeUtils.COLOR_BG_CARD);
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setOpaque(true);
         btn.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(color, 1),
-                BorderFactory.createEmptyBorder(5, 12, 5, 12)));
+                BorderFactory.createEmptyBorder(
+                        ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X, ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X)));
         btn.setIconTextGap(6);
+        fitHeight(btn);
+        btn.putClientProperty("JButton.base", ThemeUtils.COLOR_BG_CARD);
+        btn.putClientProperty("JButton.hover", ThemeUtils.COLOR_PRIMARY_SOFT);
+        btn.putClientProperty("JButton.pressed", ThemeUtils.COLOR_PRIMARY_SELECT);
+        return btn;
+    }
+
+    /**
+     * 统一按钮高度为 ThemeUtils.BTN_HEIGHT，宽度按内容自适应。
+     * 宽度不能设为 0，否则在 FlowLayout 中按钮会塌陷成不可见。
+     */
+    private static void fitHeight(JButton b) {
+        Dimension d = b.getPreferredSize();
+        d.height = ThemeUtils.BTN_HEIGHT;
+        b.setPreferredSize(d);
+    }
+
+    /** 图标实心按钮（只有图标，用于小工具栏按钮） */
+    public static JButton iconButton(String iconName, int size, Color color, Color bg, String tooltip) {
+        JButton btn = new JButton(get(iconName, size, color));
+        btn.setBackground(bg);
+        btn.setPreferredSize(new Dimension(size + 14, size + 14));
+        btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        btn.setToolTipText(tooltip);
         return btn;
     }
 

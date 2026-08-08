@@ -1,6 +1,7 @@
 package com.sunzh.ui.components;
 
 import com.sunzh.utils.SvgIconUtils;
+import com.sunzh.utils.ThemeUtils;
 import javax.swing.*;
 import java.awt.*;
 
@@ -14,22 +15,22 @@ public class StatusBar extends JPanel {
 
     public StatusBar() {
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 244, 250));
+        setBackground(ThemeUtils.COLOR_BG_CARD);
         setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(195, 205, 218)),
-                BorderFactory.createEmptyBorder(4, 18, 4, 18)
+                BorderFactory.createMatteBorder(1, 0, 0, 0, ThemeUtils.COLOR_BORDER),
+                BorderFactory.createEmptyBorder(5, 18, 5, 18)
         ));
 
         leftLabel = new JLabel("就绪");
-        leftLabel.setIcon(SvgIconUtils.get("check", 12, new Color(90, 150, 120)));
-        leftLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 11));
-        leftLabel.setForeground(new Color(100, 110, 125));
+        leftLabel.setIcon(SvgIconUtils.get("check", 12, ThemeUtils.COLOR_SUCCESS));
+        leftLabel.setFont(ThemeUtils.FONT_SMALL);
+        leftLabel.setForeground(ThemeUtils.COLOR_TEXT_SECONDARY);
         add(leftLabel, BorderLayout.WEST);
 
         rightLabel = new JLabel(Runtime.getRuntime().totalMemory() / 1024 / 1024 + "MB");
-        rightLabel.setIcon(SvgIconUtils.get("hard-drive", 12, new Color(140, 150, 165)));
-        rightLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 11));
-        rightLabel.setForeground(new Color(140, 150, 165));
+        rightLabel.setIcon(SvgIconUtils.get("hard-drive", 12, ThemeUtils.COLOR_TEXT_HINT));
+        rightLabel.setFont(ThemeUtils.FONT_SMALL);
+        rightLabel.setForeground(ThemeUtils.COLOR_TEXT_HINT);
         add(rightLabel, BorderLayout.EAST);
     }
 

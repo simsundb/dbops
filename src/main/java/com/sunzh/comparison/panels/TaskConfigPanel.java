@@ -21,6 +21,7 @@ public class TaskConfigPanel extends JPanel {
     private DefaultTableModel taskModel;
     private JTable configTable;
     private JTable taskTable;
+    private JLabel statusLabel;
 
     private static final String[] TASK_COLUMNS = {
             "JOB_ID", "任务名称", "任务描述", "源模式", "目标模式", "对比类型",
@@ -34,7 +35,7 @@ public class TaskConfigPanel extends JPanel {
         setLayout(new BorderLayout(5, 5));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         initUI();
-        SwingUtilities.invokeLater(this::refreshData);
+        // 不在打开对话框时自动连接数据库，由用户选择数据源/点击刷新后连接
     }
 
     private void initUI() {
@@ -110,6 +111,13 @@ public class TaskConfigPanel extends JPanel {
         mainPanel.add(taskPanel, BorderLayout.CENTER);
 
         add(mainPanel, BorderLayout.CENTER);
+
+        // 底部状态条：数据库连接/刷新失败时在此显示友好提示（不弹窗、不打控制台堆栈）
+        statusLabel = new JLabel("", SwingConstants.LEFT);
+        statusLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        statusLabel.setForeground(new Color(150, 60, 60));
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+        add(statusLabel, BorderLayout.SOUTH);
 
         // 按钮事件
         btnRefreshConfig.addActionListener(e -> refreshData());
@@ -279,6 +287,7 @@ public class TaskConfigPanel extends JPanel {
 
     // ===== 刷新数据 =====
     public void refreshData() {
+        statusLabel.setText("");
         // 刷新配置表
         configModel.setRowCount(0);
         try (Connection conn = parent.getConnection()) {
@@ -288,7 +297,7 @@ public class TaskConfigPanel extends JPanel {
                 configModel.addRow(new Object[]{tc.getSourceSchema(), tc.getTargetSchema(), tc.getEnableFlag()});
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            statusLabel.setText("⚠ " + ex.getMessage());
         }
 
         // 刷新任务表
@@ -310,7 +319,7 @@ public class TaskConfigPanel extends JPanel {
                 });
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            statusLabel.setText("⚠ " + ex.getMessage());
         }
         autoResizeColumns(taskTable);
     }

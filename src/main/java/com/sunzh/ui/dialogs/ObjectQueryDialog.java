@@ -23,7 +23,6 @@ public class ObjectQueryDialog extends BaseDialog {
     private JComboBox<String> dataSourceCombo;
     private JTextField objectNameField;
     private JButton queryButton;
-    private JButton closeButton;
     private JTable resultTable;
     private DefaultTableModel tableModel;
     private JLabel statusLabel;
@@ -161,26 +160,11 @@ public class ObjectQueryDialog extends BaseDialog {
         progressBar.setVisible(false);
         rightPanel.add(progressBar);
 
-        closeButton = new JButton("关闭");
-        closeButton.setFont(ThemeUtils.FONT_NORMAL);
-        closeButton.setBackground(ThemeUtils.COLOR_SECONDARY);
-        closeButton.setForeground(Color.WHITE);
-        closeButton.setFocusPainted(false);
-        closeButton.setBorderPainted(false);
-        closeButton.setPreferredSize(new Dimension(80, 30));
-        closeButton.addActionListener(e -> dispose());
-        rightPanel.add(closeButton);
-
         bottomPanel.add(rightPanel, BorderLayout.EAST);
         add(bottomPanel, BorderLayout.SOUTH);
 
         // 加载数据源
         loadDataSources();
-
-        // ★ 设置窗口大小，默认较大，且可调整
-        setSize(1200, 750);
-        setLocationRelativeTo(owner);
-        setResizable(true);
     }
 
     private void loadDataSources() {

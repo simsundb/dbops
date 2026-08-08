@@ -4,9 +4,8 @@ import com.sunzh.utils.SvgIconUtils;
 import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 /**
@@ -25,18 +24,31 @@ public abstract class BaseDialog extends JDialog {
     }
 
     public BaseDialog(JFrame owner, String title, String iconName) {
-        super(owner, "", true);
+        super(owner, title, true);
         this.owner = owner;
         this.titleText = title;
         this.iconName = iconName;
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        setUndecorated(true);
+        // 使用原生窗口装饰：标题栏自带 最小化 / 最大化 / 关闭 按钮
+        setUndecorated(false);
 
         buildRootPanel();
-        initUI();                      // 子类构建界面
-        applyAdaptiveSize();           // ★ 自适应屏幕尺寸 + 最小尺寸
+        initUI();
+        applyAdaptiveSize();
         setLocationRelativeTo(owner);
-        setResizable(true);            // 允许用户调整大小
+        setResizable(true);
+    }
+
+    /**
+     * 统一窗口默认大小：自适应屏幕，小屏不溢出，大屏统一封顶。
+     * 所有继承 BaseDialog 的窗口默认居中（构造器末尾 setLocationRelativeTo(owner)）。
+     */
+    private void applyAdaptiveSize() {
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        int w = Math.min(1200, (int) (screen.width * 0.85));
+        int h = Math.min(800, (int) (screen.height * 0.85));
+        setSize(w, h);
+        setMinimumSize(new Dimension(Math.min(900, w), Math.min(600, h)));
     }
 
     private void buildRootPanel() {
@@ -59,16 +71,6 @@ public abstract class BaseDialog extends JDialog {
         setContentPane(root);
     }
 
-    // ---- 自适应屏幕尺寸 ----
-    private void applyAdaptiveSize() {
-        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int) (screen.width * 0.8);
-        int height = (int) (screen.height * 0.8);
-        setSize(width, height);
-        // 设置最小尺寸，防止用户拖拽过小导致界面错乱
-        setMinimumSize(new Dimension(900, 650));
-    }
-
     // ---- 自定义标题栏 ----
     private JPanel createTitleBar() {
         JPanel titleBar = new JPanel(new BorderLayout()) {
@@ -78,14 +80,16 @@ public abstract class BaseDialog extends JDialog {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
-                GradientPaint gp = new GradientPaint(0, 0, new Color(50, 74, 97), w, 0, new Color(72, 102, 132));
+                GradientPaint gp = new GradientPaint(
+                        0, 0, ThemeUtils.COLOR_HEADER_BG_START,
+                        w, 0, ThemeUtils.COLOR_HEADER_BG_END);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
-                g2d.setColor(new Color(130, 170, 210, 50));
+                g2d.setColor(new Color(255, 255, 255, 40));
                 g2d.drawLine(0, h - 1, w, h - 1);
             }
         };
-        titleBar.setPreferredSize(new Dimension(0, 46));
+        titleBar.setPreferredSize(new Dimension(0, 48));
         titleBar.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 4));
 
         // 左侧占位（保持标题居中）
@@ -105,7 +109,7 @@ public abstract class BaseDialog extends JDialog {
         cb.insets = new Insets(0, 0, 0, 8);
 
         if (iconName != null && !iconName.trim().isEmpty()) {
-            JLabel iconLbl = new JLabel(SvgIconUtils.get(iconName, 20, new Color(200, 218, 235)));
+            JLabel iconLbl = new JLabel(SvgIconUtils.get(iconName, 20, new Color(210, 224, 240)));
             iconLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
             centerPanel.add(iconLbl, cb);
             cb.insets = new Insets(0, 0, 0, 0);
@@ -113,68 +117,22 @@ public abstract class BaseDialog extends JDialog {
         }
 
         JLabel titleLbl = new JLabel(titleText);
-        titleLbl.setFont(new Font("Microsoft YaHei", Font.BOLD, 15));
-        titleLbl.setForeground(new Color(232, 240, 248));
+        titleLbl.setFont(ThemeUtils.FONT_SUBTITLE);
+        titleLbl.setForeground(ThemeUtils.COLOR_HEADER_TEXT);
         centerPanel.add(titleLbl, cb);
 
         titleBar.add(centerPanel, BorderLayout.CENTER);
 
-        // 右侧：关闭按钮
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        rightPanel.setOpaque(false);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
-
-        JButton closeBtn = new JButton();
-        closeBtn.setPreferredSize(new Dimension(32, 32));
-        closeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        closeBtn.setFocusPainted(false);
-        closeBtn.setBorderPainted(false);
-        closeBtn.setContentAreaFilled(false);
-        closeBtn.setOpaque(false);
-        closeBtn.setIcon(createCloseIcon(16, new Color(190, 208, 225)));
-        closeBtn.setRolloverIcon(createCloseIcon(16, new Color(245, 100, 95)));
-        closeBtn.addActionListener(e -> dispose());
-        rightPanel.add(closeBtn);
-
-        titleBar.add(rightPanel, BorderLayout.EAST);
-
-        // 拖动窗口（整个标题栏）
-        DragListener dl = new DragListener();
-        titleBar.addMouseListener(dl);
-        titleBar.addMouseMotionListener(dl);
+        // 右侧占位（与左侧等宽，保持标题完全居中）——关闭/最小化/最大化由系统标题栏提供
+        JPanel rightSpacer = new JPanel();
+        rightSpacer.setOpaque(false);
+        rightSpacer.setPreferredSize(new Dimension(40, 46));
+        titleBar.add(rightSpacer, BorderLayout.EAST);
 
         return titleBar;
     }
 
-    /** 绘制关闭按钮的 X 图标 */
-    private ImageIcon createCloseIcon(int size, Color color) {
-        BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = img.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setStroke(new BasicStroke(2));
-        g.setColor(color);
-        int p = 3;
-        g.drawLine(p, p, size - p, size - p);
-        g.drawLine(size - p, p, p, size - p);
-        g.dispose();
-        return new ImageIcon(img);
-    }
-
-    /** 窗口拖拽监听器 */
-    private class DragListener extends MouseAdapter {
-        private int startX, startY;
-        @Override
-        public void mousePressed(MouseEvent e) {
-            startX = e.getX();
-            startY = e.getY();
-        }
-        @Override
-        public void mouseDragged(MouseEvent e) {
-            Point p = getLocation();
-            setLocation(p.x + e.getX() - startX, p.y + e.getY() - startY);
-        }
-    }
-
+    /** 窗口拖拽监听器 —— 原生窗口装饰下不再需要，已移除 */
     protected abstract void initUI();
 
     @Override

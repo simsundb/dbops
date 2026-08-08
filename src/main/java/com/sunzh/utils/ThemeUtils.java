@@ -1,333 +1,475 @@
 package com.sunzh.utils;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * 主题工具类 — 中国传统美术风格
+ * 主题工具类 — Azure Pro 统一设计体系
  *
  * 设计理念：
- * - 汲取水墨画、工笔画、青绿山水、书法艺术精髓
- * - 以宣纸、绢本、墨色、朱砂、石青、石绿等传统色彩为基调
- * - 营造"雅致、含蓄、沉静"的东方美学氛围
- *
- * 配色来源：
- * - 墨分五色：焦、浓、重、淡、清
- * - 丹青：朱砂、石青、石绿
- * - 宣纸：古纸色、仿古绢
- * - 传统器物：青铜、玉器、漆器
+ * - 单一权威色板：所有页面必须从这里取色，禁止散落硬编码颜色
+ * - 现代专业风格：清爽的冷灰底 + 纯白卡片 + 沉稳的靛蓝主色
+ * - 高一致性与层次感：主/次/提示文字、卡片/背景/边框分级明确
+ * - 控件尺寸统一：按钮、输入框、间距全部通过常量约束
  */
 public class ThemeUtils {
     private ThemeUtils() {}
 
     // ═══════════════════════════════════════════════════════════════
-    //  传统色彩 — 墨色系列（墨分五色）
+    //  品牌色 — 靛蓝 Azure
     // ═══════════════════════════════════════════════════════════════
-    /** 焦墨 — 最浓墨色，用于标题/强调 */
-    public static final Color INK_JIAO    = new Color(30,  28,  26);
-    /** 浓墨 — 主文字色 */
-    public static final Color INK_NONG    = new Color(50,  48,  45);
-    /** 重墨 — 正文/表格文字 */
-    public static final Color INK_ZHONG   = new Color(70,  68,  65);
-    /** 淡墨 — 次要文字/提示 */
-    public static final Color INK_DAN     = new Color(130, 125, 118);
-    /** 清墨 — 最淡墨色，用于分隔/占位 */
-    public static final Color INK_QING    = new Color(190, 185, 175);
+    /** 主色 — 按钮、标题、选中态、链接 */
+    public static final Color COLOR_PRIMARY        = new Color(59,  111, 224);
+    /** 主色浅 — hover / 进度条 */
+    public static final Color COLOR_PRIMARY_LIGHT  = new Color(106, 144, 236);
+    /** 主色深 — pressed / active */
+    public static final Color COLOR_PRIMARY_DARK   = new Color(44,  85,  184);
+    /** 主色极浅 — 悬浮底色、标签底色、选中卡片背景 */
+    public static final Color COLOR_PRIMARY_SOFT   = new Color(232, 240, 254);
+    /** 主色选中底 — 表格选中、列表选中 */
+    public static final Color COLOR_PRIMARY_SELECT = new Color(214, 227, 251);
 
     // ═══════════════════════════════════════════════════════════════
-    //  传统色彩 — 丹青系列（矿物颜料）
+    //  辅助色
     // ═══════════════════════════════════════════════════════════════
-    /** 朱砂红 — 主要操作/确认（中国传统红） */
-    public static final Color CINNABAR        = new Color(190, 65,  55);
-    /** 朱砂红 — 浅色 */
-    public static final Color CINNABAR_LIGHT  = new Color(215, 100, 85);
-    /** 朱砂红 — 深色 */
-    public static final Color CINNABAR_DARK   = new Color(155, 50,  42);
-
-    /** 石青 — 次要/信息（传统青色） */
-    public static final Color AZURITE         = new Color(60,  110, 150);
-    /** 石青 — 浅色 */
-    public static final Color AZURITE_LIGHT   = new Color(95,  145, 185);
-    /** 石青 — 深色 */
-    public static final Color AZURITE_DARK    = new Color(45,  85,  115);
-
-    /** 石绿 — 成功/完成（传统绿色） */
-    public static final Color MALACHITE       = new Color(70,  130, 100);
-    /** 石绿 — 浅色 */
-    public static final Color MALACHITE_LIGHT = new Color(100, 165, 130);
-    /** 石绿 — 深色 */
-    public static final Color MALACHITE_DARK  = new Color(55,  105, 80);
-
-    /** 藤黄 — 警告/关注（传统黄色） */
-    public static final Color GAMBOGE         = new Color(200, 155, 75);
-    /** 藤黄 — 浅色 */
-    public static final Color GAMBOGE_LIGHT   = new Color(215, 180, 105);
-
-    /** 赭石 — 辅助/次要（传统褐色） */
-    public static final Color OCHRE           = new Color(160, 125, 95);
-    /** 赭石 — 浅色 */
-    public static final Color OCHRE_LIGHT     = new Color(185, 150, 120);
+    /** 次要按钮 / 中性操作色 */
+    public static final Color COLOR_SECONDARY       = new Color(116, 128, 143);
+    /** 次要色浅 */
+    public static final Color COLOR_SECONDARY_LIGHT = new Color(142, 153, 168);
 
     // ═══════════════════════════════════════════════════════════════
-    //  传统色彩 — 纸/绢系列（底色调）
+    //  中性背景色
     // ═══════════════════════════════════════════════════════════════
-    /** 宣纸色 — 主背景（仿古宣纸） */
-    public static final Color PAPER           = new Color(248, 243, 235);
-    /** 宣纸白 — 卡片/面板背景 */
-    public static final Color PAPER_WHITE     = new Color(252, 249, 243);
-    /** 仿古绢本 — 特殊背景/边框 */
-    public static final Color SILK            = new Color(235, 225, 210);
-    /** 金笺 — 重要/装饰 */
-    public static final Color GOLD_PAPER      = new Color(215, 195, 140);
+    /** 全局背景 — 冷调浅灰蓝 */
+    public static final Color COLOR_BG          = new Color(244, 246, 250);
+    /** 卡片 / 面板背景 — 纯白 */
+    public static final Color COLOR_BG_CARD     = new Color(255, 255, 255);
+    /** 表格交替行 */
+    public static final Color COLOR_BG_ALTERNATE = new Color(244, 247, 252);
+    /** 输入框背景 — 纯白 */
+    public static final Color COLOR_BG_INPUT    = new Color(255, 255, 255);
+    /** 悬浮底色 */
+    public static final Color COLOR_BG_HOVER    = new Color(237, 242, 253);
 
     // ═══════════════════════════════════════════════════════════════
-    //  边框和分隔线 — 墨色淡染
+    //  边框和分隔线
     // ═══════════════════════════════════════════════════════════════
-    /** 主边框 — 淡墨 */
-    public static final Color BORDER_MAIN     = new Color(195, 188, 178);
-    /** 浅边框 — 清墨 */
-    public static final Color BORDER_LIGHT    = new Color(215, 210, 202);
-    /** 分隔线 — 清墨更淡 */
-    public static final Color DIVIDER         = new Color(225, 220, 212);
+    /** 默认边框 */
+    public static final Color COLOR_BORDER       = new Color(220, 226, 236);
+    /** 浅边框 — 分隔线、卡片边界 */
+    public static final Color COLOR_BORDER_LIGHT = new Color(233, 237, 243);
+    /** 分隔线 */
+    public static final Color COLOR_DIVIDER      = new Color(228, 233, 240);
 
     // ═══════════════════════════════════════════════════════════════
-    //  状态颜色（传统矿物色系）
+    //  文字颜色
     // ═══════════════════════════════════════════════════════════════
-    /** 成功 — 石绿 */
-    public static final Color COLOR_SUCCESS       = MALACHITE;
-    public static final Color COLOR_SUCCESS_LIGHT = MALACHITE_LIGHT;
-    /** 警告 — 藤黄 */
-    public static final Color COLOR_WARNING       = GAMBOGE;
-    public static final Color COLOR_WARNING_LIGHT = GAMBOGE_LIGHT;
-    /** 危险 — 朱砂 */
-    public static final Color COLOR_DANGER        = CINNABAR;
-    public static final Color COLOR_DANGER_LIGHT  = CINNABAR_LIGHT;
-    /** 信息 — 石青 */
-    public static final Color COLOR_INFO          = AZURITE;
-    public static final Color COLOR_INFO_LIGHT    = AZURITE_LIGHT;
+    /** 主文字 — 深石板灰 */
+    public static final Color COLOR_TEXT           = new Color(35,  46,  60);
+    /** 次要文字 */
+    public static final Color COLOR_TEXT_SECONDARY = new Color(94,  106, 121);
+    /** 提示文字 */
+    public static final Color COLOR_TEXT_HINT      = new Color(151, 161, 176);
+    /** 浅色底上的文字 — 白色 */
+    public static final Color COLOR_TEXT_LIGHT     = new Color(255, 255, 255);
 
     // ═══════════════════════════════════════════════════════════════
-    //  组件背景（宣纸/绢本质感）
+    //  状态颜色
     // ═══════════════════════════════════════════════════════════════
-    /** 全局背景 — 宣纸 */
-    public static final Color COLOR_BG            = PAPER;
-    /** 卡片/面板 — 宣纸白 */
-    public static final Color COLOR_BG_CARD       = PAPER_WHITE;
-    /** 表格交替行 — 浅宣纸 */
-    public static final Color COLOR_BG_ALTERNATE  = new Color(245, 240, 232);
-    /** 输入框背景 — 宣纸白偏暖 */
-    public static final Color COLOR_BG_INPUT      = new Color(250, 247, 241);
-    /** 菜单栏 — 浅宣纸 */
-    public static final Color COLOR_MENU_BG       = new Color(243, 238, 230);
-    /** 菜单悬浮 — 淡赭石 */
-    public static final Color COLOR_MENU_HOVER    = new Color(235, 225, 215);
+    /** 成功 — 翠绿 */
+    public static final Color COLOR_SUCCESS       = new Color(46,  158, 102);
+    /** 成功浅 */
+    public static final Color COLOR_SUCCESS_LIGHT = new Color(76,  181, 126);
+    /** 成功底色 */
+    public static final Color COLOR_SUCCESS_SOFT  = new Color(232, 246, 238);
+    /** 警告 — 琥珀 */
+    public static final Color COLOR_WARNING       = new Color(222, 143, 31);
+    /** 警告浅 */
+    public static final Color COLOR_WARNING_LIGHT = new Color(233, 170, 77);
+    /** 警告底色 */
+    public static final Color COLOR_WARNING_SOFT  = new Color(252, 243, 226);
+    /** 危险 — 珊瑚红 */
+    public static final Color COLOR_DANGER        = new Color(226, 73,  77);
+    /** 危险浅 */
+    public static final Color COLOR_DANGER_LIGHT  = new Color(239, 112, 115);
+    /** 危险底色 */
+    public static final Color COLOR_DANGER_SOFT   = new Color(252, 233, 233);
+    /** 信息 — 靛蓝 */
+    public static final Color COLOR_INFO          = new Color(59,  111, 224);
+    /** 信息浅 */
+    public static final Color COLOR_INFO_LIGHT    = new Color(106, 144, 236);
 
     // ═══════════════════════════════════════════════════════════════
-    //  标题栏（传统漆器/墨色）
+    //  标题栏和菜单
     // ═══════════════════════════════════════════════════════════════
-    /** 标题栏背景 — 墨色渐变起始 */
-    public static final Color COLOR_HEADER_BG     = new Color(65,  60,  55);
-    /** 标题栏文字 — 金笺色 */
-    public static final Color COLOR_HEADER_TEXT   = GOLD_PAPER;
+    /** 顶部标题栏渐变起始 — 深海军蓝 */
+    public static final Color COLOR_HEADER_BG_START = new Color(30,  58,  107);
+    /** 顶部标题栏渐变结束 — 靛蓝 */
+    public static final Color COLOR_HEADER_BG_END   = new Color(46,  86,  201);
+    /** 顶部标题栏背景（兼容旧引用） */
+    public static final Color COLOR_HEADER_BG       = COLOR_HEADER_BG_START;
+    /** 顶部标题栏文字 */
+    public static final Color COLOR_HEADER_TEXT     = new Color(244, 247, 255);
+    /** 菜单栏背景 — 纯白 */
+    public static final Color COLOR_MENU_BG         = new Color(255, 255, 255);
+    /** 菜单悬浮 — 极浅靛蓝 */
+    public static final Color COLOR_MENU_HOVER      = new Color(232, 240, 254);
 
     // ═══════════════════════════════════════════════════════════════
-    //  表格（仿古册页风格）
+    //  表格
     // ═══════════════════════════════════════════════════════════════
-    /** 表头背景 — 浓墨染 */
-    public static final Color COLOR_TABLE_HEADER_BG   = new Color(80,  75,  70);
-    /** 表头文字 — 金笺色 */
-    public static final Color COLOR_TABLE_HEADER_TEXT = new Color(230, 220, 200);
+    /** 表头背景 — 浅灰蓝（现代浅色表头） */
+    public static final Color COLOR_TABLE_HEADER_BG   = new Color(237, 241, 248);
+    /** 表头文字 — 深石板灰 */
+    public static final Color COLOR_TABLE_HEADER_TEXT = new Color(58,  70,  87);
+    /** 表格交替行 */
+    public static final Color COLOR_TABLE_ROW_ALT     = COLOR_BG_ALTERNATE;
+    /** 表格选中背景 */
+    public static final Color COLOR_TABLE_SELECTION   = COLOR_PRIMARY_SELECT;
 
     // ═══════════════════════════════════════════════════════════════
-    //  日志/控制台（仿碑帖墨拓风格）
+    //  日志 / 控制台（深色终端）
     // ═══════════════════════════════════════════════════════════════
-    /** 日志背景 — 墨拓底色 */
-    public static final Color COLOR_LOG_BG      = new Color(40,  38,  35);
-    /** 日志文字 — 碑帖拓片色 */
-    public static final Color COLOR_LOG_TEXT    = new Color(200, 190, 175);
-    /** 日志信息 — 石青色 */
-    public static final Color COLOR_LOG_INFO    = AZURITE_LIGHT;
-    /** 日志成功 — 石绿色 */
-    public static final Color COLOR_LOG_SUCCESS = MALACHITE_LIGHT;
-    /** 日志错误 — 朱砂色 */
-    public static final Color COLOR_LOG_ERROR   = CINNABAR_LIGHT;
-    /** 日志警告 — 藤黄色 */
-    public static final Color COLOR_LOG_WARN    = GAMBOGE_LIGHT;
+    /** 日志面板背景 — 深石板蓝黑 */
+    public static final Color COLOR_LOG_BG      = new Color(29,  36,  51);
+    /** 日志文字 */
+    public static final Color COLOR_LOG_TEXT    = new Color(199, 208, 221);
+    /** 日志信息 — 亮蓝 */
+    public static final Color COLOR_LOG_INFO    = new Color(106, 166, 240);
+    /** 日志成功 — 翠绿 */
+    public static final Color COLOR_LOG_SUCCESS = new Color(94,  198, 146);
+    /** 日志错误 — 珊瑚红 */
+    public static final Color COLOR_LOG_ERROR   = new Color(240, 112, 107);
+    /** 日志警告 — 琥珀 */
+    public static final Color COLOR_LOG_WARN    = new Color(240, 190, 92);
 
     // ═══════════════════════════════════════════════════════════════
-    //  字体（传统书体风格）
+    //  字体常量
     // ═══════════════════════════════════════════════════════════════
-    /** 大标题 — 楷体/行书风格 */
-    public static final Font FONT_TITLE       = new Font("华文楷体", Font.BOLD, 20);
-    /** 副标题 — 楷体 */
-    public static final Font FONT_SUBTITLE    = new Font("华文楷体", Font.BOLD, 15);
-    /** 正文 — 宋体/楷体 */
-    public static final Font FONT_NORMAL      = new Font("华文楷体", Font.PLAIN, 14);
-    /** 正文加粗 */
-    public static final Font FONT_BOLD        = new Font("华文楷体", Font.BOLD, 14);
-    /** 小字 — 更小楷体 */
-    public static final Font FONT_SMALL       = new Font("华文楷体", Font.PLAIN, 12);
-    /** 小字加粗 */
-    public static final Font FONT_SMALL_BOLD  = new Font("华文楷体", Font.BOLD, 12);
-    /** 超大标题 */
-    public static final Font FONT_ICON        = new Font("华文楷体", Font.PLAIN, 28);
-    /** 日志/代码 — 仿碑帖风格 */
-    public static final Font FONT_LOG         = new Font("华文楷体", Font.PLAIN, 13);
+    public static final Font FONT_TITLE       = new Font("Microsoft YaHei", Font.BOLD, 20);
+    public static final Font FONT_SUBTITLE    = new Font("Microsoft YaHei", Font.BOLD, 15);
+    public static final Font FONT_NORMAL      = new Font("Microsoft YaHei", Font.PLAIN, 14);
+    public static final Font FONT_BOLD        = new Font("Microsoft YaHei", Font.BOLD, 14);
+    public static final Font FONT_SMALL       = new Font("Microsoft YaHei", Font.PLAIN, 12);
+    public static final Font FONT_SMALL_BOLD  = new Font("Microsoft YaHei", Font.BOLD, 12);
+    public static final Font FONT_ICON        = new Font("Segoe UI", Font.PLAIN, 26);
+    public static final Font FONT_LOG         = new Font("Consolas", Font.PLAIN, 12);
 
     // ═══════════════════════════════════════════════════════════════
-    //  别名（兼容旧代码）
+    //  控件尺寸常量 — 全局统一
     // ═══════════════════════════════════════════════════════════════
-    public static final Color COLOR_PRIMARY         = AZURITE;
-    public static final Color COLOR_PRIMARY_LIGHT   = AZURITE_LIGHT;
-    public static final Color COLOR_PRIMARY_DARK    = AZURITE_DARK;
-    public static final Color COLOR_SECONDARY       = OCHRE;
-    public static final Color COLOR_SECONDARY_LIGHT = OCHRE_LIGHT;
-    public static final Color COLOR_BORDER          = BORDER_MAIN;
-    public static final Color COLOR_BORDER_LIGHT    = BORDER_LIGHT;
-    public static final Color COLOR_DIVIDER         = DIVIDER;
-    public static final Color COLOR_TEXT            = INK_ZHONG;
-    public static final Color COLOR_TEXT_SECONDARY  = INK_DAN;
-    public static final Color COLOR_TEXT_HINT       = INK_QING;
-    public static final Color COLOR_TEXT_LIGHT      = new Color(248, 245, 238);
+    /** 按钮高度 */
+    public static final int BTN_HEIGHT       = 36;
+    /** 按钮水平内边距 */
+    public static final int BTN_PAD_X        = 18;
+    /** 按钮垂直内边距 */
+    public static final int BTN_PAD_Y        = 8;
+    /** 输入框 / 下拉框高度 */
+    public static final int INPUT_HEIGHT     = 34;
+    /** 输入框水平内边距 */
+    public static final int INPUT_PAD_X      = 10;
+    /** 输入框垂直内边距 */
+    public static final int INPUT_PAD_Y      = 7;
+    /** 圆角半径 */
+    public static final int RADIUS           = 8;
+    /** 表单字段垂直间距 */
+    public static final int GAP               = 10;
+    /** 卡片内边距 */
+    public static final int CARD_PAD          = 18;
+    /** 页面留白 */
+    public static final int PAGE_PAD          = 22;
+    /** 标签文字与控件间距 */
+    public static final int LABEL_GAP         = 6;
 
     // ═══════════════════════════════════════════════════════════════
-    //  FlatLaf 全局主题配置（传统美术风格）
+    //  常用 Border 工厂
+    // ═══════════════════════════════════════════════════════════════
+
+    /** 卡片边框：1px 浅边框 + 内边距 */
+    public static Border cardBorder() {
+        return BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COLOR_BORDER, 1),
+                new EmptyBorder(CARD_PAD, CARD_PAD, CARD_PAD, CARD_PAD));
+    }
+
+    /** 卡片边框（自定义内边距） */
+    public static Border cardBorder(int pad) {
+        return BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COLOR_BORDER, 1),
+                new EmptyBorder(pad, pad, pad, pad));
+    }
+
+    /** 纯内边距边框 */
+    public static Border paddingBorder(int t, int l, int b, int r) {
+        return new EmptyBorder(t, l, b, r);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  通用控件工厂 — 统一尺寸与视觉
+    // ═══════════════════════════════════════════════════════════════
+
+    /** 标准输入框（统一高度、圆角、焦点色） */
+    public static JTextField field(String text) {
+        JTextField f = new JTextField(text);
+        f.setFont(FONT_NORMAL);
+        f.setPreferredSize(new Dimension(200, INPUT_HEIGHT));
+        f.setMargin(new Insets(INPUT_PAD_Y, INPUT_PAD_X, INPUT_PAD_Y, INPUT_PAD_X));
+        return f;
+    }
+
+    /** 标准密码框 */
+    public static JPasswordField passwordField() {
+        JPasswordField f = new JPasswordField();
+        f.setFont(FONT_NORMAL);
+        f.setPreferredSize(new Dimension(200, INPUT_HEIGHT));
+        f.setMargin(new Insets(INPUT_PAD_Y, INPUT_PAD_X, INPUT_PAD_Y, INPUT_PAD_X));
+        return f;
+    }
+
+    /** 标准下拉框 */
+    public static JComboBox<String> comboBox(String[] items) {
+        JComboBox<String> c = new JComboBox<>(items);
+        c.setFont(FONT_NORMAL);
+        c.setPreferredSize(new Dimension(200, INPUT_HEIGHT));
+        return c;
+    }
+
+    /** 标准主按钮（靛蓝填充） */
+    public static JButton primaryButton(String text) {
+        JButton b = new JButton(text);
+        styleSolid(b, COLOR_PRIMARY, COLOR_PRIMARY_LIGHT, COLOR_PRIMARY_DARK);
+        return b;
+    }
+
+    /** 标准次要按钮（中性灰填充） */
+    public static JButton secondaryButton(String text) {
+        JButton b = new JButton(text);
+        styleSolid(b, COLOR_SECONDARY, COLOR_SECONDARY_LIGHT, COLOR_SECONDARY);
+        return b;
+    }
+
+    /** 标准成功按钮 */
+    public static JButton successButton(String text) {
+        JButton b = new JButton(text);
+        styleSolid(b, COLOR_SUCCESS, COLOR_SUCCESS_LIGHT, COLOR_SUCCESS);
+        return b;
+    }
+
+    /** 标准危险按钮 */
+    public static JButton dangerButton(String text) {
+        JButton b = new JButton(text);
+        styleSolid(b, COLOR_DANGER, COLOR_DANGER_LIGHT, COLOR_DANGER);
+        return b;
+    }
+
+    /** 描边按钮（白底 + 主色边框文字） */
+    public static JButton outlineButton(String text) {
+        return outlineButton(text, COLOR_PRIMARY);
+    }
+
+    /** 描边按钮（自定义颜色） */
+    public static JButton outlineButton(String text, Color color) {
+        JButton b = new JButton(text);
+        b.setFont(FONT_BOLD);
+        b.setForeground(color);
+        b.setBackground(COLOR_BG_CARD);
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(color, 1),
+                BorderFactory.createEmptyBorder(BTN_PAD_Y, BTN_PAD_X, BTN_PAD_Y, BTN_PAD_X)));
+        fitHeight(b);
+        b.setOpaque(true);
+        return b;
+    }
+
+    /** 实心按钮通用样式（统一尺寸、hover、按下态） */
+    private static void styleSolid(JButton b, Color base, Color hover, Color pressed) {
+        b.setFont(FONT_BOLD);
+        b.setForeground(Color.WHITE);
+        b.setBackground(base);
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setBorder(BorderFactory.createEmptyBorder(BTN_PAD_Y, BTN_PAD_X, BTN_PAD_Y, BTN_PAD_X));
+        fitHeight(b);
+        b.setOpaque(true);
+        b.putClientProperty("JButton.base", base);
+        b.putClientProperty("JButton.hover", hover);
+        b.putClientProperty("JButton.pressed", pressed);
+    }
+
+    /**
+     * 统一按钮高度，宽度按内容自适应。
+     * 注意：不能把宽度设为 0，否则在 FlowLayout 中按钮会塌陷成不可见。
+     */
+    private static void fitHeight(JButton b) {
+        Dimension d = b.getPreferredSize();
+        d.height = BTN_HEIGHT;
+        b.setPreferredSize(d);
+    }
+
+    /** 卡片面板（纯白底 + 浅边框） */
+    public static JPanel cardPanel() {
+        return cardPanel(COLOR_BG_CARD);
+    }
+
+    /** 卡片面板（自定义背景） */
+    public static JPanel cardPanel(Color bg) {
+        JPanel p = new JPanel();
+        p.setBackground(bg);
+        p.setBorder(cardBorder());
+        return p;
+    }
+
+    /** 分区标题行：带图标的粗体标题 + 底部浅色分隔线 */
+    public static JPanel sectionHeader(String iconName, String text) {
+        JPanel wrap = new JPanel(new BorderLayout(0, 8));
+        wrap.setOpaque(false);
+
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        row.setOpaque(false);
+        JLabel icon = new JLabel(SvgIconUtils.get(iconName, 18, COLOR_PRIMARY));
+        row.add(icon);
+        JLabel title = new JLabel(text);
+        title.setFont(FONT_SUBTITLE);
+        title.setForeground(COLOR_TEXT);
+        row.add(title);
+        wrap.add(row, BorderLayout.NORTH);
+
+        JPanel line = new JPanel();
+        line.setPreferredSize(new Dimension(0, 1));
+        line.setBackground(COLOR_DIVIDER);
+        wrap.add(line, BorderLayout.CENTER);
+        return wrap;
+    }
+
+    /** 表单标签 */
+    public static JLabel fieldLabel(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(FONT_NORMAL);
+        l.setForeground(COLOR_TEXT_SECONDARY);
+        l.setBorder(BorderFactory.createEmptyBorder(0, 2, LABEL_GAP, 0));
+        return l;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  FlatLaf 全局主题配置
     // ═══════════════════════════════════════════════════════════════
     public static void applyFlatLafTheme() {
-        // ----- 基础颜色 -----
-        UIManager.put("Button.background", AZURITE);
-        UIManager.put("Button.foreground", COLOR_HEADER_TEXT);
-        UIManager.put("Button.arc", 8);
-        UIManager.put("Button.margin", new Insets(6, 18, 6, 18));
-        UIManager.put("Button.hoverBackground", AZURITE_LIGHT);
-        UIManager.put("Button.pressedBackground", AZURITE_DARK);
+        // Button
+        UIManager.put("Button.background", COLOR_PRIMARY);
+        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Button.arc", RADIUS);
+        UIManager.put("Button.margin", new Insets(BTN_PAD_Y, BTN_PAD_X, BTN_PAD_Y, BTN_PAD_X));
+        UIManager.put("Button.hoverBackground", COLOR_PRIMARY_LIGHT);
+        UIManager.put("Button.pressedBackground", COLOR_PRIMARY_DARK);
+        UIManager.put("Button.focusWidth", 0);
 
-        // ----- 对话框 -----
-        UIManager.put("OptionPane.background", PAPER_WHITE);
-        UIManager.put("OptionPane.messageForeground", INK_ZHONG);
-        UIManager.put("OptionPane.buttonBackground", AZURITE);
-        UIManager.put("OptionPane.buttonForeground", COLOR_HEADER_TEXT);
-        UIManager.put("OptionPane.buttonHoverBackground", AZURITE_LIGHT);
+        // OptionPane（对话框按钮）
+        UIManager.put("OptionPane.background", COLOR_BG_CARD);
+        UIManager.put("OptionPane.messageForeground", COLOR_TEXT);
+        UIManager.put("OptionPane.buttonBackground", COLOR_PRIMARY);
+        UIManager.put("OptionPane.buttonForeground", Color.WHITE);
+        UIManager.put("OptionPane.buttonHoverBackground", COLOR_PRIMARY_LIGHT);
+        UIManager.put("OptionPane.border", cardBorder(12));
 
-        // ----- 标签页（仿册页） -----
-        UIManager.put("TabbedPane.background", PAPER);
-        UIManager.put("TabbedPane.selectedBackground", PAPER_WHITE);
-        UIManager.put("TabbedPane.selectedForeground", AZURITE);
-        UIManager.put("TabbedPane.tabInsets", new Insets(8, 18, 8, 18));
-        UIManager.put("TabbedPane.foreground", INK_DAN);
-        UIManager.put("TabbedPane.selectionBackground", new Color(180, 210, 230));
+        // TabbedPane
+        UIManager.put("TabbedPane.background", COLOR_BG);
+        UIManager.put("TabbedPane.selectedBackground", COLOR_BG_CARD);
+        UIManager.put("TabbedPane.selectedForeground", COLOR_PRIMARY);
+        UIManager.put("TabbedPane.tabInsets", new Insets(10, 18, 10, 18));
+        UIManager.put("TabbedPane.contentBorderInsets", new Insets(0, 0, 0, 0));
+        UIManager.put("TabbedPane.tabArc", RADIUS);
 
-        // ----- 表格（仿古册页） -----
-        UIManager.put("Table.background", PAPER_WHITE);
+        // Table
+        UIManager.put("Table.background", Color.WHITE);
         UIManager.put("Table.alternateRowColor", COLOR_BG_ALTERNATE);
         UIManager.put("Table.rowHeight", 30);
-        UIManager.put("Table.selectionBackground", new Color(190, 210, 225));
-        UIManager.put("Table.selectionForeground", INK_ZHONG);
+        UIManager.put("Table.selectionBackground", COLOR_PRIMARY_SELECT);
+        UIManager.put("Table.selectionForeground", COLOR_TEXT);
+        UIManager.put("Table.gridColor", COLOR_BORDER_LIGHT);
         UIManager.put("TableHeader.background", COLOR_TABLE_HEADER_BG);
         UIManager.put("TableHeader.foreground", COLOR_TABLE_HEADER_TEXT);
         UIManager.put("TableHeader.font", FONT_SMALL_BOLD);
-        UIManager.put("Table.gridColor", BORDER_LIGHT);
+        UIManager.put("TableHeader.height", 34);
 
-        // ----- 输入框（仿信笺） -----
+        // TextField
         UIManager.put("TextField.background", COLOR_BG_INPUT);
-        UIManager.put("TextField.borderColor", BORDER_MAIN);
-        UIManager.put("TextField.focusedBorderColor", AZURITE);
-        UIManager.put("TextField.margin", new Insets(6, 12, 6, 12));
-        UIManager.put("TextArea.background", COLOR_BG_INPUT);
-        UIManager.put("TextArea.borderColor", BORDER_MAIN);
-        UIManager.put("TextArea.focusedBorderColor", AZURITE);
-        UIManager.put("TextArea.margin", new Insets(6, 12, 6, 12));
+        UIManager.put("TextField.borderColor", COLOR_BORDER);
+        UIManager.put("TextField.focusedBorderColor", COLOR_PRIMARY);
+        UIManager.put("TextField.arc", RADIUS);
+        UIManager.put("TextField.margin", new Insets(INPUT_PAD_Y, INPUT_PAD_X, INPUT_PAD_Y, INPUT_PAD_X));
 
-        // ----- 下拉框 -----
+        // ComboBox
         UIManager.put("ComboBox.background", COLOR_BG_INPUT);
-        UIManager.put("ComboBox.borderColor", BORDER_MAIN);
-        UIManager.put("ComboBox.focusedBorderColor", AZURITE);
-        UIManager.put("ComboBox.buttonBackground", AZURITE);
-        UIManager.put("ComboBox.buttonArrowColor", COLOR_HEADER_TEXT);
-        UIManager.put("ComboBox.selectionBackground", new Color(180, 210, 230));
+        UIManager.put("ComboBox.borderColor", COLOR_BORDER);
+        UIManager.put("ComboBox.focusedBorderColor", COLOR_PRIMARY);
+        UIManager.put("ComboBox.arc", RADIUS);
+        UIManager.put("ComboBox.padding", new Insets(INPUT_PAD_Y, INPUT_PAD_X, INPUT_PAD_Y, INPUT_PAD_X));
+        UIManager.put("ComboBox.buttonBackground", COLOR_PRIMARY);
+        UIManager.put("ComboBox.buttonArrowColor", Color.WHITE);
+        UIManager.put("ComboBox.selectionBackground", COLOR_PRIMARY_SOFT);
 
-        // ----- 密码框 -----
+        // PasswordField
         UIManager.put("PasswordField.background", COLOR_BG_INPUT);
-        UIManager.put("PasswordField.borderColor", BORDER_MAIN);
-        UIManager.put("PasswordField.focusedBorderColor", AZURITE);
-        UIManager.put("PasswordField.margin", new Insets(6, 12, 6, 12));
+        UIManager.put("PasswordField.borderColor", COLOR_BORDER);
+        UIManager.put("PasswordField.focusedBorderColor", COLOR_PRIMARY);
+        UIManager.put("PasswordField.arc", RADIUS);
+        UIManager.put("PasswordField.margin", new Insets(INPUT_PAD_Y, INPUT_PAD_X, INPUT_PAD_Y, INPUT_PAD_X));
 
-        // ----- 滚动面板（仿绢本装裱） -----
-        UIManager.put("ScrollPane.background", PAPER_WHITE);
-        UIManager.put("ScrollPane.border", BorderFactory.createLineBorder(BORDER_LIGHT, 1));
+        // ScrollPane
+        UIManager.put("ScrollPane.background", COLOR_BG_CARD);
+        UIManager.put("ScrollPane.border", BorderFactory.createLineBorder(COLOR_BORDER_LIGHT, 1));
 
-        // ----- 面板（宣纸底） -----
-        UIManager.put("Panel.background", PAPER);
+        // Panel
+        UIManager.put("Panel.background", COLOR_BG);
+        UIManager.put("Panel.arc", RADIUS);
 
-        // ----- 列表（仿古卷轴） -----
-        UIManager.put("List.background", PAPER_WHITE);
-        UIManager.put("List.selectionBackground", new Color(190, 210, 225));
-        UIManager.put("List.selectionForeground", INK_ZHONG);
+        // List
+        UIManager.put("List.background", COLOR_BG_CARD);
+        UIManager.put("List.selectionBackground", COLOR_PRIMARY_SELECT);
+        UIManager.put("List.selectionForeground", COLOR_TEXT);
 
-        // ----- 进度条（仿玉器） -----
-        UIManager.put("ProgressBar.background", BORDER_LIGHT);
-        UIManager.put("ProgressBar.foreground", MALACHITE);
-        UIManager.put("ProgressBar.selectionForeground", COLOR_HEADER_TEXT);
+        // ProgressBar
+        UIManager.put("ProgressBar.background", COLOR_BORDER_LIGHT);
+        UIManager.put("ProgressBar.foreground", COLOR_PRIMARY_LIGHT);
+        UIManager.put("ProgressBar.selectionForeground", Color.WHITE);
+        UIManager.put("ProgressBar.arc", 6);
 
-        // ----- 带标题边框（仿画卷题跋） -----
-        UIManager.put("TitledBorder.titleColor", AZURITE);
+        // TitledBorder
+        UIManager.put("TitledBorder.titleColor", COLOR_PRIMARY);
+        UIManager.put("TitledBorder.border", BorderFactory.createLineBorder(COLOR_BORDER_LIGHT));
 
-        // ----- 提示框（仿便签） -----
-        UIManager.put("ToolTip.background", COLOR_HEADER_BG);
+        // ToolTip
+        UIManager.put("ToolTip.background", COLOR_HEADER_BG_START);
         UIManager.put("ToolTip.foreground", COLOR_HEADER_TEXT);
-        UIManager.put("ToolTip.border", BorderFactory.createLineBorder(new Color(100, 90, 80), 1));
+        UIManager.put("ToolTip.border", BorderFactory.createEmptyBorder(6, 10, 6, 10));
 
-        // ----- 分隔面板 -----
+        // SplitPane
         UIManager.put("SplitPane.dividerSize", 6);
-        UIManager.put("SplitPaneDivider.background", BORDER_LIGHT);
+        UIManager.put("SplitPaneDivider.background", COLOR_BORDER_LIGHT);
 
-        // ----- 滚动条（仿竹简） -----
-        UIManager.put("ScrollBar.thumb", new Color(160, 150, 140));
-        UIManager.put("ScrollBar.thumbDarkShadow", new Color(130, 120, 110));
-        UIManager.put("ScrollBar.background", PAPER);
-        UIManager.put("ScrollBar.track", PAPER);
+        // 额外
+        UIManager.put("Component.borderColor", COLOR_BORDER);
+        UIManager.put("TextField.selectionBackground", COLOR_PRIMARY_LIGHT);
+        UIManager.put("TextField.selectionForeground", Color.WHITE);
+        UIManager.put("CheckBox.focusWidth", 0);
+        UIManager.put("RadioButton.focusWidth", 0);
 
-        // ----- 菜单（仿书卷） -----
+        // Menu
         UIManager.put("Menu.background", COLOR_MENU_BG);
         UIManager.put("Menu.selectionBackground", COLOR_MENU_HOVER);
-        UIManager.put("Menu.selectionForeground", INK_ZHONG);
+        UIManager.put("Menu.selectionForeground", COLOR_TEXT);
         UIManager.put("MenuBar.background", COLOR_MENU_BG);
+        UIManager.put("MenuBar.border", BorderFactory.createEmptyBorder(6, 12, 6, 12));
         UIManager.put("MenuItem.background", COLOR_MENU_BG);
         UIManager.put("MenuItem.selectionBackground", COLOR_MENU_HOVER);
-        UIManager.put("MenuItem.selectionForeground", INK_ZHONG);
-
-        // ----- 选择框/复选框（仿印章） -----
-        UIManager.put("CheckBox.background", PAPER_WHITE);
-        UIManager.put("CheckBox.focus", AZURITE);
-        UIManager.put("RadioButton.background", PAPER_WHITE);
-        UIManager.put("RadioButton.focus", AZURITE);
-
-        // ----- 全局额外 -----
-        UIManager.put("Component.borderColor", BORDER_MAIN);
-        UIManager.put("TextField.selectionBackground", AZURITE_LIGHT);
-        UIManager.put("TextField.selectionForeground", COLOR_HEADER_TEXT);
-        UIManager.put("FormattedTextField.background", COLOR_BG_INPUT);
-        UIManager.put("FormattedTextField.borderColor", BORDER_MAIN);
-        UIManager.put("FormattedTextField.focusedBorderColor", AZURITE);
-
-        // 全局字体
-        UIManager.put("Button.font", FONT_NORMAL);
-        UIManager.put("Label.font", FONT_NORMAL);
-        UIManager.put("TextField.font", FONT_NORMAL);
-        UIManager.put("TextArea.font", FONT_NORMAL);
-        UIManager.put("PasswordField.font", FONT_NORMAL);
-        UIManager.put("ComboBox.font", FONT_NORMAL);
-        UIManager.put("Table.font", FONT_NORMAL);
-        UIManager.put("TableHeader.font", FONT_SMALL_BOLD);
-        UIManager.put("List.font", FONT_NORMAL);
-        UIManager.put("Menu.font", FONT_NORMAL);
-        UIManager.put("MenuItem.font", FONT_NORMAL);
-        UIManager.put("TabbedPane.font", FONT_NORMAL);
-        UIManager.put("OptionPane.font", FONT_NORMAL);
-        UIManager.put("ToolTip.font", FONT_SMALL);
-        UIManager.put("ProgressBar.font", FONT_SMALL);
-        UIManager.put("CheckBox.font", FONT_NORMAL);
-        UIManager.put("RadioButton.font", FONT_NORMAL);
-        UIManager.put("TitledBorder.font", FONT_SUBTITLE);
+        UIManager.put("MenuItem.selectionForeground", COLOR_TEXT);
+        UIManager.put("PopupMenu.background", COLOR_BG_CARD);
+        UIManager.put("PopupMenu.border", BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COLOR_BORDER, 1),
+                new EmptyBorder(4, 4, 4, 4)));
     }
 }

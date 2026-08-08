@@ -113,11 +113,8 @@ public class StatsQueryDialog extends BaseDialog {
 
         add(createTopPanel(), BorderLayout.NORTH);
         add(createCenterPanel(), BorderLayout.CENTER);
-        add(createBottomPanel(), BorderLayout.SOUTH);
 
         loadDataSources();
-        setSize(1440, 990);
-        setLocationRelativeTo(owner);
         setResizable(true);
     }
 
@@ -243,24 +240,6 @@ public class StatsQueryDialog extends BaseDialog {
 
         centerPanel.add(tasksScroll, BorderLayout.CENTER);
         return centerPanel;
-    }
-
-    private JPanel createBottomPanel() {
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        bottomPanel.setOpaque(false);
-        bottomPanel.setBorder(new EmptyBorder(8, 0, 0, 0));
-
-        JButton closeBtn = new JButton("关闭");
-        closeBtn.setFont(FONT_NORMAL);
-        closeBtn.setBackground(new Color(161, 173, 187));
-        closeBtn.setForeground(Color.WHITE);
-        closeBtn.setFocusPainted(false);
-        closeBtn.setBorderPainted(false);
-        closeBtn.setPreferredSize(new Dimension(100, 39));
-        closeBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        closeBtn.addActionListener(e -> dispose());
-        bottomPanel.add(closeBtn);
-        return bottomPanel;
     }
 
     private JButton createStyledButton(String text, Color bgColor) {

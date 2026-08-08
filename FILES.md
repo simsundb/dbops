@@ -6,7 +6,7 @@
 
 ## 包结构与文件说明
 
-### `com.sunzh.inspection` — 数据库巡检模块
+### `com.example.inspection` — 数据库巡检模块
 
 | 文件 | 说明 |
 |---|---|
@@ -14,13 +14,13 @@
 | `InspectionService.java` | 巡检引擎：从 `config.yaml` 加载任务，执行 SQL 查询，将结果导出为 `.xlsx` 文件 |
 | `InspectionDialog.java` | 巡检功能对话框 UI：任务列表、SQL 预览、进度条、报告浏览、输出目录选择、一键执行 |
 
-### `com.sunzh.datasource` — 数据源配置模块
+### `com.example.datasource` — 数据源配置模块
 
 | 文件 | 说明 |
 |---|---|
 | `DataSourceDialog.java` | 数据源配置对话框：增删改查 Oracle/GaussDB 数据源，测试连接，保存至 `DATASOURCE.JSON` |
 
-### `com.sunzh.core` — 公共基础设施
+### `com.example.core` — 公共基础设施
 
 | 文件 | 说明 |
 |---|---|
@@ -28,7 +28,7 @@
 | `DataSourceStore.java` | 数据源 JSON 文件读写：从 `DATASOURCE.JSON` 加载 / 保存数据源列表 |
 | `ConnectionManager.java` | 数据库连接测试工具：根据数据源类型注册 JDBC 驱动并测试连接 |
 
-### `com.sunzh.sync` — 数据同步模块
+### `com.example.sync` — 数据同步模块
 
 | 文件 | 说明 |
 |---|---|
@@ -38,14 +38,14 @@
 | `ExcelToGaussDB.java` | 导入工具 (main class)：Excel 文件 → GaussDB 表 |
 | `DataSyncDialog.java` | 数据同步对话框 UI：四个 Tab（O→G / G→O / Excel→Oracle / Excel→GaussDB），选择数据源、配置表映射、通过 `ProcessBuilder` 启动同步子进程，实时查看日志 |
 
-### `com.sunzh.scriptrunner` — SQL 脚本执行模块
+### `com.example.scriptrunner` — SQL 脚本执行模块
 
 | 文件 | 说明 |
 |---|---|
 | `ScriptRunner.java` | SQL 迁移引擎：读取 SQL 文件 → 入库到 `general_app_form` → 解析 SQL → 入解析表 `general_app_form_parsed` → 顺序执行 DDL → 更新执行状态。支持断点续传 |
 | `ScriptRunnerDialog.java` | SQL 脚本执行对话框 UI：选择数据源、浏览上传 SQL 文件、查看执行进度和日志 |
 
-### `com.sunzh.ui` — 应用外壳与通用 UI
+### `com.example.ui` — 应用外壳与通用 UI
 
 | 文件 | 说明 |
 |---|---|
@@ -56,7 +56,7 @@
 | `components/CustomButton.java` | 统一样式按钮组件：墨绿主题 |
 | `components/StatusBar.java` | 底部状态栏组件 |
 
-### `com.sunzh.comparison` — 数据库结构对比模块
+### `com.example.comparison` — 数据库结构对比模块
 
 | 文件 | 说明 |
 |---|---|
@@ -69,13 +69,13 @@
 | `panels/DetailPanel.java` | 明细 Tab：按类型 + JOB_ID 查询对比结果明细，支持导出 Excel |
 | `panels/TaskConfigPanel.java` | 配置 Tab：编辑 `gk_sjdb_task_config` 和 `gk_sjdb_task` 表，初始化生成任务 |
 
-### `com.sunzh.launcher` — 启动入口
+### `com.example.launcher` — 启动入口
 
 | 文件 | 说明 |
 |---|---|
 | `AppLauncher.java` | `main()` 入口：应用 FlatLaf 主题 + 自定义色板，启动 `MainFrame` |
 
-### `com.sunzh.utils` — 工具类
+### `com.example.utils` — 工具类
 
 | 文件 | 说明 |
 |---|---|

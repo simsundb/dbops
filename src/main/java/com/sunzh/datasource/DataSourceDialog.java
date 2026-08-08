@@ -68,9 +68,6 @@ public class DataSourceDialog extends BaseDialog {
         mainPanel.add(splitPane, BorderLayout.CENTER);
         mainContentPanel.add(mainPanel, BorderLayout.CENTER);
 
-        JPanel bottomPanel = createBottomPanel();
-        mainContentPanel.add(bottomPanel, BorderLayout.SOUTH);
-
         loadData();
     }
 
@@ -434,20 +431,6 @@ public class DataSourceDialog extends BaseDialog {
         panel.add(btnSave);
         panel.add(btnDelete);
         panel.add(btnTest);
-
-        return panel;
-    }
-
-    private JPanel createBottomPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        panel.setBackground(ThemeUtils.COLOR_BG);
-        panel.setBorder(BorderFactory.createEmptyBorder(8, 10, 4, 10));
-
-        JButton btnClose = new CustomButton("关闭", ThemeUtils.COLOR_SECONDARY);
-        btnClose.setFont(ThemeUtils.FONT_BOLD);
-        btnClose.setPreferredSize(new Dimension(80, 32));
-        btnClose.addActionListener(e -> dispose());
-        panel.add(btnClose);
 
         return panel;
     }

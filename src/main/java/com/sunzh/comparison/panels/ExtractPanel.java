@@ -41,7 +41,7 @@ public class ExtractPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         initUI();
-        SwingUtilities.invokeLater(this::refreshData);
+        // 不在打开对话框时自动连接数据库，由用户选择数据源/点击刷新后连接
     }
 
     private void initUI() {
@@ -412,6 +412,12 @@ public class ExtractPanel extends JPanel {
         return selected;
     }
 
+    /** 向日志区追加一行 */
+    private void appendLog(String msg) {
+        logArea.append(msg + "\n");
+        logArea.setCaretPosition(logArea.getDocument().getLength());
+    }
+
     // ===== 刷新数据 =====
     public void refreshData() {
         schemaCheckBoxes.clear();
@@ -432,7 +438,9 @@ public class ExtractPanel extends JPanel {
             }
             rs.close();
             st.close();
-        } catch (Exception e) { /* 静默 */ }
+        } catch (Exception e) {
+            appendLog("⚠ 刷新模式列表失败：" + e.getMessage());
+        }
         updateAllSchemaState();
         schemaCheckboxPanel.revalidate();
         schemaCheckboxPanel.repaint();
@@ -463,7 +471,7 @@ public class ExtractPanel extends JPanel {
             rs.close();
             ps.close();
         } catch (Exception e) {
-            System.out.println("刷新日志失败: " + e.getMessage());
+            appendLog("⚠ 刷新抽取日志失败：" + e.getMessage());
         }
     }
 
