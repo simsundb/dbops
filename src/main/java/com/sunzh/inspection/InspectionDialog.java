@@ -3,20 +3,20 @@ package com.sunzh.inspection;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
-import com.sunzh.utils.SvgIconUtils;
 import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.*;
-import java.net.URL;
-import java.nio.file.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -26,8 +26,6 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 public class InspectionDialog extends BaseDialog {
-    // ---- 外部配置目录（JAR 同级 ./conf/inspection/）----
-    private static final String EXTERNAL_CONFIG_DIR = "./conf/inspection/";
     private static final String CONFIG_FILE_NAME = "config.yaml";
     private static final String QUERY_DIR_NAME = "query";
     private static final String REPORTS_DIR_NAME = "reports";
@@ -55,15 +53,12 @@ public class InspectionDialog extends BaseDialog {
     private List<InspectionTask> tasks;
     private InspectionService service;
 
-    // ---- 外部文件路径 ----
-    private File externalConfigFile;    // ./conf/inspection/config.yaml
-    private File externalQueryDir;      // ./conf/inspection/query/
+    private File rootDir;
+    private File configFile;
+    private File queryDir;
     private File reportsDir;
 
     private Preferences prefs;
-
-    // ★ 关键修复：确保 startupLogs 始终被初始化 ★
-    private List<String> startupLogs = new ArrayList<>();
 
     public InspectionDialog(JFrame owner) {
         super(owner, "数据库巡检", "search");
@@ -76,343 +71,185 @@ public class InspectionDialog extends BaseDialog {
         prefs = Preferences.userNodeForPackage(InspectionDialog.class);
 
         initPaths();
-        initComponents();   // 先创建 UI，此时 logArea 已初始化
-
-        // 安全地输出启动日志
-        if (startupLogs != null && !startupLogs.isEmpty()) {
-            for (String msg : startupLogs) {
-                log(msg);
-            }
-            startupLogs.clear();
-        }
-
+        initComponents();
         loadConfig();
         loadDataSources();
         loadReports();
     }
 
-    /**
-     * 初始化路径策略（与 StatsQueryDialog 一致）：
-     * 1. 优先使用外部目录 ./conf/inspection/
-     * 2. 首次运行时自动从 JAR 包复制默认模板到外部目录
-     */
     private void initPaths() {
-        // 外部配置目录
-        externalConfigFile = new File(EXTERNAL_CONFIG_DIR + CONFIG_FILE_NAME);
-        externalQueryDir = new File(EXTERNAL_CONFIG_DIR + QUERY_DIR_NAME);
+        rootDir = new File(System.getProperty("user.dir"));
+        configFile = new File(rootDir, CONFIG_FILE_NAME);
+        queryDir = new File(rootDir, QUERY_DIR_NAME);
 
-        // 首次运行：自动从 classpath 复制默认配置到外部目录
-        initExternalFromClasspath();
+        // 首次运行时从 classpath 复制默认 config.yaml 到 user.dir
+        initConfigFromClasspath();
 
-        // 报告目录（用户可自定义）
         String savedPath = prefs.get(PREF_REPORTS_PATH, null);
         if (savedPath != null && !savedPath.trim().isEmpty()) {
             reportsDir = new File(savedPath);
         } else {
-            reportsDir = new File(EXTERNAL_CONFIG_DIR + REPORTS_DIR_NAME);
+            reportsDir = new File(rootDir, REPORTS_DIR_NAME);
         }
         if (!reportsDir.exists()) reportsDir.mkdirs();
     }
 
     /**
-     * 首次运行时，从 classpath 复制默认的 config.yaml 和 query/*.sql 到外部目录。
-     * 如果外部目录已有文件则不覆盖（用户已自定义）。
-     * 日志暂存到 startupLogs，待 UI 初始化后输出。
+     * 如果 user.dir 下不存在 config.yaml，从 classpath（JAR 内或 resources 目录）复制一份出来。
+     * 这样打包后首次运行也能有默认配置文件。
      */
-    private void initExternalFromClasspath() {
-        boolean copied = false;
-
-        // 1. 复制 config.yaml
-        if (!externalConfigFile.exists()) {
-            try (InputStream in = getClass().getResourceAsStream("/" + CONFIG_FILE_NAME)) {
-                if (in != null) {
-                    externalConfigFile.getParentFile().mkdirs();
-                    Files.copy(in, externalConfigFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    copied = true;
-                    addStartupLog("📦 已从 JAR 复制默认配置: " + externalConfigFile.getAbsolutePath());
-                }
-            } catch (Exception e) {
-                addStartupLog("⚠️ 复制 config.yaml 失败: " + e.getMessage());
+    private void initConfigFromClasspath() {
+        if (configFile.exists()) return;
+        try (InputStream in = getClass().getResourceAsStream("/" + CONFIG_FILE_NAME)) {
+            if (in != null) {
+                Files.copy(in, configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("已从 JAR/resources 复制默认配置: " + configFile.getAbsolutePath());
             }
+        } catch (Exception e) {
+            System.err.println("从 classpath 复制配置文件失败: " + e.getMessage());
         }
-
-        // 2. 复制 query 目录下的所有 SQL 文件
-        if (!externalQueryDir.exists()) {
-            externalQueryDir.mkdirs();
-            try {
-                String queryResourcePath = "query/";
-                URL queryUrl = getClass().getClassLoader().getResource(queryResourcePath);
-                if (queryUrl != null) {
-                    File classpathQueryDir = new File(queryUrl.toURI());
-                    File[] sqlFiles = classpathQueryDir.listFiles((dir, name) -> name.endsWith(".sql"));
-                    if (sqlFiles != null) {
-                        for (File sqlFile : sqlFiles) {
-                            Path target = externalQueryDir.toPath().resolve(sqlFile.getName());
-                            Files.copy(sqlFile.toPath(), target, StandardCopyOption.REPLACE_EXISTING);
-                            copied = true;
-                            addStartupLog("📦 已从 JAR 复制 SQL: " + target);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                addStartupLog("⚠️ 复制 query 目录失败: " + e.getMessage());
-            }
-        }
-
-        if (copied) {
-            addStartupLog("📦 首次运行，已将默认配置复制到: " + EXTERNAL_CONFIG_DIR);
-        }
-    }
-
-    private void addStartupLog(String msg) {
-        if (startupLogs == null) {
-            startupLogs = new ArrayList<>();
-        }
-        startupLogs.add(msg);
     }
 
     private void initComponents() {
-        mainContentPanel.setLayout(new BorderLayout());
-        mainContentPanel.setBackground(ThemeUtils.COLOR_BG);
+        mainContentPanel.setLayout(new BorderLayout(8, 8));
+        mainContentPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-        // ===== 顶部工具栏（白底卡片，两行）=====
-        JPanel topCard = ThemeUtils.cardPanel();
-        topCard.setLayout(new GridLayout(2, 1, 0, 12));
+        // ===== 顶部区域 =====
+        JPanel topPanel = new JPanel(new BorderLayout(5, 5));
 
-        // ---- 第一行：数据源 + 输出目录（图标标签 + 统一尺寸输入控件）----
-        JPanel row1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        row1.setBackground(ThemeUtils.COLOR_BG_CARD);
-        row1.add(SvgIconUtils.label("database", "数据源:", 14, ThemeUtils.COLOR_TEXT_SECONDARY));
+        JPanel infoPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(3, 5, 3, 5);
+        gbc.gridy = 0;
+
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        infoPanel.add(new JLabel("数据源:"), gbc);
+
         dataSourceCombo = new JComboBox<>();
         dataSourceCombo.setFont(ThemeUtils.FONT_NORMAL);
-        dataSourceCombo.setPreferredSize(new Dimension(170, ThemeUtils.INPUT_HEIGHT));
-        row1.add(dataSourceCombo);
-        row1.add(Box.createHorizontalStrut(12));
-        row1.add(SvgIconUtils.label("output", "输出目录:", 14, ThemeUtils.COLOR_TEXT_SECONDARY));
-        outputPathField = ThemeUtils.field(reportsDir.getAbsolutePath());
+        dataSourceCombo.setPreferredSize(new Dimension(220, ThemeUtils.INPUT_HEIGHT));
+        gbc.gridx = 1;
+        gbc.weightx = 0.2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        infoPanel.add(dataSourceCombo, gbc);
+
+        gbc.gridx = 2;
+        gbc.weightx = 0;
+        infoPanel.add(new JLabel("输出目录:"), gbc);
+
+        outputPathField = new JTextField(reportsDir.getAbsolutePath());
         outputPathField.setEditable(false);
-        outputPathField.setPreferredSize(new Dimension(300, ThemeUtils.INPUT_HEIGHT));
-        row1.add(outputPathField);
-        browseOutputButton = SvgIconUtils.outlineButton("folder-open", "浏览...", ThemeUtils.COLOR_SECONDARY);
+        outputPathField.setFont(ThemeUtils.FONT_NORMAL);
+        gbc.gridx = 3;
+        gbc.weightx = 1;
+        infoPanel.add(outputPathField, gbc);
+
+        browseOutputButton = ThemeUtils.outlineButton("浏览...");
+        browseOutputButton.setPreferredSize(new Dimension(90, ThemeUtils.BTN_HEIGHT));
         browseOutputButton.addActionListener(e -> chooseOutputDirectory());
-        row1.add(browseOutputButton);
-        topCard.add(row1);
+        gbc.gridx = 4;
+        gbc.weightx = 0;
+        infoPanel.add(browseOutputButton, gbc);
 
-        // ---- 第二行：功能按钮（左侧次要操作，右侧主操作）----
-        JPanel row2 = new JPanel(new BorderLayout(8, 0));
-        row2.setBackground(ThemeUtils.COLOR_BG_CARD);
+        topPanel.add(infoPanel, BorderLayout.NORTH);
 
-        JPanel leftBtns = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        leftBtns.setBackground(ThemeUtils.COLOR_BG_CARD);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
+        Dimension normalBtn = new Dimension(110, ThemeUtils.BTN_HEIGHT);
 
-        refreshButton = SvgIconUtils.outlineButton("refresh", "刷新配置", ThemeUtils.COLOR_SECONDARY);
-        refreshButton.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                loadConfig();
-                loadReports();
-            });
-        });
-        leftBtns.add(refreshButton);
+        refreshButton = ThemeUtils.outlineButton("刷新配置");
+        refreshButton.setPreferredSize(normalBtn);
+        refreshButton.addActionListener(e -> { loadConfig(); loadReports(); });
+        buttonPanel.add(refreshButton);
 
-        editConfigButton = SvgIconUtils.outlineButton("edit", "编辑 config.yaml", ThemeUtils.COLOR_SECONDARY);
+        editConfigButton = ThemeUtils.outlineButton("编辑 config.yaml");
+        editConfigButton.setPreferredSize(new Dimension(145, ThemeUtils.BTN_HEIGHT));
         editConfigButton.addActionListener(e -> editConfigFile());
-        leftBtns.add(editConfigButton);
+        buttonPanel.add(editConfigButton);
 
-        openQueryButton = SvgIconUtils.outlineButton("folder-open", "打开 query", ThemeUtils.COLOR_SECONDARY);
-        openQueryButton.addActionListener(e -> openFolder(externalQueryDir));
-        leftBtns.add(openQueryButton);
+        openQueryButton = ThemeUtils.outlineButton("打开 query");
+        openQueryButton.setPreferredSize(normalBtn);
+        openQueryButton.addActionListener(e -> openFolder(queryDir));
+        buttonPanel.add(openQueryButton);
 
-        openReportsButton = SvgIconUtils.outlineButton("report", "打开报告", ThemeUtils.COLOR_SECONDARY);
-        openReportsButton.addActionListener(e -> openFolder(reportsDir));
-        leftBtns.add(openReportsButton);
-
-        JPanel rightBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        rightBtns.setBackground(ThemeUtils.COLOR_BG_CARD);
-
-        clearLogButton = SvgIconUtils.outlineButton("trash", "清空日志", ThemeUtils.COLOR_DANGER);
-        clearLogButton.addActionListener(e -> { if (logArea != null) logArea.setText(""); });
-        rightBtns.add(clearLogButton);
-
-        startButton = SvgIconUtils.button("play", "开始巡检", ThemeUtils.COLOR_PRIMARY);
+        startButton = ThemeUtils.primaryButton("开始巡检");
+        startButton.setPreferredSize(normalBtn);
         startButton.setEnabled(false);
         startButton.addActionListener(e -> startInspection());
-        rightBtns.add(startButton);
+        buttonPanel.add(startButton);
 
-        row2.add(leftBtns, BorderLayout.WEST);
-        row2.add(rightBtns, BorderLayout.EAST);
-        topCard.add(row2);
+        clearLogButton = ThemeUtils.outlineButton("清空日志");
+        clearLogButton.setPreferredSize(normalBtn);
+        clearLogButton.addActionListener(e -> logArea.setText(""));
+        buttonPanel.add(clearLogButton);
 
-        JPanel topWrap = new JPanel(new BorderLayout());
-        topWrap.setOpaque(false);
-        topWrap.setBorder(ThemeUtils.paddingBorder(10, 12, 4, 12));
-        topWrap.add(topCard, BorderLayout.CENTER);
-        mainContentPanel.add(topWrap, BorderLayout.NORTH);
+        openReportsButton = ThemeUtils.outlineButton("打开报告");
+        openReportsButton.setPreferredSize(normalBtn);
+        openReportsButton.addActionListener(e -> openFolder(reportsDir));
+        buttonPanel.add(openReportsButton);
 
-        // ===== 中央：任务列表（主）+ SQL 预览（辅）=====
-        // 任务列表占 68% 宽度，SQL 预览占 32%；两个区域均以白底卡片包裹
+        topPanel.add(buttonPanel, BorderLayout.CENTER);
+        mainContentPanel.add(topPanel, BorderLayout.NORTH);
+
+        // ===== 中间区域 =====
         JSplitPane centerSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        centerSplit.setDividerLocation(0.68);
-        centerSplit.setResizeWeight(0.68);
-        centerSplit.setBorder(null);
+        centerSplit.setResizeWeight(0.35);
+        centerSplit.setDividerLocation(380);
+        centerSplit.setOneTouchExpandable(true);
 
         tableModel = new TaskTableModel();
         taskTable = new JTable(tableModel);
-        taskTable.setRowHeight(30);
-        taskTable.setFont(ThemeUtils.FONT_SMALL);
-        taskTable.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
-        taskTable.setSelectionBackground(ThemeUtils.COLOR_PRIMARY_SELECT);
-        taskTable.setSelectionForeground(ThemeUtils.COLOR_TEXT);
-        taskTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        taskTable.setRowHeight(25);
+        taskTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         taskTable.getSelectionModel().addListSelectionListener(e -> {
             int row = taskTable.getSelectedRow();
             if (row >= 0 && row < tasks.size()) {
-                String sql = tasks.get(row).getSql();
-                sqlPreviewArea.setText(sql != null ? sql : "");
+                sqlPreviewArea.setText(tasks.get(row).getSql() == null ? "" : tasks.get(row).getSql());
                 sqlPreviewArea.setCaretPosition(0);
             }
         });
 
-        // 状态列着色 + 交替行（列0是布尔复选框，走独立渲染器不受影响）
-        taskTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value,
-                                                           boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? ThemeUtils.COLOR_BG_CARD : ThemeUtils.COLOR_BG_ALTERNATE);
-                    setForeground(ThemeUtils.COLOR_TEXT);
-                    setFont(table.getFont());
-                }
-                setHorizontalAlignment(SwingConstants.LEFT);
-                if (column == 3 && value != null) {
-                    String status = value.toString();
-                    switch (status) {
-                        case "SUCCESS": setForeground(ThemeUtils.COLOR_SUCCESS); setFont(getFont().deriveFont(Font.BOLD)); break;
-                        case "NO_DATA": setForeground(ThemeUtils.COLOR_INFO); break;
-                        case "FAILED":  setForeground(ThemeUtils.COLOR_DANGER); setFont(getFont().deriveFont(Font.BOLD)); break;
-                        case "SKIPPED": setForeground(ThemeUtils.COLOR_WARNING); break;
-                        default:        setForeground(ThemeUtils.COLOR_TEXT_SECONDARY); break;
-                    }
-                }
-                return c;
-            }
-        });
-
-        JTableHeader header = taskTable.getTableHeader();
-        header.setFont(ThemeUtils.FONT_SMALL_BOLD);
-        header.setBackground(ThemeUtils.COLOR_TABLE_HEADER_BG);
-        header.setForeground(ThemeUtils.COLOR_TABLE_HEADER_TEXT);
-        header.setReorderingAllowed(false);
-
-        TableColumnModel columnModel = taskTable.getColumnModel();
-        columnModel.getColumn(0).setPreferredWidth(50);
-        columnModel.getColumn(1).setPreferredWidth(300);
-        columnModel.getColumn(2).setPreferredWidth(180);
-        columnModel.getColumn(3).setPreferredWidth(100);
-        columnModel.getColumn(4).setPreferredWidth(80);
-        columnModel.getColumn(5).setPreferredWidth(240);
-
         JScrollPane tableScroll = new JScrollPane(taskTable);
-        tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        tableScroll.setMinimumSize(new Dimension(480, 220));
-        tableScroll.setBorder(BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER_LIGHT));
-
-        JPanel taskCard = ThemeUtils.cardPanel();
-        taskCard.setLayout(new BorderLayout(8, 8));
-        taskCard.add(ThemeUtils.sectionHeader("list", "任务列表"), BorderLayout.NORTH);
-        taskCard.add(tableScroll, BorderLayout.CENTER);
-        taskCard.setMinimumSize(new Dimension(480, 240));
+        tableScroll.setBorder(BorderFactory.createTitledBorder("任务列表"));
 
         sqlPreviewArea = new JTextArea();
         sqlPreviewArea.setEditable(false);
         sqlPreviewArea.setFont(ThemeUtils.FONT_LOG);
-        sqlPreviewArea.setBackground(ThemeUtils.COLOR_BG_CARD);
-        sqlPreviewArea.setForeground(ThemeUtils.COLOR_TEXT);
-        sqlPreviewArea.setTabSize(4);
-        sqlPreviewArea.setBorder(ThemeUtils.paddingBorder(8, 10, 8, 10));
         JScrollPane previewScroll = new JScrollPane(sqlPreviewArea);
-        previewScroll.setBorder(BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER_LIGHT));
+        previewScroll.setBorder(BorderFactory.createTitledBorder("SQL 预览"));
 
-        JPanel previewCard = ThemeUtils.cardPanel();
-        previewCard.setLayout(new BorderLayout(8, 8));
-        previewCard.add(ThemeUtils.sectionHeader("file-code", "SQL 预览"), BorderLayout.NORTH);
-        previewCard.add(previewScroll, BorderLayout.CENTER);
-        previewCard.setMinimumSize(new Dimension(280, 240));
-
-        centerSplit.setLeftComponent(taskCard);
-        centerSplit.setRightComponent(previewCard);
+        centerSplit.setLeftComponent(tableScroll);
+        centerSplit.setRightComponent(previewScroll);
         mainContentPanel.add(centerSplit, BorderLayout.CENTER);
 
-        // ===== 底部：进度 + 日志 + 报告（固定高度，左右并列）=====
-        JPanel bottomPanel = new JPanel(new BorderLayout(8, 8));
-        bottomPanel.setOpaque(false);
-        bottomPanel.setBorder(ThemeUtils.paddingBorder(4, 12, 10, 12));
-        bottomPanel.setPreferredSize(new Dimension(0, 245));
-        bottomPanel.setMinimumSize(new Dimension(0, 180));
+        // ===== 底部区域 =====
+        JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
 
         progressBar = new JProgressBar(0, 1);
         progressBar.setStringPainted(true);
-        progressBar.setPreferredSize(new Dimension(0, 24));
         bottomPanel.add(progressBar, BorderLayout.NORTH);
 
-        // 日志与报告左右并列：日志为主（68%），报告列表为辅（32%）
-        JSplitPane bottomSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        bottomSplit.setDividerLocation(0.68);
-        bottomSplit.setResizeWeight(0.68);
-        bottomSplit.setBorder(null);
+        JSplitPane bottomSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        bottomSplit.setResizeWeight(0.7);
+        bottomSplit.setDividerLocation(170);
+        bottomSplit.setOneTouchExpandable(true);
 
-        // ---- 运行日志卡片（深色终端风格）----
-        logArea = new JTextArea(4, 0);
+        logArea = new JTextArea();
         logArea.setEditable(false);
         logArea.setFont(ThemeUtils.FONT_LOG);
         logArea.setBackground(ThemeUtils.COLOR_LOG_BG);
         logArea.setForeground(ThemeUtils.COLOR_LOG_TEXT);
-        logArea.setCaretColor(ThemeUtils.COLOR_LOG_TEXT);
-        logArea.setBorder(ThemeUtils.paddingBorder(8, 10, 8, 10));
-        JScrollPane logScroll = new JScrollPane(logArea);
-        logScroll.setBorder(BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER_LIGHT));
-        logScroll.setMinimumSize(new Dimension(320, 130));
+        bottomSplit.setTopComponent(new JScrollPane(logArea));
 
-        JPanel logCard = ThemeUtils.cardPanel();
-        logCard.setLayout(new BorderLayout(8, 8));
-        logCard.add(ThemeUtils.sectionHeader("terminal", "运行日志"), BorderLayout.NORTH);
-        logCard.add(logScroll, BorderLayout.CENTER);
-        logCard.setMinimumSize(new Dimension(320, 150));
-
-        // ---- 已生成报告卡片 ----
         reportListModel = new DefaultListModel<>();
         reportList = new JList<>(reportListModel);
-        reportList.setFont(ThemeUtils.FONT_SMALL);
-        reportList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        reportList.setBackground(ThemeUtils.COLOR_BG_CARD);
-        reportList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    String selected = reportList.getSelectedValue();
-                    if (selected != null) {
-                        File reportDir = new File(reportsDir, selected);
-                        if (reportDir.exists() && reportDir.isDirectory()) {
-                            openFolder(reportDir);
-                        }
-                    }
-                }
-            }
-        });
+        reportList.setFont(ThemeUtils.FONT_LOG);
         JScrollPane reportScroll = new JScrollPane(reportList);
-        reportScroll.setBorder(BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER_LIGHT));
-        reportScroll.setMinimumSize(new Dimension(220, 130));
+        reportScroll.setBorder(BorderFactory.createTitledBorder("已生成报告"));
+        bottomSplit.setBottomComponent(reportScroll);
 
-        JPanel reportCard = ThemeUtils.cardPanel();
-        reportCard.setLayout(new BorderLayout(8, 8));
-        reportCard.add(ThemeUtils.sectionHeader("report", "已生成的报告（双击打开）"), BorderLayout.NORTH);
-        reportCard.add(reportScroll, BorderLayout.CENTER);
-        reportCard.setMinimumSize(new Dimension(220, 150));
-
-        bottomSplit.setLeftComponent(logCard);
-        bottomSplit.setRightComponent(reportCard);
         bottomPanel.add(bottomSplit, BorderLayout.CENTER);
-
         mainContentPanel.add(bottomPanel, BorderLayout.SOUTH);
     }
 
@@ -424,7 +261,7 @@ public class InspectionDialog extends BaseDialog {
         if (reportsDir.exists()) {
             chooser.setCurrentDirectory(reportsDir);
         } else {
-            chooser.setCurrentDirectory(new File(EXTERNAL_CONFIG_DIR));
+            chooser.setCurrentDirectory(rootDir);
         }
         int result = chooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -471,52 +308,24 @@ public class InspectionDialog extends BaseDialog {
         startButton.setEnabled(tasks != null && !tasks.isEmpty());
     }
 
-    // ===== 加载配置（优先外部，回退 classpath） =====
+    // ===== 加载配置 =====
     private void loadConfig() {
         if (service == null) service = new InspectionService();
         if (tasks == null) tasks = new ArrayList<>();
 
-        // 优先使用外部配置文件
-        File activeConfigFile = externalConfigFile.exists() ? externalConfigFile : null;
-
-        // 如果外部不存在，尝试从 classpath 加载
-        if (activeConfigFile == null) {
-            try (InputStream is = getClass().getResourceAsStream("/" + CONFIG_FILE_NAME)) {
-                if (is != null) {
-                    File tempFile = File.createTempFile("config", ".yaml");
-                    tempFile.deleteOnExit();
-                    Files.copy(is, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    activeConfigFile = tempFile;
-                }
-            } catch (Exception e) {
-                // 忽略
-            }
-        }
-
-        if (activeConfigFile == null || !activeConfigFile.exists()) {
+        if (!configFile.exists()) {
             JOptionPane.showMessageDialog(this,
-                    "配置文件 " + CONFIG_FILE_NAME + " 不存在。\n" +
-                    "请在 " + EXTERNAL_CONFIG_DIR + " 目录下创建，或确保 JAR 包内有默认配置。",
+                    "配置文件 " + CONFIG_FILE_NAME + " 不存在，请创建在项目根目录。",
                     "错误", JOptionPane.ERROR_MESSAGE);
             tableModel.fireTableDataChanged();
             return;
         }
-
         try {
-            File activeQueryDir = externalQueryDir.exists() ? externalQueryDir : null;
-            if (activeQueryDir == null) {
-                activeQueryDir = createTempQueryDirFromClasspath();
-            }
-
-            List<InspectionTask> loaded = service.loadTasks(activeConfigFile, activeQueryDir);
+            List<InspectionTask> loaded = service.loadTasks(configFile, queryDir);
             tasks = (loaded != null) ? loaded : new ArrayList<>();
             tableModel.fireTableDataChanged();
             startButton.setEnabled(!tasks.isEmpty() && dataSourceCombo.getSelectedItem() != null);
-
-            String sourceDesc = externalConfigFile.exists() ?
-                    "外部配置: " + externalConfigFile.getAbsolutePath() :
-                    "内置配置 (classpath)";
-            log("✅ 加载配置成功，共 " + tasks.size() + " 个任务。来源: " + sourceDesc);
+            log("✅ 加载配置成功，共 " + tasks.size() + " 个任务。");
             sqlPreviewArea.setText("");
         } catch (Exception e) {
             tasks = new ArrayList<>();
@@ -528,50 +337,17 @@ public class InspectionDialog extends BaseDialog {
         }
     }
 
-    private File createTempQueryDirFromClasspath() throws IOException {
-        File tempDir = Files.createTempDirectory("inspection_query_").toFile();
-        tempDir.deleteOnExit();
-        String resourcePath = "query/";
-        URL queryUrl = getClass().getClassLoader().getResource(resourcePath);
-        if (queryUrl != null) {
-            try {
-                File classpathQueryDir = new File(queryUrl.toURI());
-                File[] sqlFiles = classpathQueryDir.listFiles((dir, name) -> name.endsWith(".sql"));
-                if (sqlFiles != null) {
-                    for (File sqlFile : sqlFiles) {
-                        Path target = tempDir.toPath().resolve(sqlFile.getName());
-                        Files.copy(sqlFile.toPath(), target, StandardCopyOption.REPLACE_EXISTING);
-                    }
-                }
-            } catch (Exception e) {
-                throw new IOException("无法从 classpath 复制 query 文件", e);
-            }
-        }
-        return tempDir;
-    }
-
-    // ===== 编辑外部 config.yaml =====
     private void editConfigFile() {
-        if (!externalConfigFile.exists()) {
+        if (!configFile.exists()) {
             try {
-                externalConfigFile.getParentFile().mkdirs();
-                try (InputStream in = getClass().getResourceAsStream("/" + CONFIG_FILE_NAME)) {
-                    if (in != null) {
-                        Files.copy(in, externalConfigFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        log("📄 已从 JAR 复制默认配置到: " + externalConfigFile.getAbsolutePath());
-                    } else {
-                        externalConfigFile.createNewFile();
-                    }
-                } catch (Exception e) {
-                    externalConfigFile.createNewFile();
-                }
+                configFile.createNewFile();
             } catch (IOException e) {
-                JOptionPane.showMessageDialog(this, "创建 config.yaml 失败: " + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "创建 config.yaml 失败", "错误", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
         try {
-            Desktop.getDesktop().edit(externalConfigFile);
+            Desktop.getDesktop().edit(configFile);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "无法打开编辑器: " + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
         }
@@ -747,6 +523,7 @@ public class InspectionDialog extends BaseDialog {
         browseOutputButton.setEnabled(enabled);
         taskTable.setEnabled(enabled);
 
+        // 强制刷新组件，避免文字消失
         SwingUtilities.invokeLater(() -> {
             for (Component comp : new Component[]{refreshButton, editConfigButton, openQueryButton,
                     startButton, clearLogButton, openReportsButton, browseOutputButton}) {
@@ -757,15 +534,8 @@ public class InspectionDialog extends BaseDialog {
     }
 
     private void log(String msg) {
-        if (logArea != null) {
-            logArea.append(msg + "\n");
-            logArea.setCaretPosition(logArea.getDocument().getLength());
-        } else {
-            if (startupLogs == null) {
-                startupLogs = new ArrayList<>();
-            }
-            startupLogs.add(msg);
-        }
+        logArea.append(msg + "\n");
+        logArea.setCaretPosition(logArea.getDocument().getLength());
     }
 
     @Override
