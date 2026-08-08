@@ -301,33 +301,33 @@ public class MainFrame extends JFrame {
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(190, 200, 215, 150), 1),
                 BorderFactory.createEmptyBorder(40, 60, 40, 60)));
-        // 固定卡片尺寸：宽 600（内容区 480，可排 3 个按钮/行 × 2 行），
-        // 任何窗口大小（含最小 900 宽）下 6 个按钮都完整可见、居中。
+        // 固定卡片尺寸：宽 600（内容区 478，可排 3 个按钮/行 × 2 行），
+        // 高度 440 保证在最小窗口（900×650）下也完整可见，最下行图标不再被截断。
         // 不能只设 maximumSize：GridBagLayout 布局时按 preferredSize 取宽，
         // 默认窗口下卡片会按 960（单行 6 按钮）溢出，最右侧被截断。
-        card.setPreferredSize(new Dimension(600, 470));
-        card.setMaximumSize(new Dimension(600, 470));
+        card.setPreferredSize(new Dimension(600, 440));
+        card.setMaximumSize(new Dimension(600, 440));
 
-        JLabel bigIcon = new JLabel(SvgIconUtils.get("monitor", 48, ThemeUtils.COLOR_PRIMARY));
+        JLabel bigIcon = new JLabel(SvgIconUtils.get("monitor", 36, ThemeUtils.COLOR_PRIMARY));
         bigIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
         card.add(bigIcon);
-        card.add(Box.createVerticalStrut(18));
+        card.add(Box.createVerticalStrut(14));
 
         JLabel welcome = new JLabel("欢迎使用资源管控中心·数据库运维管理平台", JLabel.CENTER);
         welcome.setFont(new Font("Microsoft YaHei", Font.BOLD, 22));
         welcome.setForeground(ThemeUtils.COLOR_TEXT);
         welcome.setAlignmentX(Component.CENTER_ALIGNMENT);
         card.add(welcome);
-        card.add(Box.createVerticalStrut(10));
+        card.add(Box.createVerticalStrut(8));
 
         JLabel hint = new JLabel("请从[功能菜单]选择要使用的工具", JLabel.CENTER);
         hint.setFont(new Font("Microsoft YaHei", Font.PLAIN, 14));
         hint.setForeground(ThemeUtils.COLOR_TEXT_SECONDARY);
         hint.setAlignmentX(Component.CENTER_ALIGNMENT);
         card.add(hint);
-        card.add(Box.createVerticalStrut(30));
+        card.add(Box.createVerticalStrut(24));
 
-        JPanel quickBtns = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
+        JPanel quickBtns = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
         quickBtns.setOpaque(false);
         quickBtns.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -359,8 +359,8 @@ public class MainFrame extends JFrame {
         btn.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(195, 205, 218), 1),
                 BorderFactory.createEmptyBorder(12, 16, 12, 16)));
-        btn.setPreferredSize(new Dimension(150, 90));
-        btn.setMaximumSize(new Dimension(150, 90));
+        btn.setPreferredSize(new Dimension(146, 86));
+        btn.setMaximumSize(new Dimension(146, 86));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setToolTipText(desc);
 
@@ -379,7 +379,7 @@ public class MainFrame extends JFrame {
             }
         });
 
-        ImageIcon svgIcon = SvgIconUtils.get(iconName, 28, ThemeUtils.COLOR_PRIMARY);
+        ImageIcon svgIcon = SvgIconUtils.get(iconName, 20, ThemeUtils.COLOR_PRIMARY);
         JLabel iconLbl = new JLabel(svgIcon);
         iconLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
         btn.add(iconLbl);
