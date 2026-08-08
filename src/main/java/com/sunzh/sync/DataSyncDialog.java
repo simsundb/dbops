@@ -729,7 +729,7 @@ public class DataSyncDialog extends BaseDialog {
             return;
         }
         List<String> cmd = buildCommand(
-            "com.example.sync.OracleToGaussDB",
+            "com.sunzh.sync.OracleToGaussDB",
             src.buildUrl(), src.getUser(), src.getPassword(),
             tgt.buildUrl(), tgt.getUser(), tgt.getPassword(),
             tableSpec
@@ -751,7 +751,7 @@ public class DataSyncDialog extends BaseDialog {
             return;
         }
         List<String> cmd = buildCommand(
-            "com.example.sync.GaussDBToOracle",
+            "com.sunzh.sync.GaussDBToOracle",
             src.buildUrl(), src.getUser(), src.getPassword(),
             tgt.buildUrl(), tgt.getUser(), tgt.getPassword(),
             tableSpec
@@ -776,7 +776,7 @@ public class DataSyncDialog extends BaseDialog {
             return;
         }
         List<String> cmd = buildCommand(
-            "com.example.sync.ExcelToOracle",
+            "com.sunzh.sync.ExcelToOracle",
             tgt.buildUrl(), tgt.getUser(), tgt.getPassword(),
             excel
         );
@@ -799,7 +799,7 @@ public class DataSyncDialog extends BaseDialog {
             return;
         }
         List<String> cmd = buildCommand(
-            "com.example.sync.ExcelToGaussDB",
+            "com.sunzh.sync.ExcelToGaussDB",
             tgt.buildUrl(), tgt.getUser(), tgt.getPassword(),
             excel
         );
