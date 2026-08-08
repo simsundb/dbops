@@ -3,9 +3,13 @@ package com.sunzh.inspection;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.utils.SvgIconUtils;
+import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -168,86 +172,97 @@ public class InspectionDialog extends BaseDialog {
     }
 
     private void initComponents() {
-        mainContentPanel.setLayout(new BorderLayout(10, 10));
+        mainContentPanel.setLayout(new BorderLayout());
+        mainContentPanel.setBackground(ThemeUtils.COLOR_BG);
 
-        // ===== 顶部工具栏 (两行) =====
-        JPanel topPanel = new JPanel(new GridLayout(2, 1, 0, 5));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
+        // ===== 顶部工具栏（白底卡片，两行）=====
+        JPanel topCard = ThemeUtils.cardPanel();
+        topCard.setLayout(new GridLayout(2, 1, 0, 12));
 
-        // ---- 第一行：数据源 + 输出目录 (左对齐) ----
-        JPanel row1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        row1.add(new JLabel("数据源:"));
+        // ---- 第一行：数据源 + 输出目录（图标标签 + 统一尺寸输入控件）----
+        JPanel row1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        row1.setBackground(ThemeUtils.COLOR_BG_CARD);
+        row1.add(SvgIconUtils.label("database", "数据源:", 14, ThemeUtils.COLOR_TEXT_SECONDARY));
         dataSourceCombo = new JComboBox<>();
-        dataSourceCombo.setPreferredSize(new Dimension(150, 28));
+        dataSourceCombo.setFont(ThemeUtils.FONT_NORMAL);
+        dataSourceCombo.setPreferredSize(new Dimension(170, ThemeUtils.INPUT_HEIGHT));
         row1.add(dataSourceCombo);
-
-        row1.add(new JLabel("输出目录:"));
-        outputPathField = new JTextField(reportsDir.getAbsolutePath(), 20);
+        row1.add(Box.createHorizontalStrut(12));
+        row1.add(SvgIconUtils.label("output", "输出目录:", 14, ThemeUtils.COLOR_TEXT_SECONDARY));
+        outputPathField = ThemeUtils.field(reportsDir.getAbsolutePath());
         outputPathField.setEditable(false);
+        outputPathField.setPreferredSize(new Dimension(300, ThemeUtils.INPUT_HEIGHT));
         row1.add(outputPathField);
-
-        browseOutputButton = new JButton("浏览...");
+        browseOutputButton = SvgIconUtils.outlineButton("folder-open", "浏览...", ThemeUtils.COLOR_SECONDARY);
         browseOutputButton.addActionListener(e -> chooseOutputDirectory());
         row1.add(browseOutputButton);
+        topCard.add(row1);
 
-        topPanel.add(row1);
+        // ---- 第二行：功能按钮（左侧次要操作，右侧主操作）----
+        JPanel row2 = new JPanel(new BorderLayout(8, 0));
+        row2.setBackground(ThemeUtils.COLOR_BG_CARD);
 
-        // ---- 第二行：所有功能按钮 (右对齐) ----
-        JPanel row2 = new JPanel(new FlowLayout(FlowLayout.TRAILING, 8, 0));
-        Dimension btnSize = new Dimension(115, 30);
+        JPanel leftBtns = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        leftBtns.setBackground(ThemeUtils.COLOR_BG_CARD);
 
-        refreshButton = new JButton("🔄 刷新配置");
-        refreshButton.setPreferredSize(btnSize);
+        refreshButton = SvgIconUtils.outlineButton("refresh", "刷新配置", ThemeUtils.COLOR_SECONDARY);
         refreshButton.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
                 loadConfig();
                 loadReports();
             });
         });
-        row2.add(refreshButton);
+        leftBtns.add(refreshButton);
 
-        editConfigButton = new JButton("📝 编辑 config.yaml");
-        editConfigButton.setPreferredSize(btnSize);
+        editConfigButton = SvgIconUtils.outlineButton("edit", "编辑 config.yaml", ThemeUtils.COLOR_SECONDARY);
         editConfigButton.addActionListener(e -> editConfigFile());
-        row2.add(editConfigButton);
+        leftBtns.add(editConfigButton);
 
-        openQueryButton = new JButton("📂 打开 query");
-        openQueryButton.setPreferredSize(btnSize);
+        openQueryButton = SvgIconUtils.outlineButton("folder-open", "打开 query", ThemeUtils.COLOR_SECONDARY);
         openQueryButton.addActionListener(e -> openFolder(externalQueryDir));
-        row2.add(openQueryButton);
+        leftBtns.add(openQueryButton);
 
-        // 分隔
-        row2.add(Box.createHorizontalStrut(20));
+        openReportsButton = SvgIconUtils.outlineButton("report", "打开报告", ThemeUtils.COLOR_SECONDARY);
+        openReportsButton.addActionListener(e -> openFolder(reportsDir));
+        leftBtns.add(openReportsButton);
 
-        startButton = new JButton("▶ 开始巡检");
-        startButton.setPreferredSize(btnSize);
+        JPanel rightBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        rightBtns.setBackground(ThemeUtils.COLOR_BG_CARD);
+
+        clearLogButton = SvgIconUtils.outlineButton("trash", "清空日志", ThemeUtils.COLOR_DANGER);
+        clearLogButton.addActionListener(e -> { if (logArea != null) logArea.setText(""); });
+        rightBtns.add(clearLogButton);
+
+        startButton = SvgIconUtils.button("play", "开始巡检", ThemeUtils.COLOR_PRIMARY);
         startButton.setEnabled(false);
         startButton.addActionListener(e -> startInspection());
-        row2.add(startButton);
+        rightBtns.add(startButton);
 
-        clearLogButton = new JButton("🗑 清空日志");
-        clearLogButton.setPreferredSize(btnSize);
-        clearLogButton.addActionListener(e -> { if (logArea != null) logArea.setText(""); });
-        row2.add(clearLogButton);
+        row2.add(leftBtns, BorderLayout.WEST);
+        row2.add(rightBtns, BorderLayout.EAST);
+        topCard.add(row2);
 
-        openReportsButton = new JButton("📁 打开报告");
-        openReportsButton.setPreferredSize(btnSize);
-        openReportsButton.addActionListener(e -> openFolder(reportsDir));
-        row2.add(openReportsButton);
+        JPanel topWrap = new JPanel(new BorderLayout());
+        topWrap.setOpaque(false);
+        topWrap.setBorder(ThemeUtils.paddingBorder(10, 12, 4, 12));
+        topWrap.add(topCard, BorderLayout.CENTER);
+        mainContentPanel.add(topWrap, BorderLayout.NORTH);
 
-        topPanel.add(row2);
-        mainContentPanel.add(topPanel, BorderLayout.NORTH);
-
-        // ===== 中央：任务列表（主）+ SQL预览（辅）=====
-        // 任务列表是主操作区，占 65% 宽度；SQL 预览占 35% 即可
+        // ===== 中央：任务列表（主）+ SQL 预览（辅）=====
+        // 任务列表占 68% 宽度，SQL 预览占 32%；两个区域均以白底卡片包裹
         JSplitPane centerSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        centerSplit.setDividerLocation(0.65);
-        centerSplit.setResizeWeight(0.65);
+        centerSplit.setDividerLocation(0.68);
+        centerSplit.setResizeWeight(0.68);
+        centerSplit.setBorder(null);
 
         tableModel = new TaskTableModel();
         taskTable = new JTable(tableModel);
-        taskTable.setRowHeight(28);
-        taskTable.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        taskTable.setRowHeight(30);
+        taskTable.setFont(ThemeUtils.FONT_SMALL);
+        taskTable.setGridColor(ThemeUtils.COLOR_BORDER_LIGHT);
+        taskTable.setSelectionBackground(ThemeUtils.COLOR_PRIMARY_SELECT);
+        taskTable.setSelectionForeground(ThemeUtils.COLOR_TEXT);
+        taskTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         taskTable.getSelectionModel().addListSelectionListener(e -> {
             int row = taskTable.getSelectedRow();
             if (row >= 0 && row < tasks.size()) {
@@ -257,64 +272,119 @@ public class InspectionDialog extends BaseDialog {
             }
         });
 
+        // 状态列着色 + 交替行（列0是布尔复选框，走独立渲染器不受影响）
+        taskTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (!isSelected) {
+                    c.setBackground(row % 2 == 0 ? ThemeUtils.COLOR_BG_CARD : ThemeUtils.COLOR_BG_ALTERNATE);
+                    setForeground(ThemeUtils.COLOR_TEXT);
+                    setFont(table.getFont());
+                }
+                setHorizontalAlignment(SwingConstants.LEFT);
+                if (column == 3 && value != null) {
+                    String status = value.toString();
+                    switch (status) {
+                        case "SUCCESS": setForeground(ThemeUtils.COLOR_SUCCESS); setFont(getFont().deriveFont(Font.BOLD)); break;
+                        case "NO_DATA": setForeground(ThemeUtils.COLOR_INFO); break;
+                        case "FAILED":  setForeground(ThemeUtils.COLOR_DANGER); setFont(getFont().deriveFont(Font.BOLD)); break;
+                        case "SKIPPED": setForeground(ThemeUtils.COLOR_WARNING); break;
+                        default:        setForeground(ThemeUtils.COLOR_TEXT_SECONDARY); break;
+                    }
+                }
+                return c;
+            }
+        });
+
+        JTableHeader header = taskTable.getTableHeader();
+        header.setFont(ThemeUtils.FONT_SMALL_BOLD);
+        header.setBackground(ThemeUtils.COLOR_TABLE_HEADER_BG);
+        header.setForeground(ThemeUtils.COLOR_TABLE_HEADER_TEXT);
+        header.setReorderingAllowed(false);
+
         TableColumnModel columnModel = taskTable.getColumnModel();
         columnModel.getColumn(0).setPreferredWidth(50);
         columnModel.getColumn(1).setPreferredWidth(300);
         columnModel.getColumn(2).setPreferredWidth(180);
-        columnModel.getColumn(3).setPreferredWidth(90);
+        columnModel.getColumn(3).setPreferredWidth(100);
         columnModel.getColumn(4).setPreferredWidth(80);
         columnModel.getColumn(5).setPreferredWidth(240);
-        taskTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         JScrollPane tableScroll = new JScrollPane(taskTable);
         tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        // 给任务列表一个合理的初始尺寸与最小尺寸，避免分割条把它压得只剩一条
-        tableScroll.setPreferredSize(new Dimension(720, 380));
-        tableScroll.setMinimumSize(new Dimension(480, 200));
-        tableScroll.setBorder(BorderFactory.createTitledBorder("任务列表"));
+        tableScroll.setMinimumSize(new Dimension(480, 220));
+        tableScroll.setBorder(BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER_LIGHT));
+
+        JPanel taskCard = ThemeUtils.cardPanel();
+        taskCard.setLayout(new BorderLayout(8, 8));
+        taskCard.add(ThemeUtils.sectionHeader("list", "任务列表"), BorderLayout.NORTH);
+        taskCard.add(tableScroll, BorderLayout.CENTER);
+        taskCard.setMinimumSize(new Dimension(480, 240));
 
         sqlPreviewArea = new JTextArea();
         sqlPreviewArea.setEditable(false);
-        sqlPreviewArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        sqlPreviewArea.setFont(ThemeUtils.FONT_LOG);
+        sqlPreviewArea.setBackground(ThemeUtils.COLOR_BG_CARD);
+        sqlPreviewArea.setForeground(ThemeUtils.COLOR_TEXT);
         sqlPreviewArea.setTabSize(4);
+        sqlPreviewArea.setBorder(ThemeUtils.paddingBorder(8, 10, 8, 10));
         JScrollPane previewScroll = new JScrollPane(sqlPreviewArea);
-        previewScroll.setMinimumSize(new Dimension(260, 200));
-        previewScroll.setBorder(BorderFactory.createTitledBorder("SQL 预览"));
+        previewScroll.setBorder(BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER_LIGHT));
 
-        centerSplit.setLeftComponent(tableScroll);
-        centerSplit.setRightComponent(previewScroll);
+        JPanel previewCard = ThemeUtils.cardPanel();
+        previewCard.setLayout(new BorderLayout(8, 8));
+        previewCard.add(ThemeUtils.sectionHeader("file-code", "SQL 预览"), BorderLayout.NORTH);
+        previewCard.add(previewScroll, BorderLayout.CENTER);
+        previewCard.setMinimumSize(new Dimension(280, 240));
+
+        centerSplit.setLeftComponent(taskCard);
+        centerSplit.setRightComponent(previewCard);
         mainContentPanel.add(centerSplit, BorderLayout.CENTER);
 
-        // ===== 底部：进度 + 日志 + 报告列表（水平并列，压缩高度，让出空间给任务列表）=====
-        JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
-        // 底部固定为较矮的高度，中央任务列表才能获得足够的纵向空间
-        bottomPanel.setPreferredSize(new Dimension(0, 235));
+        // ===== 底部：进度 + 日志 + 报告（固定高度，左右并列）=====
+        JPanel bottomPanel = new JPanel(new BorderLayout(8, 8));
+        bottomPanel.setOpaque(false);
+        bottomPanel.setBorder(ThemeUtils.paddingBorder(4, 12, 10, 12));
+        bottomPanel.setPreferredSize(new Dimension(0, 245));
         bottomPanel.setMinimumSize(new Dimension(0, 180));
 
-        JPanel progressPanel = new JPanel(new BorderLayout());
         progressBar = new JProgressBar(0, 1);
         progressBar.setStringPainted(true);
-        progressPanel.add(progressBar, BorderLayout.CENTER);
-        bottomPanel.add(progressPanel, BorderLayout.NORTH);
+        progressBar.setPreferredSize(new Dimension(0, 24));
+        bottomPanel.add(progressBar, BorderLayout.NORTH);
 
-        // 日志与报告改为左右并列：日志为主（68%），报告列表为辅（32%）
+        // 日志与报告左右并列：日志为主（68%），报告列表为辅（32%）
         JSplitPane bottomSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         bottomSplit.setDividerLocation(0.68);
         bottomSplit.setResizeWeight(0.68);
+        bottomSplit.setBorder(null);
 
+        // ---- 运行日志卡片（深色终端风格）----
         logArea = new JTextArea(4, 0);
         logArea.setEditable(false);
-        logArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        logArea.setFont(ThemeUtils.FONT_LOG);
+        logArea.setBackground(ThemeUtils.COLOR_LOG_BG);
+        logArea.setForeground(ThemeUtils.COLOR_LOG_TEXT);
+        logArea.setCaretColor(ThemeUtils.COLOR_LOG_TEXT);
+        logArea.setBorder(ThemeUtils.paddingBorder(8, 10, 8, 10));
         JScrollPane logScroll = new JScrollPane(logArea);
-        logScroll.setBorder(BorderFactory.createTitledBorder("运行日志"));
-        logScroll.setMinimumSize(new Dimension(300, 120));
-        bottomSplit.setLeftComponent(logScroll);
+        logScroll.setBorder(BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER_LIGHT));
+        logScroll.setMinimumSize(new Dimension(320, 130));
 
+        JPanel logCard = ThemeUtils.cardPanel();
+        logCard.setLayout(new BorderLayout(8, 8));
+        logCard.add(ThemeUtils.sectionHeader("terminal", "运行日志"), BorderLayout.NORTH);
+        logCard.add(logScroll, BorderLayout.CENTER);
+        logCard.setMinimumSize(new Dimension(320, 150));
+
+        // ---- 已生成报告卡片 ----
         reportListModel = new DefaultListModel<>();
         reportList = new JList<>(reportListModel);
-        reportList.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        reportList.setFont(ThemeUtils.FONT_SMALL);
         reportList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        reportList.setBackground(ThemeUtils.COLOR_BG_CARD);
         reportList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -330,11 +400,19 @@ public class InspectionDialog extends BaseDialog {
             }
         });
         JScrollPane reportScroll = new JScrollPane(reportList);
-        reportScroll.setBorder(BorderFactory.createTitledBorder("已生成的报告（双击打开目录）"));
-        reportScroll.setMinimumSize(new Dimension(200, 120));
-        bottomSplit.setRightComponent(reportScroll);
+        reportScroll.setBorder(BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER_LIGHT));
+        reportScroll.setMinimumSize(new Dimension(220, 130));
 
+        JPanel reportCard = ThemeUtils.cardPanel();
+        reportCard.setLayout(new BorderLayout(8, 8));
+        reportCard.add(ThemeUtils.sectionHeader("report", "已生成的报告（双击打开）"), BorderLayout.NORTH);
+        reportCard.add(reportScroll, BorderLayout.CENTER);
+        reportCard.setMinimumSize(new Dimension(220, 150));
+
+        bottomSplit.setLeftComponent(logCard);
+        bottomSplit.setRightComponent(reportCard);
         bottomPanel.add(bottomSplit, BorderLayout.CENTER);
+
         mainContentPanel.add(bottomPanel, BorderLayout.SOUTH);
     }
 
