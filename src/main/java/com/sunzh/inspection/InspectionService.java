@@ -1,10 +1,10 @@
 package com.sunzh.inspection;
+import com.sunzh.utils.EncodingUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -33,7 +33,8 @@ public class InspectionService {
         List<InspectionTask> tasks = new ArrayList<>();
         try (InputStream input = new FileInputStream(configFile)) {
             Yaml yaml = new Yaml();
-            List<Map<String, Object>> rawList = yaml.load(input);
+            // 自动识别编码（UTF-8/GBK），避免 description 乱码
+            List<Map<String, Object>> rawList = yaml.load(EncodingUtils.readText(input));
             if (rawList == null) return tasks;
 
             for (Map<String, Object> item : rawList) {
@@ -46,12 +47,13 @@ public class InspectionService {
                     Path filePath = queryDir.toPath().resolve(sqlFile);
                     try {
                         if (Files.exists(filePath)) {
-                            sql = new String(Files.readAllBytes(filePath), StandardCharsets.UTF_8);
+                            // 自动识别编码（UTF-8/GBK），避免 SQL 注释/内容乱码
+                            sql = EncodingUtils.readText(filePath.toFile());
                         } else {
                             // 文件不在磁盘，从 classpath (JAR 内 resources/query/) 读取
                             InputStream sqlIn = getClass().getResourceAsStream("/query/" + sqlFile);
                             if (sqlIn != null) {
-                                sql = new String(sqlIn.readAllBytes(), StandardCharsets.UTF_8);
+                                sql = EncodingUtils.readText(sqlIn);
                                 sqlIn.close();
                             } else {
                                 LOGGER.log(Level.WARNING, "SQL 文件不存在（磁盘和 classpath 均未找到）: " + sqlFile + "，任务: " + desc);

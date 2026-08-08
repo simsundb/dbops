@@ -3,6 +3,7 @@ package com.sunzh.stats;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.utils.EncodingUtils;
 import com.sunzh.utils.ThemeUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -38,7 +39,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 import java.util.List;
@@ -471,14 +471,15 @@ public class StatsQueryDialog extends BaseDialog {
         File external = new File(EXTERNAL_CONFIG_DIR + fileName);
         if (external.exists() && external.isFile()) {
             try (InputStream is = new FileInputStream(external)) {
-                return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                // 自动识别编码（UTF-8/GBK），避免外部 SQL 乱码
+                return EncodingUtils.readText(is);
             } catch (IOException e) {
                 statusLabel.setText("读取外部 SQL 失败: " + fileName + " - " + e.getMessage());
             }
         }
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("stats/" + fileName)) {
             if (is == null) return null;
-            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            return EncodingUtils.readText(is);
         } catch (IOException e) {
             return null;
         }

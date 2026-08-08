@@ -1,5 +1,7 @@
 package com.sunzh.scriptrunner;
 
+import com.sunzh.utils.EncodingUtils;
+
 import java.io.*;
 import java.sql.*;
 import java.util.*;
@@ -108,19 +110,10 @@ public class ScriptRunner {
     }
     
     /**
-     * 读取文件内容
+     * 读取文件内容（自动识别编码 UTF-8/GBK，避免乱码）
      */
     private String readFileContent(File file) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
-            char[] buffer = new char[8192];
-            int len;
-            while ((len = br.read(buffer)) != -1) {
-                sb.append(buffer, 0, len);
-            }
-        }
-        return sb.toString();
+        return EncodingUtils.readText(file);
     }
     
     /**

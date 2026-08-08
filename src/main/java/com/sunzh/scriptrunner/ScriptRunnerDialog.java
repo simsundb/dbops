@@ -4,6 +4,7 @@ import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
 import com.sunzh.ui.components.CustomButton;
+import com.sunzh.utils.EncodingUtils;
 import com.sunzh.utils.ThemeUtils;
 import com.sunzh.utils.SvgIconUtils;
 
@@ -130,7 +131,7 @@ public class ScriptRunnerDialog extends BaseDialog {
 
         JButton btnRefreshDs = new CustomButton("刷新", ThemeUtils.COLOR_INFO);
         btnRefreshDs.setIcon(SvgIconUtils.getWhite("refresh", 16));
-        btnRefreshDs.setPreferredSize(new Dimension(80, 28));
+        btnRefreshDs.setPreferredSize(new Dimension(92, 32));
         btnRefreshDs.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnRefreshDs.addActionListener(e -> loadDataSources());
         sourcePanel.add(btnRefreshDs);
@@ -141,14 +142,14 @@ public class ScriptRunnerDialog extends BaseDialog {
         fileBtnPanel.setOpaque(false);
         btnSelectFiles = new CustomButton("选择SQL文件", ThemeUtils.COLOR_PRIMARY);
         btnSelectFiles.setIcon(SvgIconUtils.getWhite("folder-open", 16));
-        btnSelectFiles.setPreferredSize(new Dimension(120, 30));
+        btnSelectFiles.setPreferredSize(new Dimension(150, 32));
         btnSelectFiles.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnSelectFiles.addActionListener(e -> selectFiles());
         fileBtnPanel.add(btnSelectFiles);
 
         btnClearFiles = new CustomButton("清空列表", ThemeUtils.COLOR_SECONDARY);
         btnClearFiles.setIcon(SvgIconUtils.getWhite("clear", 16));
-        btnClearFiles.setPreferredSize(new Dimension(100, 30));
+        btnClearFiles.setPreferredSize(new Dimension(120, 32));
         btnClearFiles.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnClearFiles.addActionListener(e -> {
             fileListModel.clear();
@@ -208,21 +209,21 @@ public class ScriptRunnerDialog extends BaseDialog {
 
         btnExecute = new CustomButton("执行SQL", ThemeUtils.COLOR_SUCCESS);
         btnExecute.setIcon(SvgIconUtils.getWhite("play", 16));
-        btnExecute.setPreferredSize(new Dimension(140, 36));
+        btnExecute.setPreferredSize(new Dimension(150, 36));
         btnExecute.setFont(ThemeUtils.FONT_BOLD);
         btnExecute.addActionListener(e -> executeSQLFiles());
         execPanel.add(btnExecute);
 
         btnInitMigrationTables = new CustomButton("基础表初始化", ThemeUtils.COLOR_INFO);
         btnInitMigrationTables.setIcon(SvgIconUtils.getWhite("database", 16));
-        btnInitMigrationTables.setPreferredSize(new Dimension(150, 36));
+        btnInitMigrationTables.setPreferredSize(new Dimension(165, 36));
         btnInitMigrationTables.setFont(ThemeUtils.FONT_BOLD);
         btnInitMigrationTables.addActionListener(e -> initMigrationTables());
         execPanel.add(btnInitMigrationTables);
 
         JButton btnClearLog = new CustomButton("清空日志", ThemeUtils.COLOR_SECONDARY);
         btnClearLog.setIcon(SvgIconUtils.getWhite("clear", 16));
-        btnClearLog.setPreferredSize(new Dimension(100, 36));
+        btnClearLog.setPreferredSize(new Dimension(120, 36));
         btnClearLog.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnClearLog.addActionListener(e -> logArea.setText(""));
         execPanel.add(btnClearLog);
@@ -279,28 +280,28 @@ public class ScriptRunnerDialog extends BaseDialog {
 
         JButton btnRefresh = new CustomButton("刷新", ThemeUtils.COLOR_INFO);
         btnRefresh.setIcon(SvgIconUtils.getWhite("refresh", 16));
-        btnRefresh.setPreferredSize(new Dimension(80, 30));
+        btnRefresh.setPreferredSize(new Dimension(92, 32));
         btnRefresh.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnRefresh.addActionListener(e -> loadFailureData(currentMode));
         toolBar.add(btnRefresh);
 
         btnSummary = new CustomButton("汇总", ThemeUtils.COLOR_WARNING);
         btnSummary.setIcon(SvgIconUtils.getWhite("report", 16));
-        btnSummary.setPreferredSize(new Dimension(80, 30));
+        btnSummary.setPreferredSize(new Dimension(92, 32));
         btnSummary.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnSummary.addActionListener(e -> loadFailureData("汇总"));
         toolBar.add(btnSummary);
 
         btnDetail = new CustomButton("明细", ThemeUtils.COLOR_PRIMARY);
         btnDetail.setIcon(SvgIconUtils.getWhite("list", 16));
-        btnDetail.setPreferredSize(new Dimension(80, 30));
+        btnDetail.setPreferredSize(new Dimension(92, 32));
         btnDetail.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnDetail.addActionListener(e -> loadFailureData("明细"));
         toolBar.add(btnDetail);
 
         btnExportExcel = new CustomButton("导出Excel", ThemeUtils.COLOR_SUCCESS);
         btnExportExcel.setIcon(SvgIconUtils.getWhite("export", 16));
-        btnExportExcel.setPreferredSize(new Dimension(100, 30));
+        btnExportExcel.setPreferredSize(new Dimension(125, 32));
         btnExportExcel.setFont(ThemeUtils.FONT_SMALL_BOLD);
         btnExportExcel.addActionListener(e -> exportFailureExcel());
         toolBar.add(btnExportExcel);
@@ -783,15 +784,8 @@ public class ScriptRunnerDialog extends BaseDialog {
                 appendLog("❌ classpath 资源不存在: " + resourcePath);
                 return null;
             }
-            try (InputStreamReader isr = new InputStreamReader(is, "UTF-8");
-                 BufferedReader br = new BufferedReader(isr)) {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = br.readLine()) != null) {
-                    sb.append(line).append("\n");
-                }
-                return sb.toString();
-            }
+            // 自动识别编码（UTF-8/GBK），避免建表脚本中文乱码
+            return EncodingUtils.readText(is);
         } catch (IOException e) {
             e.printStackTrace();
             return null;

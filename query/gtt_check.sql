@@ -1,15 +1,15 @@
 select
-    owner AS "Ä£Ê½Ãû",
-    table_name AS "±íÃû",
-    tablespace_name AS "±í¿Õ¼äÃû",
-    temporary AS "ÁÙÊ±±êÖ¾",
-    status AS "×´Ì¬",
-    num_rows AS "ĞĞÊı",
-    sample_size AS "²ÉÑù´óĞ¡",
-    avg_row_len AS "Æ½¾ùĞĞ³¤¶È",
-    last_analyzed AS "×îºó·ÖÎöÊ±¼ä",
-    partitioned AS "·ÖÇø±êÖ¾",
-    compression AS "Ñ¹Ëõ±êÖ¾"
+    owner AS "æ¨¡å¼å",
+    table_name AS "è¡¨å",
+    tablespace_name AS "è¡¨ç©ºé—´å",
+    temporary AS "ä¸´æ—¶æ ‡å¿—",
+    status AS "çŠ¶æ€",
+    num_rows AS "è¡Œæ•°",
+    sample_size AS "é‡‡æ ·å¤§å°",
+    avg_row_len AS "å¹³å‡è¡Œé•¿åº¦",
+    last_analyzed AS "æœ€ååˆ†ææ—¶é—´",
+    partitioned AS "åˆ†åŒºæ ‡å¿—",
+    compression AS "å‹ç¼©æ ‡å¿—"
 FROM DB_TABLES 
 WHERE temporary = 'y'
   AND owner NOT IN (

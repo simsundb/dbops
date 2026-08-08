@@ -34,7 +34,7 @@ public class MainFrame extends JFrame {
     private DataSourceStore store;
 
     public MainFrame() {
-        setTitle("🖥️ 资源管控中心 · 数据库运维管理平台");
+        setTitle("🖥️ 资源管控中心 · 数据库运维管理平台v1.0");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -134,7 +134,7 @@ public class MainFrame extends JFrame {
         dotPanel.setOpaque(false);
         rightPanel.add(dotPanel);
 
-        JLabel statusLabel = new JLabel("系统就绪");
+        JLabel statusLabel = new JLabel("SunZH");
         statusLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
         statusLabel.setForeground(new Color(200, 215, 230));
         rightPanel.add(statusLabel);
@@ -420,7 +420,7 @@ public class MainFrame extends JFrame {
     // ---- 底部状态栏 ----
     private JPanel createStatusBar() {
         statusBar = new StatusBar();
-        statusBar.setLeftText("资源管控中心 · 数据库运维管理平台 | 系统就绪");
+        statusBar.setLeftText("资源管控中心 · 数据库运维管理平台 | SunZH");
         return statusBar;
     }
 
