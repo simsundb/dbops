@@ -461,8 +461,10 @@ public class ThemeUtils {
 
         // 顶层菜单条：浅色文字融入深海军蓝顶栏，hover 呈现磨砂高亮
         UIManager.put("Menu.foreground", COLOR_HEADER_TEXT);
-        UIManager.put("Menu.selectionBackground", new Color(255, 255, 255, 42));
-        UIManager.put("Menu.selectionForeground", Color.WHITE);
+        // 顶栏菜单与白底下拉子菜单共用同一套悬停色（浅蓝底 + 深色字），
+        // 与 MenuItem 悬停一致；否则半透明白底在白下拉里悬停时文字会消失。
+        UIManager.put("Menu.selectionBackground", COLOR_PRIMARY_SELECT);
+        UIManager.put("Menu.selectionForeground", COLOR_TEXT);
         UIManager.put("Menu.background", COLOR_HEADER_BG_START);
         UIManager.put("MenuBar.background", COLOR_HEADER_BG_START);
         UIManager.put("MenuBar.border", BorderFactory.createEmptyBorder(0, 0, 0, 0));

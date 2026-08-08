@@ -132,47 +132,7 @@ public class MainFrame extends JFrame {
         leftPanel.add(versionLabel);
 
         header.add(leftPanel, BorderLayout.WEST);
-
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
-        rightPanel.setOpaque(false);
-
-        JPanel dotPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(new Color(120, 200, 160));
-                g2d.fillOval(1, 1, 8, 8);
-                g2d.setColor(new Color(120, 200, 160, 100));
-                g2d.fillOval(-1, -1, 12, 12);
-            }
-            @Override public Dimension getPreferredSize() { return new Dimension(12, 12); }
-        };
-        dotPanel.setOpaque(false);
-        rightPanel.add(dotPanel);
-
-        JLabel statusLabel = new JLabel("SunZH");
-        statusLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
-        statusLabel.setForeground(new Color(200, 215, 230));
-        rightPanel.add(statusLabel);
-
-        JSeparator sep = new JSeparator(JSeparator.VERTICAL);
-        sep.setForeground(new Color(255, 255, 255, 40));
-        sep.setPreferredSize(new Dimension(1, 18));
-        rightPanel.add(sep);
-
-        JLabel timeLabel = new JLabel("👤 " + System.getProperty("user.name"));
-        timeLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
-        timeLabel.setForeground(new Color(190, 205, 220));
-        rightPanel.add(timeLabel);
-
-        JSeparator sep2 = new JSeparator(JSeparator.VERTICAL);
-        sep2.setForeground(new Color(255, 255, 255, 40));
-        sep2.setPreferredSize(new Dimension(1, 18));
-        rightPanel.add(sep2);
-
-        header.add(rightPanel, BorderLayout.EAST);
+        // 右上角原"SunZH / 用户名"状态区已按需移除，保持素雅
         return header;
     }
 
@@ -256,8 +216,17 @@ public class MainFrame extends JFrame {
 
         // ========== 数据质量规则引擎（子菜单） ==========
         funcMenu.addSeparator();
-        JMenu qualityMenu = buildTopMenu("9.数据质量", "check", menuFont);
+        // 子菜单出现在白色下拉面板里，须与普通菜单项一致（深色文字 + 主色图标），
+        // 不能用 buildTopMenu —— 那是给深蓝顶栏用的浅色文字，白底上会看不清。
+        JMenu qualityMenu = new JMenu("9.数据质量");
+        qualityMenu.setFont(itemFont);
+        qualityMenu.setForeground(ThemeUtils.COLOR_TEXT);
         qualityMenu.setIcon(SvgIconUtils.get("check", 16, ThemeUtils.COLOR_PRIMARY));
+        qualityMenu.setIconTextGap(8);
+        // FlatLaf 子菜单箭头默认跟随 Menu.foreground（浅色），白底上不可见，这里显式置为深色
+        String menuColor = String.format("#%06x", ThemeUtils.COLOR_TEXT.getRGB() & 0xFFFFFF);
+        qualityMenu.putClientProperty("FlatLaf.style",
+                "arrowColor: " + menuColor + "; arrowSelectionColor: " + menuColor);
 
         JMenuItem configItem = new JMenuItem("1.检查和清洗规则配置");
         configItem.setFont(itemFont);
