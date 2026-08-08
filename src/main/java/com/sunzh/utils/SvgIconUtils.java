@@ -9,7 +9,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -123,6 +125,23 @@ public class SvgIconUtils {
     /** 白色图标：用于有色背景按钮上的图标 */
     public static ImageIcon getWhite(String name, int size) {
         return get(name, size, Color.WHITE);
+    }
+
+    /**
+     * 给窗口设置应用图标（标题栏左上角 + 任务栏）。
+     * 提供多尺寸，由操作系统自动选择最清晰的缩放。
+     */
+    public static void applyWindowIcon(Window window) {
+        List<Image> icons = new ArrayList<>();
+        for (int size : new int[]{16, 32, 48, 64}) {
+            Image img = get("database", size, ThemeUtils.COLOR_PRIMARY).getImage();
+            if (img != null) {
+                icons.add(img);
+            }
+        }
+        if (!icons.isEmpty()) {
+            window.setIconImages(icons);
+        }
     }
 
     /** 灰色图标：用于次要/禁用状态 */

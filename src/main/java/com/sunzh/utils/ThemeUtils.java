@@ -6,11 +6,12 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * 主题工具类 — Azure Pro 统一设计体系
+ * 主题工具类 — 暗色磨砂海军蓝 · 素雅设计体系
  *
  * 设计理念：
  * - 单一权威色板：所有页面必须从这里取色，禁止散落硬编码颜色
- * - 现代专业风格：清爽的冷灰底 + 纯白卡片 + 沉稳的靛蓝主色
+ * - 暗蓝磨砂：主色采用低饱和、偏暗的钢灰蓝（steel navy），摒弃亮眼的天蓝
+ * - 素雅克制：冷灰底 + 纯白卡片 + 柔和的低对比边框，层次分明不抢眼
  * - 高一致性与层次感：主/次/提示文字、卡片/背景/边框分级明确
  * - 控件尺寸统一：按钮、输入框、间距全部通过常量约束
  */
@@ -18,18 +19,18 @@ public class ThemeUtils {
     private ThemeUtils() {}
 
     // ═══════════════════════════════════════════════════════════════
-    //  品牌色 — 靛蓝 Azure
+    //  品牌色 — 暗色磨砂海军蓝（Steel Navy）
     // ═══════════════════════════════════════════════════════════════
     /** 主色 — 按钮、标题、选中态、链接 */
-    public static final Color COLOR_PRIMARY        = new Color(59,  111, 224);
+    public static final Color COLOR_PRIMARY        = new Color(52,  84,  152);
     /** 主色浅 — hover / 进度条 */
-    public static final Color COLOR_PRIMARY_LIGHT  = new Color(106, 144, 236);
+    public static final Color COLOR_PRIMARY_LIGHT  = new Color(84,  114, 184);
     /** 主色深 — pressed / active */
-    public static final Color COLOR_PRIMARY_DARK   = new Color(44,  85,  184);
+    public static final Color COLOR_PRIMARY_DARK   = new Color(38,  62,  116);
     /** 主色极浅 — 悬浮底色、标签底色、选中卡片背景 */
-    public static final Color COLOR_PRIMARY_SOFT   = new Color(232, 240, 254);
+    public static final Color COLOR_PRIMARY_SOFT   = new Color(224, 231, 244);
     /** 主色选中底 — 表格选中、列表选中 */
-    public static final Color COLOR_PRIMARY_SELECT = new Color(214, 227, 251);
+    public static final Color COLOR_PRIMARY_SELECT = new Color(202, 214, 237);
 
     // ═══════════════════════════════════════════════════════════════
     //  辅助色
@@ -43,25 +44,25 @@ public class ThemeUtils {
     //  中性背景色
     // ═══════════════════════════════════════════════════════════════
     /** 全局背景 — 冷调浅灰蓝 */
-    public static final Color COLOR_BG          = new Color(244, 246, 250);
+    public static final Color COLOR_BG          = new Color(240, 243, 248);
     /** 卡片 / 面板背景 — 纯白 */
     public static final Color COLOR_BG_CARD     = new Color(255, 255, 255);
     /** 表格交替行 */
-    public static final Color COLOR_BG_ALTERNATE = new Color(244, 247, 252);
+    public static final Color COLOR_BG_ALTERNATE = new Color(243, 246, 251);
     /** 输入框背景 — 纯白 */
     public static final Color COLOR_BG_INPUT    = new Color(255, 255, 255);
     /** 悬浮底色 */
-    public static final Color COLOR_BG_HOVER    = new Color(237, 242, 253);
+    public static final Color COLOR_BG_HOVER    = new Color(234, 240, 250);
 
     // ═══════════════════════════════════════════════════════════════
     //  边框和分隔线
     // ═══════════════════════════════════════════════════════════════
     /** 默认边框 */
-    public static final Color COLOR_BORDER       = new Color(220, 226, 236);
+    public static final Color COLOR_BORDER       = new Color(214, 221, 231);
     /** 浅边框 — 分隔线、卡片边界 */
-    public static final Color COLOR_BORDER_LIGHT = new Color(233, 237, 243);
+    public static final Color COLOR_BORDER_LIGHT = new Color(227, 232, 240);
     /** 分隔线 */
-    public static final Color COLOR_DIVIDER      = new Color(228, 233, 240);
+    public static final Color COLOR_DIVIDER      = new Color(223, 229, 238);
 
     // ═══════════════════════════════════════════════════════════════
     //  文字颜色
@@ -96,26 +97,26 @@ public class ThemeUtils {
     public static final Color COLOR_DANGER_LIGHT  = new Color(239, 112, 115);
     /** 危险底色 */
     public static final Color COLOR_DANGER_SOFT   = new Color(252, 233, 233);
-    /** 信息 — 靛蓝 */
-    public static final Color COLOR_INFO          = new Color(59,  111, 224);
+    /** 信息 — 暗蓝（同主色） */
+    public static final Color COLOR_INFO          = new Color(52,  84,  152);
     /** 信息浅 */
-    public static final Color COLOR_INFO_LIGHT    = new Color(106, 144, 236);
+    public static final Color COLOR_INFO_LIGHT    = new Color(84,  114, 184);
 
     // ═══════════════════════════════════════════════════════════════
     //  标题栏和菜单
     // ═══════════════════════════════════════════════════════════════
     /** 顶部标题栏渐变起始 — 深海军蓝 */
-    public static final Color COLOR_HEADER_BG_START = new Color(30,  58,  107);
-    /** 顶部标题栏渐变结束 — 靛蓝 */
-    public static final Color COLOR_HEADER_BG_END   = new Color(46,  86,  201);
+    public static final Color COLOR_HEADER_BG_START = new Color(22,  38,  74);
+    /** 顶部标题栏渐变结束 — 磨砂海军蓝 */
+    public static final Color COLOR_HEADER_BG_END   = new Color(43,  70,  136);
     /** 顶部标题栏背景（兼容旧引用） */
     public static final Color COLOR_HEADER_BG       = COLOR_HEADER_BG_START;
     /** 顶部标题栏文字 */
-    public static final Color COLOR_HEADER_TEXT     = new Color(244, 247, 255);
+    public static final Color COLOR_HEADER_TEXT     = new Color(242, 246, 253);
     /** 菜单栏背景 — 纯白 */
     public static final Color COLOR_MENU_BG         = new Color(255, 255, 255);
     /** 菜单悬浮 — 极浅靛蓝 */
-    public static final Color COLOR_MENU_HOVER      = new Color(232, 240, 254);
+    public static final Color COLOR_MENU_HOVER      = new Color(224, 231, 244);
 
     // ═══════════════════════════════════════════════════════════════
     //  表格

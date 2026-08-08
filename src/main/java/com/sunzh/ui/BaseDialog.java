@@ -6,6 +6,8 @@ import com.sunzh.utils.ThemeUtils;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 /**
@@ -24,13 +26,31 @@ public abstract class BaseDialog extends JDialog {
     }
 
     public BaseDialog(JFrame owner, String title, String iconName) {
-        super(owner, title, true);
+        // 非模态（modalityType = MODELESS）：Windows 上模态 JDialog 即使可调整大小
+        // 也没有最大化按钮。这里改用"手动模态"（见下方 WindowListener），
+        // 既保留"打开时不能操作主窗口"的体验，又获得最小化/最大化/关闭按钮。
+        super(owner, title, false);
         this.owner = owner;
         this.titleText = title;
         this.iconName = iconName;
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         // 使用原生窗口装饰：标题栏自带 最小化 / 最大化 / 关闭 按钮
         setUndecorated(false);
+
+        // 应用窗口图标（标题栏左上角 + 任务栏）
+        SvgIconUtils.applyWindowIcon(this);
+
+        // 手动模态：打开时禁用主窗口，关闭（含点击X/Dispose）时恢复
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                if (owner != null) owner.setEnabled(false);
+            }
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (owner != null) owner.setEnabled(true);
+            }
+        });
 
         buildRootPanel();
         initUI();

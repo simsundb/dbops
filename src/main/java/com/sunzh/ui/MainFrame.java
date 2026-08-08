@@ -34,10 +34,13 @@ public class MainFrame extends JFrame {
     private DataSourceStore store;
 
     public MainFrame() {
-        setTitle("🖥️ 资源管控中心 · 数据库运维管理平台v1.0");
+        // 原生标题栏文字不含 emoji（Windows 标题栏字体无彩色 emoji 字形，会显示为方框），
+        // 图标统一由 applyWindowIcon 渲染的窗口图标提供（标题栏左上角 + 任务栏）
+        setTitle("资源管控中心 · 数据库运维管理平台v1.0");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        SvgIconUtils.applyWindowIcon(this);
         store = new DataSourceStore();
         initUI();
     }
@@ -74,7 +77,8 @@ public class MainFrame extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
-                GradientPaint gp = new GradientPaint(0, 0, new Color(48, 72, 95), w, 0, new Color(70, 100, 130));
+                // 表头渐变统一走主题色板（暗色磨砂海军蓝）
+                GradientPaint gp = new GradientPaint(0, 0, ThemeUtils.COLOR_HEADER_BG_START, w, 0, ThemeUtils.COLOR_HEADER_BG_END);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
                 g2d.setColor(new Color(130, 170, 210, 60));
@@ -284,8 +288,9 @@ public class MainFrame extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
-                GradientPaint bgGp = new GradientPaint(0, 0, new Color(242, 246, 252),
-                        w, h, new Color(225, 232, 240));
+                // 首页背景渐变走主题色板（素雅冷灰蓝）
+                GradientPaint bgGp = new GradientPaint(0, 0, ThemeUtils.COLOR_BG,
+                        w, h, ThemeUtils.COLOR_BG_ALTERNATE);
                 g2d.setPaint(bgGp);
                 g2d.fillRect(0, 0, w, h);
             }
@@ -297,9 +302,9 @@ public class MainFrame extends JFrame {
 
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(new Color(255, 255, 255, 230));
+        card.setBackground(new Color(255, 255, 255, 235));
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(190, 200, 215, 150), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(40, 60, 40, 60)));
         // 固定卡片尺寸：宽 600（内容区 478，可排 3 个按钮/行 × 2 行），
         // 高度 440 保证在最小窗口（900×650）下也完整可见，最下行图标不再被截断。
@@ -355,9 +360,9 @@ public class MainFrame extends JFrame {
     private JPanel createFeatureButton(String iconName, String title, String desc) {
         final JPanel btn = new JPanel();
         btn.setLayout(new BoxLayout(btn, BoxLayout.Y_AXIS));
-        btn.setBackground(new Color(250, 252, 255));
+        btn.setBackground(ThemeUtils.COLOR_BG_CARD);
         btn.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(195, 205, 218), 1),
+                BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                 BorderFactory.createEmptyBorder(12, 16, 12, 16)));
         btn.setPreferredSize(new Dimension(146, 86));
         btn.setMaximumSize(new Dimension(146, 86));
@@ -366,15 +371,15 @@ public class MainFrame extends JFrame {
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(230, 238, 248));
+                btn.setBackground(ThemeUtils.COLOR_PRIMARY_SOFT);
                 btn.setBorder(BorderFactory.createCompoundBorder(
                         BorderFactory.createLineBorder(ThemeUtils.COLOR_PRIMARY, 1),
                         BorderFactory.createEmptyBorder(12, 16, 12, 16)));
             }
             public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(250, 252, 255));
+                btn.setBackground(ThemeUtils.COLOR_BG_CARD);
                 btn.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(new Color(195, 205, 218), 1),
+                        BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER, 1),
                         BorderFactory.createEmptyBorder(12, 16, 12, 16)));
             }
         });
@@ -463,7 +468,14 @@ public class MainFrame extends JFrame {
     }
     // 快捷入口汇总对话框（含三个标签页）
     private void openQualitySummaryDialog() {
-        JDialog dialog = new JDialog(this, "数据质量规则引擎", true);
+        // 非模态（Windows 模态对话框无最大化按钮）+ 手动模态：打开禁用主窗口，关闭恢复
+        JDialog dialog = new JDialog(this, "数据质量规则引擎", false);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        SvgIconUtils.applyWindowIcon(dialog);
+        dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent e) { setEnabled(false); }
+            public void windowClosed(java.awt.event.WindowEvent e) { setEnabled(true); }
+        });
         // 统一自适应大小 + 居中
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int w = Math.min(1200, (int) (screen.width * 0.85));
