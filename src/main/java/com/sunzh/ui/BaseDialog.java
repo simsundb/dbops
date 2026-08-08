@@ -40,7 +40,9 @@ public abstract class BaseDialog extends JDialog {
         // 应用窗口图标（标题栏左上角 + 任务栏）
         SvgIconUtils.applyWindowIcon(this);
 
-        // 手动模态：打开时禁用主窗口，关闭（含点击X/Dispose）时恢复
+        // 手动模态：打开时禁用主窗口；关闭（含点击X/Dispose）时恢复并把主窗口带回前台。
+        // 非模态对话框关闭后 Windows 不会自动把焦点还给主窗口（可能落到 IDEA 等其它程序），
+        // 这里显式还原最小化 + toFront + requestFocus。
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
@@ -48,7 +50,14 @@ public abstract class BaseDialog extends JDialog {
             }
             @Override
             public void windowClosed(WindowEvent e) {
-                if (owner != null) owner.setEnabled(true);
+                if (owner != null) {
+                    owner.setEnabled(true);
+                    if (owner.getExtendedState() == JFrame.ICONIFIED) {
+                        owner.setExtendedState(JFrame.NORMAL);
+                    }
+                    owner.toFront();
+                    owner.requestFocus();
+                }
             }
         });
 

@@ -459,18 +459,27 @@ public class ThemeUtils {
         UIManager.put("CheckBox.focusWidth", 0);
         UIManager.put("RadioButton.focusWidth", 0);
 
-        // Menu
-        UIManager.put("Menu.background", COLOR_MENU_BG);
-        UIManager.put("Menu.selectionBackground", COLOR_MENU_HOVER);
-        UIManager.put("Menu.selectionForeground", COLOR_TEXT);
-        UIManager.put("MenuBar.background", COLOR_MENU_BG);
-        UIManager.put("MenuBar.border", BorderFactory.createEmptyBorder(6, 12, 6, 12));
-        UIManager.put("MenuItem.background", COLOR_MENU_BG);
-        UIManager.put("MenuItem.selectionBackground", COLOR_MENU_HOVER);
+        // 顶层菜单条：浅色文字融入深海军蓝顶栏，hover 呈现磨砂高亮
+        UIManager.put("Menu.foreground", COLOR_HEADER_TEXT);
+        UIManager.put("Menu.selectionBackground", new Color(255, 255, 255, 42));
+        UIManager.put("Menu.selectionForeground", Color.WHITE);
+        UIManager.put("Menu.background", COLOR_HEADER_BG_START);
+        UIManager.put("MenuBar.background", COLOR_HEADER_BG_START);
+        UIManager.put("MenuBar.border", BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+        // 下拉菜单项：白底 + 主色悬浮 + 深色文字（素雅一致）
+        UIManager.put("MenuItem.foreground", COLOR_TEXT);
+        UIManager.put("MenuItem.background", COLOR_BG_CARD);
+        UIManager.put("MenuItem.selectionBackground", COLOR_PRIMARY_SELECT);
         UIManager.put("MenuItem.selectionForeground", COLOR_TEXT);
+        UIManager.put("MenuItem.acceleratorForeground", COLOR_TEXT_HINT);
+        UIManager.put("MenuItem.acceleratorSelectionForeground", COLOR_TEXT);
+        UIManager.put("MenuItem.margin", new Insets(9, 18, 9, 18));
+
+        // 弹出菜单容器
         UIManager.put("PopupMenu.background", COLOR_BG_CARD);
         UIManager.put("PopupMenu.border", BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(COLOR_BORDER, 1),
-                new EmptyBorder(4, 4, 4, 4)));
+                new EmptyBorder(6, 6, 6, 6)));
     }
 }

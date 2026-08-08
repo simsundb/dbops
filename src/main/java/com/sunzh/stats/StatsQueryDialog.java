@@ -953,6 +953,14 @@ public class StatsQueryDialog extends BaseDialog {
 
             JDialog chartDialog = new JDialog(this, title, false);
             chartDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            // 非模态子窗关闭后把父对话框带回前台，避免焦点落到其它程序（如 IDEA）
+            chartDialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosed(java.awt.event.WindowEvent e) {
+                    toFront();
+                    requestFocus();
+                }
+            });
             chartDialog.setContentPane(chartPanel);
             chartDialog.pack();
             chartDialog.setMinimumSize(new Dimension(600, 460));

@@ -49,8 +49,8 @@ public class MainFrame extends JFrame {
         setLayout(new BorderLayout(0, 0));
         ((JPanel) getContentPane()).setBackground(ThemeUtils.COLOR_BG);
 
-        add(createHeaderPanel(), BorderLayout.NORTH);
-        add(createMenuBar(), BorderLayout.BEFORE_FIRST_LINE);
+        // 顶栏一体化：深海军蓝渐变下"品牌区 + 菜单条"融为一体，避免白色菜单条与深色表头脱节
+        add(createTopBar(), BorderLayout.NORTH);
         add(createContentPanel(), BorderLayout.CENTER);
         add(createStatusBar(), BorderLayout.SOUTH);
 
@@ -68,9 +68,9 @@ public class MainFrame extends JFrame {
         setResizable(true);
     }
 
-    // ---- 顶部标题栏 ----
-    private JPanel createHeaderPanel() {
-        JPanel header = new JPanel(new BorderLayout()) {
+    // ---- 顶部整体：深海军蓝渐变（品牌区 + 菜单条一体） ----
+    private JPanel createTopBar() {
+        JPanel topBar = new JPanel(new BorderLayout(0, 0)) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -78,15 +78,26 @@ public class MainFrame extends JFrame {
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
                 // 表头渐变统一走主题色板（暗色磨砂海军蓝）
-                GradientPaint gp = new GradientPaint(0, 0, ThemeUtils.COLOR_HEADER_BG_START, w, 0, ThemeUtils.COLOR_HEADER_BG_END);
+                GradientPaint gp = new GradientPaint(0, 0, ThemeUtils.COLOR_HEADER_BG_START,
+                        w, 0, ThemeUtils.COLOR_HEADER_BG_END);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, w, h);
+                // 底部分隔线
                 g2d.setColor(new Color(130, 170, 210, 60));
                 g2d.drawLine(0, h - 1, w, h - 1);
             }
         };
-        header.setPreferredSize(new Dimension(0, 60));
-        header.setBorder(BorderFactory.createEmptyBorder(8, 22, 8, 22));
+        topBar.add(createHeaderContent(), BorderLayout.NORTH);
+        topBar.add(createMenuBar(), BorderLayout.SOUTH);
+        return topBar;
+    }
+
+    // ---- 顶部品牌区（透明，渐变由 createTopBar 绘制） ----
+    private JPanel createHeaderContent() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.setPreferredSize(new Dimension(0, 58));
+        header.setBorder(BorderFactory.createEmptyBorder(8, 22, 4, 22));
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         leftPanel.setOpaque(false);
@@ -162,51 +173,52 @@ public class MainFrame extends JFrame {
         return header;
     }
 
-    // ---- 菜单栏（字体加粗14px，图标16px） ----
+    // ---- 菜单条（融入顶栏渐变：浅色文字 + 顶层图标 + 主题化下拉菜单） ----
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
-        menuBar.setBackground(ThemeUtils.COLOR_MENU_BG);
-        menuBar.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, ThemeUtils.COLOR_BORDER),
-                BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        // 透出顶栏海军蓝渐变
+        menuBar.setOpaque(false);
+        menuBar.setBorder(BorderFactory.createEmptyBorder(0, 16, 8, 16));
 
-        Font menuFont = new Font("Microsoft YaHei", Font.BOLD, 14);
-        Font itemFont = new Font("Microsoft YaHei", Font.PLAIN, 14);
+        // 字体与全局一致：顶层菜单用粗体14，下拉项用常规14
+        Font menuFont = ThemeUtils.FONT_BOLD;
+        Font itemFont = ThemeUtils.FONT_NORMAL;
 
-        JMenu fileMenu = new JMenu("文件");
-        fileMenu.setFont(menuFont);
+        // —— 文件 ——
+        JMenu fileMenu = buildTopMenu("文件", "folder-open", menuFont);
         JMenuItem exitItem = new JMenuItem("退出");
         exitItem.setFont(itemFont);
+        exitItem.setIcon(SvgIconUtils.get("power", 16, ThemeUtils.COLOR_PRIMARY));
         exitItem.addActionListener(e -> System.exit(0));
         fileMenu.add(exitItem);
         menuBar.add(fileMenu);
 
-        JMenu funcMenu = new JMenu("功能");
-        funcMenu.setFont(menuFont);
+        // —— 功能 ——
+        JMenu funcMenu = buildTopMenu("功能", "apps", menuFont);
 
-        // 所有图标尺寸 16px，保留彩色
+        // 下拉菜单项：图标统一用主题主色，素雅一致
         JMenuItem dsItem = new JMenuItem("1.数据源配置");
         dsItem.setFont(itemFont);
-        dsItem.setIcon(SvgIconUtils.get("shujuyuanpeizhi", 16, null));
+        dsItem.setIcon(SvgIconUtils.get("shujuyuanpeizhi", 16, ThemeUtils.COLOR_PRIMARY));
         dsItem.addActionListener(e -> openDataSourceDialog());
         funcMenu.add(dsItem);
         funcMenu.addSeparator();
 
         JMenuItem compareItem = new JMenuItem("2.Gausdb数据库结构对比平台");
         compareItem.setFont(itemFont);
-        compareItem.setIcon(SvgIconUtils.get("bijiao", 16, null));
+        compareItem.setIcon(SvgIconUtils.get("bijiao", 16, ThemeUtils.COLOR_PRIMARY));
         compareItem.addActionListener(e -> openComparisonDialog());
         funcMenu.add(compareItem);
 
         JMenuItem syncItem = new JMenuItem("3.跨平台数据库数据同步平台");
         syncItem.setFont(itemFont);
-        syncItem.setIcon(SvgIconUtils.get("tongbu-4", 16, null));
+        syncItem.setIcon(SvgIconUtils.get("tongbu-4", 16, ThemeUtils.COLOR_PRIMARY));
         syncItem.addActionListener(e -> openDataSyncDialog());
         funcMenu.add(syncItem);
 
         JMenuItem sqlItem = new JMenuItem("4.SQL脚本执行引擎");
         sqlItem.setFont(itemFont);
-        sqlItem.setIcon(SvgIconUtils.get("SQLjiaoben", 16, null));
+        sqlItem.setIcon(SvgIconUtils.get("SQLjiaoben", 16, ThemeUtils.COLOR_PRIMARY));
         sqlItem.addActionListener(e -> openScriptRunnerDialog());
         funcMenu.add(sqlItem);
 
@@ -214,52 +226,51 @@ public class MainFrame extends JFrame {
 
         JMenuItem checkItem = new JMenuItem("5.Gausdb数据库巡检平台");
         checkItem.setFont(itemFont);
-        checkItem.setIcon(SvgIconUtils.get("xunjian", 16, null));
+        checkItem.setIcon(SvgIconUtils.get("xunjian", 16, ThemeUtils.COLOR_PRIMARY));
         checkItem.addActionListener(e -> openCheckModelDialog());
         funcMenu.add(checkItem);
 
         JMenuItem objectQueryItem = new JMenuItem("6.Gausdb数据库对象查询");
         objectQueryItem.setFont(itemFont);
-        objectQueryItem.setIcon(SvgIconUtils.get("shujuchaxun", 16, null));
+        objectQueryItem.setIcon(SvgIconUtils.get("shujuchaxun", 16, ThemeUtils.COLOR_PRIMARY));
         objectQueryItem.addActionListener(e -> openObjectQueryDialog());
         funcMenu.add(objectQueryItem);
 
         JMenuItem statsItem = new JMenuItem("7.Gausdb自定义查询");
         statsItem.setFont(itemFont);
-        statsItem.setIcon(SvgIconUtils.get("shujuchaxun-6", 16, null));
+        statsItem.setIcon(SvgIconUtils.get("shujuchaxun-6", 16, ThemeUtils.COLOR_PRIMARY));
         statsItem.addActionListener(e -> openStatsQueryDialog());
         funcMenu.add(statsItem);
 
         funcMenu.addSeparator();
 
-        // 新增第8项：GaussDB数据库备份
+        // 第8项：GaussDB数据库备份
         JMenuItem sshBackupItem = new JMenuItem("8.GaussDB数据库备份");
         sshBackupItem.setFont(itemFont);
-        sshBackupItem.setIcon(SvgIconUtils.get("backup", 16, null));
+        sshBackupItem.setIcon(SvgIconUtils.get("backup", 16, ThemeUtils.COLOR_PRIMARY));
         sshBackupItem.addActionListener(e -> openSshBackupDialog());
         funcMenu.add(sshBackupItem);
 
-        // ========== 新增：数据质量规则引擎 ==========
+        // ========== 数据质量规则引擎（子菜单） ==========
         funcMenu.addSeparator();
-        JMenu qualityMenu = new JMenu("9.数据质量");
-        qualityMenu.setFont(menuFont);
-        qualityMenu.setIcon(SvgIconUtils.get("check", 16, null));
+        JMenu qualityMenu = buildTopMenu("9.数据质量", "check", menuFont);
+        qualityMenu.setIcon(SvgIconUtils.get("check", 16, ThemeUtils.COLOR_PRIMARY));
 
         JMenuItem configItem = new JMenuItem("1.检查和清洗规则配置");
         configItem.setFont(itemFont);
-        configItem.setIcon(SvgIconUtils.get("settings", 16, null));
+        configItem.setIcon(SvgIconUtils.get("settings", 16, ThemeUtils.COLOR_PRIMARY));
         configItem.addActionListener(e -> openRuleConfigDialog());
         qualityMenu.add(configItem);
 
         JMenuItem genItem = new JMenuItem("2.针对表生成检查和数据清洗脚本");
         genItem.setFont(itemFont);
-        genItem.setIcon(SvgIconUtils.get("file-code", 16, null));
+        genItem.setIcon(SvgIconUtils.get("file-code", 16, ThemeUtils.COLOR_PRIMARY));
         genItem.addActionListener(e -> openGenerateScriptDialog());
         qualityMenu.add(genItem);
 
         JMenuItem execItem = new JMenuItem("3.执行检查和数据清洗");
         execItem.setFont(itemFont);
-        execItem.setIcon(SvgIconUtils.get("play", 16, null));
+        execItem.setIcon(SvgIconUtils.get("play", 16, ThemeUtils.COLOR_PRIMARY));
         execItem.addActionListener(e -> openExecuteBatchDialog());
         qualityMenu.add(execItem);
 
@@ -268,15 +279,27 @@ public class MainFrame extends JFrame {
 
         menuBar.add(funcMenu);
 
-        JMenu helpMenu = new JMenu("帮助!");
-        helpMenu.setFont(menuFont);
+        // —— 帮助 ——
+        JMenu helpMenu = buildTopMenu("帮助", "zoom-question", menuFont);
         JMenuItem aboutItem = new JMenuItem("关于");
         aboutItem.setFont(itemFont);
+        aboutItem.setIcon(SvgIconUtils.get("info-circle", 16, ThemeUtils.COLOR_PRIMARY));
         aboutItem.addActionListener(e -> showAboutDialog());
         helpMenu.add(aboutItem);
         menuBar.add(helpMenu);
 
         return menuBar;
+    }
+
+    /** 顶层菜单：浅色文字 + 浅色小图标（hover 时由主题呈现磨砂高亮） */
+    private JMenu buildTopMenu(String text, String iconName, Font font) {
+        JMenu menu = new JMenu(text);
+        menu.setFont(font);
+        menu.setForeground(ThemeUtils.COLOR_HEADER_TEXT);
+        menu.setIcon(SvgIconUtils.get(iconName, 16, new Color(198, 216, 238)));
+        menu.setIconTextGap(8);
+        menu.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+        return menu;
     }
 
     // ---- 首页内容面板 ----
@@ -474,7 +497,12 @@ public class MainFrame extends JFrame {
         SvgIconUtils.applyWindowIcon(dialog);
         dialog.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowOpened(java.awt.event.WindowEvent e) { setEnabled(false); }
-            public void windowClosed(java.awt.event.WindowEvent e) { setEnabled(true); }
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                setEnabled(true);
+                if (getExtendedState() == JFrame.ICONIFIED) setExtendedState(JFrame.NORMAL);
+                toFront();
+                requestFocus();
+            }
         });
         // 统一自适应大小 + 居中
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
