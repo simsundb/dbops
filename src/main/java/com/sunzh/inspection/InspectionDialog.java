@@ -238,15 +238,16 @@ public class InspectionDialog extends BaseDialog {
         topPanel.add(row2);
         mainContentPanel.add(topPanel, BorderLayout.NORTH);
 
-        // ===== 中央：任务列表 + SQL预览 =====
+        // ===== 中央：任务列表（主）+ SQL预览（辅）=====
+        // 任务列表是主操作区，占 65% 宽度；SQL 预览占 35% 即可
         JSplitPane centerSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        centerSplit.setDividerLocation(480);
-        centerSplit.setResizeWeight(0.42);
+        centerSplit.setDividerLocation(0.65);
+        centerSplit.setResizeWeight(0.65);
 
         tableModel = new TaskTableModel();
         taskTable = new JTable(tableModel);
-        taskTable.setRowHeight(25);
-        taskTable.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        taskTable.setRowHeight(28);
+        taskTable.setFont(new Font("SansSerif", Font.PLAIN, 13));
         taskTable.getSelectionModel().addListSelectionListener(e -> {
             int row = taskTable.getSelectedRow();
             if (row >= 0 && row < tasks.size()) {
@@ -257,16 +258,19 @@ public class InspectionDialog extends BaseDialog {
         });
 
         TableColumnModel columnModel = taskTable.getColumnModel();
-        columnModel.getColumn(0).setPreferredWidth(55);
-        columnModel.getColumn(1).setPreferredWidth(260);
-        columnModel.getColumn(2).setPreferredWidth(160);
+        columnModel.getColumn(0).setPreferredWidth(50);
+        columnModel.getColumn(1).setPreferredWidth(300);
+        columnModel.getColumn(2).setPreferredWidth(180);
         columnModel.getColumn(3).setPreferredWidth(90);
-        columnModel.getColumn(4).setPreferredWidth(75);
-        columnModel.getColumn(5).setPreferredWidth(220);
+        columnModel.getColumn(4).setPreferredWidth(80);
+        columnModel.getColumn(5).setPreferredWidth(240);
         taskTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         JScrollPane tableScroll = new JScrollPane(taskTable);
         tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        // 给任务列表一个合理的初始尺寸与最小尺寸，避免分割条把它压得只剩一条
+        tableScroll.setPreferredSize(new Dimension(720, 380));
+        tableScroll.setMinimumSize(new Dimension(480, 200));
         tableScroll.setBorder(BorderFactory.createTitledBorder("任务列表"));
 
         sqlPreviewArea = new JTextArea();
@@ -274,15 +278,19 @@ public class InspectionDialog extends BaseDialog {
         sqlPreviewArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
         sqlPreviewArea.setTabSize(4);
         JScrollPane previewScroll = new JScrollPane(sqlPreviewArea);
+        previewScroll.setMinimumSize(new Dimension(260, 200));
         previewScroll.setBorder(BorderFactory.createTitledBorder("SQL 预览"));
 
         centerSplit.setLeftComponent(tableScroll);
         centerSplit.setRightComponent(previewScroll);
         mainContentPanel.add(centerSplit, BorderLayout.CENTER);
 
-        // ===== 底部：进度 + 日志 + 报告列表 =====
+        // ===== 底部：进度 + 日志 + 报告列表（水平并列，压缩高度，让出空间给任务列表）=====
         JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        // 底部固定为较矮的高度，中央任务列表才能获得足够的纵向空间
+        bottomPanel.setPreferredSize(new Dimension(0, 235));
+        bottomPanel.setMinimumSize(new Dimension(0, 180));
 
         JPanel progressPanel = new JPanel(new BorderLayout());
         progressBar = new JProgressBar(0, 1);
@@ -290,16 +298,18 @@ public class InspectionDialog extends BaseDialog {
         progressPanel.add(progressBar, BorderLayout.CENTER);
         bottomPanel.add(progressPanel, BorderLayout.NORTH);
 
-        JSplitPane bottomSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        bottomSplit.setDividerLocation(155);
-        bottomSplit.setResizeWeight(0.58);
+        // 日志与报告改为左右并列：日志为主（68%），报告列表为辅（32%）
+        JSplitPane bottomSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        bottomSplit.setDividerLocation(0.68);
+        bottomSplit.setResizeWeight(0.68);
 
-        logArea = new JTextArea(6, 0);
+        logArea = new JTextArea(4, 0);
         logArea.setEditable(false);
         logArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
         JScrollPane logScroll = new JScrollPane(logArea);
         logScroll.setBorder(BorderFactory.createTitledBorder("运行日志"));
-        bottomSplit.setTopComponent(logScroll);
+        logScroll.setMinimumSize(new Dimension(300, 120));
+        bottomSplit.setLeftComponent(logScroll);
 
         reportListModel = new DefaultListModel<>();
         reportList = new JList<>(reportListModel);
@@ -321,7 +331,8 @@ public class InspectionDialog extends BaseDialog {
         });
         JScrollPane reportScroll = new JScrollPane(reportList);
         reportScroll.setBorder(BorderFactory.createTitledBorder("已生成的报告（双击打开目录）"));
-        bottomSplit.setBottomComponent(reportScroll);
+        reportScroll.setMinimumSize(new Dimension(200, 120));
+        bottomSplit.setRightComponent(reportScroll);
 
         bottomPanel.add(bottomSplit, BorderLayout.CENTER);
         mainContentPanel.add(bottomPanel, BorderLayout.SOUTH);
