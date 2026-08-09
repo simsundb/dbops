@@ -223,10 +223,13 @@ public class MainFrame extends JFrame {
         qualityMenu.setForeground(ThemeUtils.COLOR_TEXT);
         qualityMenu.setIcon(SvgIconUtils.get("check", 16, ThemeUtils.COLOR_PRIMARY));
         qualityMenu.setIconTextGap(8);
-        // FlatLaf 子菜单箭头默认跟随 Menu.foreground（浅色），白底上不可见，这里显式置为深色
+        // FlatLaf 子菜单箭头默认取 UIManager 的 Menu.icon.arrowColor（暗色主题下为浅色），
+        // 白底上不可见，这里显式置为深色。注意：键名必须用箭头图标的前缀键 icon.arrowColor，
+        // 悬停色用 selectionForeground（会同时作用于箭头图标与菜单项选中前景），
+        // 直接写 arrowColor / arrowSelectionColor 会被 FlatLaf 判为未知样式并抛异常。
         String menuColor = String.format("#%06x", ThemeUtils.COLOR_TEXT.getRGB() & 0xFFFFFF);
         qualityMenu.putClientProperty("FlatLaf.style",
-                "arrowColor: " + menuColor + "; arrowSelectionColor: " + menuColor);
+                "icon.arrowColor: " + menuColor + "; selectionForeground: " + menuColor);
 
         JMenuItem configItem = new JMenuItem("1.检查和清洗规则配置");
         configItem.setFont(itemFont);
