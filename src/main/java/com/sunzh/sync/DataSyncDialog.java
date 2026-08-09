@@ -395,6 +395,7 @@ public class DataSyncDialog extends BaseDialog {
     private JPanel buildExcelOraclePanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(BG);
+        // 边距对齐 Tab1/Tab2（16,20,20,20），保持四页视觉一致
         panel.setBorder(BorderFactory.createEmptyBorder(16, 20, 20, 20));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
@@ -403,7 +404,7 @@ public class DataSyncDialog extends BaseDialog {
 
         gbc.gridy = 0;
         gbc.weighty = 0;
-        gbc.insets = new Insets(0, 0, 16, 0);
+        gbc.insets = new Insets(0, 0, 8, 0);
 
         cmbETO_Ora = new JComboBox<>();
         styleCombo(cmbETO_Ora);
@@ -411,8 +412,9 @@ public class DataSyncDialog extends BaseDialog {
         panel.add(dsCard, gbc);
 
         gbc.gridy = 1;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(0, 0, 16, 0);
+        // 中间行吸收剩余垂直空间（对齐 Tab1/Tab2：可伸缩内容行在上，按钮行固定在底部）
+        gbc.weighty = 1.0;
+        gbc.insets = new Insets(0, 0, 8, 0);
 
         tfExcel1 = new JTextField();
         tfExcel1.setEditable(false);
@@ -420,7 +422,7 @@ public class DataSyncDialog extends BaseDialog {
         tfExcel1.setFont(FONT_FIELD);
         tfExcel1.setBorder(new CompoundBorder(
             new LineBorder(BORDER, 1, true),
-            new EmptyBorder(10, 12, 10, 12)
+            new EmptyBorder(8, 12, 8, 12)
         ));
 
         JButton btnBrowse1 = btnOutline("浏览...");
@@ -444,7 +446,11 @@ public class DataSyncDialog extends BaseDialog {
         panel.add(fileCard, gbc);
 
         gbc.gridy = 2;
+        // 按钮行 weighty=0 固定在底部（完全对齐 Tab1/Tab2 的按钮行写法），
+        // 上方 fileCard(weighty=1.0) 先吸收压缩，按钮不会被底部裁切
         gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
         gbc.insets = new Insets(0, 0, 0, 0);
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -463,6 +469,7 @@ public class DataSyncDialog extends BaseDialog {
     private JPanel buildExcelGaussPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(BG);
+        // 边距对齐 Tab1/Tab2（16,20,20,20），保持四页视觉一致
         panel.setBorder(BorderFactory.createEmptyBorder(16, 20, 20, 20));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
@@ -471,7 +478,7 @@ public class DataSyncDialog extends BaseDialog {
 
         gbc.gridy = 0;
         gbc.weighty = 0;
-        gbc.insets = new Insets(0, 0, 16, 0);
+        gbc.insets = new Insets(0, 0, 8, 0);
 
         cmbETG_Gauss = new JComboBox<>();
         styleCombo(cmbETG_Gauss);
@@ -479,8 +486,9 @@ public class DataSyncDialog extends BaseDialog {
         panel.add(dsCard, gbc);
 
         gbc.gridy = 1;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(0, 0, 16, 0);
+        // 中间行吸收剩余垂直空间（对齐 Tab1/Tab2：可伸缩内容行在上，按钮行固定在底部）
+        gbc.weighty = 1.0;
+        gbc.insets = new Insets(0, 0, 8, 0);
 
         tfExcel2 = new JTextField();
         tfExcel2.setEditable(false);
@@ -488,7 +496,7 @@ public class DataSyncDialog extends BaseDialog {
         tfExcel2.setFont(FONT_FIELD);
         tfExcel2.setBorder(new CompoundBorder(
             new LineBorder(BORDER, 1, true),
-            new EmptyBorder(10, 12, 10, 12)
+            new EmptyBorder(8, 12, 8, 12)
         ));
 
         JButton btnBrowse2 = btnOutline("浏览...");
@@ -512,7 +520,11 @@ public class DataSyncDialog extends BaseDialog {
         panel.add(fileCard, gbc);
 
         gbc.gridy = 2;
+        // 按钮行 weighty=0 固定在底部（完全对齐 Tab1/Tab2 的按钮行写法），
+        // 上方 fileCard(weighty=1.0) 先吸收压缩，按钮不会被底部裁切
         gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
         gbc.insets = new Insets(0, 0, 0, 0);
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -532,7 +544,9 @@ public class DataSyncDialog extends BaseDialog {
         JPanel p = new JPanel(new BorderLayout(0, 6));
         p.setBackground(BG);
         p.setBorder(BorderFactory.createEmptyBorder(8, 16, 12, 16));
-        p.setPreferredSize(new Dimension(0, 180));
+        // 140：给上方 TAB 内容区留更多纵向空间。小屏(如1280x800@150%)下窗口仅~680高，
+        // 180 的日志面板会挤掉 TAB 底部按钮（尤其最后两个 Excel 导入页），导致按钮被裁切。
+        p.setPreferredSize(new Dimension(0, 140));
 
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
