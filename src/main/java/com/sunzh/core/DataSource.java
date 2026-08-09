@@ -109,11 +109,14 @@ public class DataSource {
             }
         } else if ("GAUSSDB".equalsIgnoreCase(type)) {
             if (database == null || database.trim().isEmpty()) return "";
-            String url = "jdbc:gaussdb://" + host + ":" + port + "/" + database;
+            StringBuilder sb = new StringBuilder("jdbc:gaussdb://").append(host).append(":").append(port).append("/").append(database);
+            // 显式 UTF-8 客户端编码：避免 Windows 默认字符集与数据库不一致导致中文乱码。
+            // gaussdbjdbc 的 PGProperty 支持 characterEncoding，会自动设置 client_encoding=UTF8。
+            sb.append("?characterEncoding=UTF-8");
             if (schema != null && !schema.trim().isEmpty()) {
-                url += "?currentSchema=" + schema;
+                sb.append("&currentSchema=").append(schema);
             }
-            return url;
+            return sb.toString();
         }
         return "";
     }

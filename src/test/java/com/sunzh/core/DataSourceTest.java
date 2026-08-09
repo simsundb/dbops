@@ -61,7 +61,7 @@ public class DataSourceTest {
                 "testuser",
                 "testpwd"
         );
-        String expected = "jdbc:gaussdb://localhost:8000/muts?currentSchema=gk_sjdb";
+        String expected = "jdbc:gaussdb://localhost:8000/muts?characterEncoding=UTF-8&currentSchema=gk_sjdb";
         assertEquals(expected, ds.buildUrl());
     }
 
@@ -80,7 +80,7 @@ public class DataSourceTest {
                 "testuser",
                 "testpwd"
         );
-        String expected = "jdbc:gaussdb://localhost:8000/muts";
+        String expected = "jdbc:gaussdb://localhost:8000/muts?characterEncoding=UTF-8";
         assertEquals(expected, ds.buildUrl());
     }
 }

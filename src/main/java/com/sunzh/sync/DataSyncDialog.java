@@ -50,6 +50,9 @@ public class DataSyncDialog extends BaseDialog {
     private JButton btnStop;
     private SwingWorker<?, ?> currentWorker;
     private Process currentProcess;
+    // 执行日志与上方 TAB 内容之间的垂直分隔条（用户可拖动调整日志高度）
+    private JSplitPane splitPane;
+    private boolean dividerInitialized = false;
 
     // Tab1: Oracle → GaussDB
     private JComboBox<String> cmbSrcOra, cmbTgtGauss;
@@ -71,6 +74,12 @@ public class DataSyncDialog extends BaseDialog {
 
     public DataSyncDialog(JFrame owner) {
         super(owner, "数据同步工具", "transfer");
+        // 表映射输入框需要更多纵向空间：在 BaseDialog 默认窗口高度基础上进一步加高（屏幕允许范围内）。
+        // 本对话框下方有执行日志面板，加高窗口能让上方表映射输入框显示更多行、内容整体下移。
+        Dimension scr = Toolkit.getDefaultToolkit().getScreenSize();
+        int h = Math.min(850, scr.height - 40);
+        setSize(1200, h);
+        setLocationRelativeTo(owner);
     }
 
     @Override
@@ -79,10 +88,27 @@ public class DataSyncDialog extends BaseDialog {
         mainContentPanel.setBackground(BG);
 
         mainContentPanel.add(createHeader(), BorderLayout.NORTH);
-        mainContentPanel.add(createTabPane(), BorderLayout.CENTER);
-        mainContentPanel.add(createLogPanel(), BorderLayout.SOUTH);
 
-        // setSize(1280, 900);
+        // 执行日志与上方 TAB 内容用垂直分隔条：日志默认更大（~200px），小屏或想多看表映射时可拖动分隔条调整。
+        // resizeWeight=1.0 → 窗口变高时额外空间优先给上方 TAB（表映射输入框），日志保持默认高度可读。
+        splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createTabPane(), createLogPanel());
+        splitPane.setOneTouchExpandable(true);
+        splitPane.setContinuousLayout(true);
+        splitPane.setResizeWeight(1.0);
+        splitPane.setBorder(BorderFactory.createEmptyBorder());
+        splitPane.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                if (!dividerInitialized && splitPane.getHeight() > 200) {
+                    dividerInitialized = true;
+                    // 默认日志高约 150px（比原 100px 大 50%，可读 8 行左右）；小屏时日志不低于 140px。
+                    // 想再多看日志可拖动分隔条向上扩展（表映射行有最小高度兜底，不会塌成一条缝）。
+                    splitPane.setDividerLocation(Math.max(splitPane.getHeight() - 150, 140));
+                }
+            }
+        });
+        mainContentPanel.add(splitPane, BorderLayout.CENTER);
+
         refreshAllCombos();
     }
 
@@ -135,11 +161,13 @@ public class DataSyncDialog extends BaseDialog {
 
         // ---- 行1: 数据源选择（两栏） ----
         gbc.gridy = 0;
-        gbc.weighty = 0;
+        gbc.weighty = 0.2;  // 可伸缩：空间紧张时让出一部分，避免表映射行被全部压缩
         gbc.insets = new Insets(0, 0, 8, 0);
 
         JPanel dsRow = new JPanel(new GridBagLayout());
         dsRow.setOpaque(false);
+        // 显式最低高度低于内容自然最小值，GridBagLayout 才能按 weighty 分摊压缩
+        dsRow.setMinimumSize(new Dimension(0, 84));
         GridBagConstraints g = new GridBagConstraints();
         g.fill = GridBagConstraints.BOTH;
         g.weightx = 0.5;
@@ -163,15 +191,17 @@ public class DataSyncDialog extends BaseDialog {
 
         // ---- 行2: 表映射 ----
         gbc.gridy = 1;
-        gbc.weighty = 0.7;  // 分配较多垂直空间
+        gbc.weighty = 1.0;  // 表映射行吸收全部可伸缩垂直空间，最大化输入框
         gbc.insets = new Insets(0, 0, 8, 0);
 
         JPanel mapCard = new JPanel(new BorderLayout(0, 6));
         mapCard.setBackground(CARD);
         mapCard.setBorder(new CompoundBorder(
             new LineBorder(BORDER, 1, true),
-            new EmptyBorder(16, 18, 18, 18)
+            new EmptyBorder(12, 18, 14, 18)
         ));
+        // 最低高度兜底：日志被拖大或窗口很矮时，表映射输入框也不会塌成一条缝
+        mapCard.setMinimumSize(new Dimension(0, 135));
 
         JPanel mapTopPanel = new JPanel();
         mapTopPanel.setOpaque(false);
@@ -189,7 +219,7 @@ public class DataSyncDialog extends BaseDialog {
 
         mapCard.add(mapTopPanel, BorderLayout.NORTH);
 
-        taTableMaps = new JTextArea(12, 80);
+        taTableMaps = new JTextArea(18, 80);
         taTableMaps.setFont(FONT_FIELD);
         taTableMaps.setLineWrap(true);
         taTableMaps.setBorder(new CompoundBorder(
@@ -200,23 +230,26 @@ public class DataSyncDialog extends BaseDialog {
         sp.setBorder(BorderFactory.createEmptyBorder());
         sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        // 显式指定输入框高度，确保表映射输入框显示完整（下面的内容自动下移）
-        sp.setPreferredSize(new Dimension(920, 300));
+        // 期望高度 260px：真实高度由 GridBagLayout 按可用空间分配，这里只影响理想值，
+        // 过大的 preferred 会让压缩缺口变大，导致 mapCard 被挤压得更狠
+        sp.setPreferredSize(new Dimension(920, 260));
         mapCard.add(sp, BorderLayout.CENTER);
 
         panel.add(mapCard, gbc);
 
         // ---- 行3: 覆盖/追加选项 ----
         gbc.gridy = 2;
-        gbc.weighty = 0.2;  // 占用少量垂直空间
+        gbc.weighty = 0.15;  // 可伸缩：空间紧张时让出一部分，避免表映射行被全部压缩
         gbc.insets = new Insets(0, 0, 8, 0);
 
         JPanel optCard = new JPanel(new BorderLayout(0, 8));
         optCard.setBackground(CARD);
         optCard.setBorder(new CompoundBorder(
             new LineBorder(BORDER, 1, true),
-            new EmptyBorder(16, 18, 18, 18)
+            new EmptyBorder(8, 16, 8, 16)
         ));
+        // 显式最低高度低于内容自然最小值，GridBagLayout 才能按 weighty 分摊压缩
+        optCard.setMinimumSize(new Dimension(0, 76));
 
         JLabel optTitle = label("目标表已存在时的处理方法", FONT_BOLD, TEXT);
         optCard.add(optTitle, BorderLayout.NORTH);
@@ -235,7 +268,7 @@ public class DataSyncDialog extends BaseDialog {
             rb.setFont(FONT_FIELD);
             rb.setBackground(CARD);
             rb.setFocusPainted(false);
-            rb.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
+            rb.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
             rb.setAlignmentX(Component.LEFT_ALIGNMENT);
             optRadioPanel.add(rb);
         }
@@ -271,11 +304,13 @@ public class DataSyncDialog extends BaseDialog {
         gbc.insets = new Insets(0, 0, 0, 0);
 
         gbc.gridy = 0;
-        gbc.weighty = 0;
+        gbc.weighty = 0.2;  // 可伸缩：空间紧张时让出一部分，避免表映射行被全部压缩
         gbc.insets = new Insets(0, 0, 8, 0);
 
         JPanel dsRow = new JPanel(new GridBagLayout());
         dsRow.setOpaque(false);
+        // 显式最低高度低于内容自然最小值，GridBagLayout 才能按 weighty 分摊压缩
+        dsRow.setMinimumSize(new Dimension(0, 84));
         GridBagConstraints g = new GridBagConstraints();
         g.fill = GridBagConstraints.BOTH;
         g.weightx = 0.5;
@@ -298,15 +333,17 @@ public class DataSyncDialog extends BaseDialog {
         panel.add(dsRow, gbc);
 
         gbc.gridy = 1;
-        gbc.weighty = 0.7;
+        gbc.weighty = 1.0;  // 表映射行吸收全部可伸缩垂直空间，最大化输入框
         gbc.insets = new Insets(0, 0, 8, 0);
 
         JPanel mapCard = new JPanel(new BorderLayout(0, 6));
         mapCard.setBackground(CARD);
         mapCard.setBorder(new CompoundBorder(
             new LineBorder(BORDER, 1, true),
-            new EmptyBorder(16, 18, 18, 18)
+            new EmptyBorder(12, 18, 14, 18)
         ));
+        // 最低高度兜底：日志被拖大或窗口很矮时，表映射输入框也不会塌成一条缝
+        mapCard.setMinimumSize(new Dimension(0, 135));
 
         JPanel mapTopPanel = new JPanel();
         mapTopPanel.setOpaque(false);
@@ -324,7 +361,7 @@ public class DataSyncDialog extends BaseDialog {
 
         mapCard.add(mapTopPanel, BorderLayout.NORTH);
 
-        taTableMapsG2O = new JTextArea(12, 80);
+        taTableMapsG2O = new JTextArea(18, 80);
         taTableMapsG2O.setFont(FONT_FIELD);
         taTableMapsG2O.setLineWrap(true);
         taTableMapsG2O.setBorder(new CompoundBorder(
@@ -335,22 +372,25 @@ public class DataSyncDialog extends BaseDialog {
         sp.setBorder(BorderFactory.createEmptyBorder());
         sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        // 显式指定输入框高度，确保表映射输入框显示完整（下面的内容自动下移）
-        sp.setPreferredSize(new Dimension(920, 300));
+        // 期望高度 260px：真实高度由 GridBagLayout 按可用空间分配，这里只影响理想值，
+        // 过大的 preferred 会让压缩缺口变大，导致 mapCard 被挤压得更狠
+        sp.setPreferredSize(new Dimension(920, 260));
         mapCard.add(sp, BorderLayout.CENTER);
 
         panel.add(mapCard, gbc);
 
         gbc.gridy = 2;
-        gbc.weighty = 0.2;
+        gbc.weighty = 0.15;  // 可伸缩：空间紧张时让出一部分，避免表映射行被全部压缩
         gbc.insets = new Insets(0, 0, 8, 0);
 
         JPanel optCard = new JPanel(new BorderLayout(0, 8));
         optCard.setBackground(CARD);
         optCard.setBorder(new CompoundBorder(
             new LineBorder(BORDER, 1, true),
-            new EmptyBorder(16, 18, 18, 18)
+            new EmptyBorder(8, 16, 8, 16)
         ));
+        // 显式最低高度低于内容自然最小值，GridBagLayout 才能按 weighty 分摊压缩
+        optCard.setMinimumSize(new Dimension(0, 76));
 
         JLabel optTitle = label("目标表已存在时的处理方法", FONT_BOLD, TEXT);
         optCard.add(optTitle, BorderLayout.NORTH);
@@ -369,7 +409,7 @@ public class DataSyncDialog extends BaseDialog {
             rb.setFont(FONT_FIELD);
             rb.setBackground(CARD);
             rb.setFocusPainted(false);
-            rb.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
+            rb.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
             rb.setAlignmentX(Component.LEFT_ALIGNMENT);
             optRadioPanel.add(rb);
         }
@@ -546,9 +586,10 @@ public class DataSyncDialog extends BaseDialog {
         JPanel p = new JPanel(new BorderLayout(0, 6));
         p.setBackground(BG);
         p.setBorder(BorderFactory.createEmptyBorder(8, 16, 12, 16));
-        // 140：给上方 TAB 内容区留更多纵向空间。小屏(如1280x800@150%)下窗口仅~680高，
-        // 180 的日志面板会挤掉 TAB 底部按钮（尤其最后两个 Excel 导入页），导致按钮被裁切。
-        p.setPreferredSize(new Dimension(0, 140));
+        // 200：执行日志默认更大（用户可拖动上方分隔条调整）。窗口由 initUI 的 JSplitPane 控制，
+        // 小屏时可手动拖小日志让表映射输入框多显示；大屏时两者都够用。
+        p.setPreferredSize(new Dimension(0, 200));
+        p.setMinimumSize(new Dimension(0, 80));
 
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
@@ -589,7 +630,7 @@ public class DataSyncDialog extends BaseDialog {
         card.setBackground(CARD);
         card.setBorder(new CompoundBorder(
             new LineBorder(BORDER, 1, true),
-            new EmptyBorder(16, 18, 18, 18)
+            new EmptyBorder(6, 16, 6, 16)
         ));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -597,14 +638,12 @@ public class DataSyncDialog extends BaseDialog {
 
         card.add(label(title, FONT_BOLD, TEXT));
         card.add(Box.createVerticalStrut(4));
-        card.add(label("选择已保存的 " + type + " 数据源", FONT_SMALL, TEXT_SEC));
-        card.add(Box.createVerticalStrut(6));
 
         cmb.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cmb.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-        cmb.setPreferredSize(new Dimension(200, 36));
+        cmb.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        cmb.setPreferredSize(new Dimension(200, 32));
         card.add(cmb);
-        card.add(Box.createVerticalStrut(6));
+        card.add(Box.createVerticalStrut(4));
 
         JLabel summary = new JLabel(" ");
         summary.setFont(FONT_SMALL);
