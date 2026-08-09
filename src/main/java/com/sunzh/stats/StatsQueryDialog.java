@@ -298,7 +298,10 @@ public class StatsQueryDialog extends BaseDialog {
             }
 
             Yaml yaml = new Yaml();
-            List<Map<String, Object>> rawList = yaml.load(is);
+            List<Map<String, Object>> rawList;
+            try (InputStream configInput = is) {
+                rawList = yaml.load(EncodingUtils.readText(configInput));
+            }
             if (rawList == null || rawList.isEmpty()) {
                 checkboxPanel.add(new JLabel("配置为空"));
                 return;

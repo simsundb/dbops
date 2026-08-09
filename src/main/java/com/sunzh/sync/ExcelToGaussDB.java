@@ -24,6 +24,7 @@ public class ExcelToGaussDB {
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static void main(String[] args) throws Exception {
+        ConsoleEncoding.configureUtf8();
         if (args.length < 4) {
             log("用法: java -cp \".:lib/*\" ExcelToGaussDB <jdbc-url> <user> <password> <excel-file>");
             log("示例: java -cp \".:lib/*\" ExcelToGaussDB jdbc:gaussdb://127.0.0.1:8000/mydb root pass123 data.xlsx");

@@ -65,6 +65,7 @@ public class OracleToGaussDB {
     private boolean appendMode  = false;   // true = 追加模式，不建表
 
     public static void main(String[] args) throws Exception {
+        ConsoleEncoding.configureUtf8();
         new OracleToGaussDB().run(args);
     }
 

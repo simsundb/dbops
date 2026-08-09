@@ -26,6 +26,7 @@ public class ExcelToOracle {
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static void main(String[] args) throws Exception {
+        ConsoleEncoding.configureUtf8();
         if (args.length < 4) {
             log("用法: java -cp \".:lib/*\" ExcelToOracle <jdbc-url> <user> <password> <excel-file>");
             log("示例: java -cp \".:lib/*\" ExcelToOracle jdbc:oracle:thin:@//127.0.0.1:1521/ORCL scott tiger data.xlsx");

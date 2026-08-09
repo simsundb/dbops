@@ -23,6 +23,7 @@ public class GaussDBToOracle {
     private boolean silentMode = false;
 
     public static void main(String[] args) throws Exception {
+        ConsoleEncoding.configureUtf8();
         new GaussDBToOracle().run(args);
     }
 
