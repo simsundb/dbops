@@ -5,6 +5,7 @@ import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
 import com.sunzh.ui.components.CustomButton;
 import com.sunzh.utils.EncodingUtils;
+import com.sunzh.utils.ExternalConfigUtils;
 import com.sunzh.utils.ThemeUtils;
 import com.sunzh.utils.SvgIconUtils;
 
@@ -779,6 +780,18 @@ public class ScriptRunnerDialog extends BaseDialog {
      * 从 classpath 加载 SQL 脚本内容
      */
     private String loadSqlScriptFromResource(String resourcePath) {
+        // 外部 conf/sql/ 优先：不存在时从 JAR 复制默认模板出来，之后用户可编辑外部文件
+        // resourcePath 形如 "sql/oracle_general_app.sql"，取文件名作为外部存储名
+        String fileName = resourcePath.substring(resourcePath.lastIndexOf('/') + 1);
+        File external = ExternalConfigUtils.ensureExternalFile("sql", fileName, "/" + resourcePath);
+        if (external != null && external.isFile()) {
+            try (InputStream is = new FileInputStream(external)) {
+                // 自动识别编码（UTF-8/GBK），避免建表脚本中文乱码
+                return EncodingUtils.readText(is);
+            } catch (IOException e) {
+                appendLog("❌ 读取外部脚本失败: " + external.getAbsolutePath());
+            }
+        }
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
             if (is == null) {
                 appendLog("❌ classpath 资源不存在: " + resourcePath);

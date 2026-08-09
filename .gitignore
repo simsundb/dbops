@@ -36,11 +36,10 @@ Thumbs.db
 .codegraph/
 
 # 本地配置（仅本机使用，不入库）
+# conf/ 全部为运行时从 JAR 复制生成的本地模板/产物（巡检SQL/配置/报告/SSH/脚本SQL），不入库
+/conf/
 DATASOURCE.JSON
 /config.yaml
-/conf/ssh/ssh_profiles.json
-/conf/inspection/config.yaml
-/conf/inspection/reports/
 /reports/
 .claude/settings.local.json
 /Edit1.txt
