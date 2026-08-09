@@ -4,6 +4,7 @@ import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
 import com.sunzh.utils.EncodingUtils;
+import com.sunzh.utils.ExternalConfigUtils;
 import com.sunzh.utils.ThemeUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -46,7 +47,7 @@ import java.util.List;
 public class StatsQueryDialog extends BaseDialog {
 
     // ---- 外部配置目录（JAR 同级 ./conf/stats/）----
-    private static final String EXTERNAL_CONFIG_DIR = "./conf/stats/";
+    // 路径与复制逻辑统一由 ExternalConfigUtils 处理（conf/stats/）
 
     // ---- 主题颜色 ----
     private static final Color BG = ThemeUtils.COLOR_BG;
@@ -280,8 +281,8 @@ public class StatsQueryDialog extends BaseDialog {
 
         InputStream is = null;
         try {
-            File external = new File(EXTERNAL_CONFIG_DIR + "stats_config.yaml");
-            if (external.exists() && external.isFile()) {
+            File external = ExternalConfigUtils.ensureExternalFile("stats", "stats_config.yaml", "/stats_config.yaml");
+            if (external != null && external.isFile()) {
                 is = new FileInputStream(external);
                 statusLabel.setText("使用外部配置: " + external.getAbsolutePath());
             } else {
@@ -468,8 +469,9 @@ public class StatsQueryDialog extends BaseDialog {
     }
 
     private String loadSqlFile(String fileName) {
-        File external = new File(EXTERNAL_CONFIG_DIR + fileName);
-        if (external.exists() && external.isFile()) {
+        // 外部 conf/stats/ 没有该 SQL 时，先从 JAR 复制默认模板出来，之后用户可编辑外部文件
+        File external = ExternalConfigUtils.ensureExternalFile("stats", fileName, "/stats/" + fileName);
+        if (external != null && external.isFile()) {
             try (InputStream is = new FileInputStream(external)) {
                 // 自动识别编码（UTF-8/GBK），避免外部 SQL 乱码
                 return EncodingUtils.readText(is);

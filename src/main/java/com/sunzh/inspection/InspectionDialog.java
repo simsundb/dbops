@@ -3,6 +3,7 @@ package com.sunzh.inspection;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.utils.ExternalConfigUtils;
 import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
@@ -14,9 +15,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -26,6 +24,8 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 public class InspectionDialog extends BaseDialog {
+    // ---- 外部配置目录（JAR 同级 ./conf/inspection/），与 StatsQueryDialog 的 conf/stats 一致 ----
+    private static final String EXTERNAL_CONFIG_DIR = "./conf/inspection/";
     private static final String CONFIG_FILE_NAME = "config.yaml";
     private static final String QUERY_DIR_NAME = "query";
     private static final String REPORTS_DIR_NAME = "reports";
@@ -53,12 +53,14 @@ public class InspectionDialog extends BaseDialog {
     private List<InspectionTask> tasks;
     private InspectionService service;
 
-    private File rootDir;
-    private File configFile;
-    private File queryDir;
-    private File reportsDir;
+    private File configFile;    // ./conf/inspection/config.yaml
+    private File queryDir;      // ./conf/inspection/query/
+    private File reportsDir;    // ./conf/inspection/reports/（用户可自定义）
 
     private Preferences prefs;
+
+    // 首次复制默认模板的日志暂存，待 UI 初始化后输出（此时 logArea 还未创建）
+    private List<String> startupLogs = new ArrayList<>();
 
     public InspectionDialog(JFrame owner) {
         super(owner, "数据库巡检", "search");
@@ -71,43 +73,56 @@ public class InspectionDialog extends BaseDialog {
         prefs = Preferences.userNodeForPackage(InspectionDialog.class);
 
         initPaths();
-        initComponents();
+        initComponents();   // 先创建 UI，此时 logArea 已可用
+
+        // 输出首次复制模板的日志
+        if (!startupLogs.isEmpty()) {
+            for (String msg : startupLogs) log(msg);
+            startupLogs.clear();
+        }
+
         loadConfig();
         loadDataSources();
         loadReports();
     }
 
+    /**
+     * 初始化路径（与 StatsQueryDialog 一致）：
+     * 1. 优先使用外部目录 ./conf/inspection/（JAR 同级），用户可自由修改/保存
+     * 2. 首次运行时自动从 JAR 包复制默认模板到外部目录
+     */
     private void initPaths() {
-        rootDir = new File(System.getProperty("user.dir"));
-        configFile = new File(rootDir, CONFIG_FILE_NAME);
-        queryDir = new File(rootDir, QUERY_DIR_NAME);
+        configFile = new File(EXTERNAL_CONFIG_DIR + CONFIG_FILE_NAME);
+        queryDir = new File(EXTERNAL_CONFIG_DIR + QUERY_DIR_NAME);
 
-        // 首次运行时从 classpath 复制默认 config.yaml 到 user.dir
+        // 首次运行：从 classpath（JAR 内）复制默认 config.yaml 到外部 conf/inspection/
+        // query/*.sql 的复制在 InspectionService.loadTasks 中按需进行（兼容 JAR 内目录枚举失效）
         initConfigFromClasspath();
 
         String savedPath = prefs.get(PREF_REPORTS_PATH, null);
         if (savedPath != null && !savedPath.trim().isEmpty()) {
             reportsDir = new File(savedPath);
         } else {
-            reportsDir = new File(rootDir, REPORTS_DIR_NAME);
+            reportsDir = new File(EXTERNAL_CONFIG_DIR + REPORTS_DIR_NAME);
         }
         if (!reportsDir.exists()) reportsDir.mkdirs();
     }
 
     /**
-     * 如果 user.dir 下不存在 config.yaml，从 classpath（JAR 内或 resources 目录）复制一份出来。
-     * 这样打包后首次运行也能有默认配置文件。
+     * 如果外部 conf/inspection/config.yaml 不存在，从 classpath（JAR 内或 resources 目录）复制一份出来。
+     * 这样打包后首次运行也能有默认配置文件，之后用户可编辑外部文件。
      */
     private void initConfigFromClasspath() {
-        if (configFile.exists()) return;
-        try (InputStream in = getClass().getResourceAsStream("/" + CONFIG_FILE_NAME)) {
-            if (in != null) {
-                Files.copy(in, configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("已从 JAR/resources 复制默认配置: " + configFile.getAbsolutePath());
-            }
-        } catch (Exception e) {
-            System.err.println("从 classpath 复制配置文件失败: " + e.getMessage());
+        boolean existed = configFile.exists();
+        File f = ExternalConfigUtils.ensureExternalFile("inspection", CONFIG_FILE_NAME, "/" + CONFIG_FILE_NAME);
+        if (!existed && f != null) {
+            addStartupLog("📦 已从 JAR 复制默认配置: " + f.getAbsolutePath());
         }
+    }
+
+    private void addStartupLog(String msg) {
+        if (startupLogs == null) startupLogs = new ArrayList<>();
+        startupLogs.add(msg);
     }
 
     private void initComponents() {
@@ -261,7 +276,7 @@ public class InspectionDialog extends BaseDialog {
         if (reportsDir.exists()) {
             chooser.setCurrentDirectory(reportsDir);
         } else {
-            chooser.setCurrentDirectory(rootDir);
+            chooser.setCurrentDirectory(new File(EXTERNAL_CONFIG_DIR));
         }
         int result = chooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -315,7 +330,7 @@ public class InspectionDialog extends BaseDialog {
 
         if (!configFile.exists()) {
             JOptionPane.showMessageDialog(this,
-                    "配置文件 " + CONFIG_FILE_NAME + " 不存在，请创建在项目根目录。",
+                    "配置文件 " + CONFIG_FILE_NAME + " 不存在，请创建在 " + EXTERNAL_CONFIG_DIR + "。",
                     "错误", JOptionPane.ERROR_MESSAGE);
             tableModel.fireTableDataChanged();
             return;

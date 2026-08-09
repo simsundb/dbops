@@ -50,13 +50,17 @@ public class InspectionService {
                             // 自动识别编码（UTF-8/GBK），避免 SQL 注释/内容乱码
                             sql = EncodingUtils.readText(filePath.toFile());
                         } else {
-                            // 文件不在磁盘，从 classpath (JAR 内 resources/query/) 读取
+                            // 文件不在外部 query 目录：先从 classpath (JAR 内 resources/query/) 复制到外部目录再读，
+                            // 这样用户可编辑 conf/inspection/query/*.sql
                             InputStream sqlIn = getClass().getResourceAsStream("/query/" + sqlFile);
                             if (sqlIn != null) {
-                                sql = EncodingUtils.readText(sqlIn);
+                                Files.createDirectories(queryDir.toPath());
+                                Files.copy(sqlIn, filePath, StandardCopyOption.REPLACE_EXISTING);
+                                System.out.println("📦 已从 JAR 复制巡检 SQL: " + filePath.toAbsolutePath());
                                 sqlIn.close();
+                                sql = EncodingUtils.readText(filePath.toFile());
                             } else {
-                                LOGGER.log(Level.WARNING, "SQL 文件不存在（磁盘和 classpath 均未找到）: " + sqlFile + "，任务: " + desc);
+                                LOGGER.log(Level.WARNING, "SQL 文件不存在（外部目录和 classpath 均未找到）: " + sqlFile + "，任务: " + desc);
                                 continue;
                             }
                         }
