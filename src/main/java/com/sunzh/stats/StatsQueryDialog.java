@@ -944,15 +944,15 @@ public class StatsQueryDialog extends BaseDialog {
             height = Math.max(540, Math.min(980, height));
 
             // ---------- 弹出窗口（ChartPanel 自带缩放/另存为图片/打印） ----------
-            // 注意：当前对话框本身是模态的（BaseDialog），如果用独立的 JFrame 展示图表，
-            // 会被模态对话框挡住/抢不到焦点，出现"点确认后图表窗口不见了"的现象。
-            // 这里改用归属于当前对话框的非模态子 JDialog，保证正常显示在最前面。
+            // 用独立 JFrame 展示图表：JFrame 原生标题栏才有 最小化/最大化/关闭 三按钮
+            //（JDialog 在 Windows 上不显示），配合下方 setAlwaysOnTop 保证盖住父对话框。
             ChartPanel chartPanel = new ChartPanel(chart);
             chartPanel.setMouseWheelEnabled(true);
             chartPanel.setPreferredSize(new Dimension(width, height));
 
-            JDialog chartDialog = new JDialog(this, title, false);
-            chartDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            JFrame chartDialog = new JFrame(title);
+            chartDialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            chartDialog.setResizable(true);
             // 非模态子窗关闭后把父对话框带回前台，避免焦点落到其它程序（如 IDEA）
             chartDialog.addWindowListener(new java.awt.event.WindowAdapter() {
                 @Override

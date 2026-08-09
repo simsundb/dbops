@@ -15,7 +15,7 @@ import java.awt.image.BufferedImage;
  * 所有功能对话框继承此类，统一管理窗口行为和外观
  * 子类调用 super(owner, title, iconName) 设置标题和图标
  */
-public abstract class BaseDialog extends JDialog {
+public abstract class BaseDialog extends JFrame {
     protected JFrame owner;
     private String titleText;
     private String iconName;
@@ -26,14 +26,16 @@ public abstract class BaseDialog extends JDialog {
     }
 
     public BaseDialog(JFrame owner, String title, String iconName) {
-        // 非模态（modalityType = MODELESS）：Windows 上模态 JDialog 即使可调整大小
-        // 也没有最大化按钮。这里改用"手动模态"（见下方 WindowListener），
-        // 既保留"打开时不能操作主窗口"的体验，又获得最小化/最大化/关闭按钮。
-        super(owner, title, false);
+        // 用 JFrame 而非 JDialog：实测（Windows 11 + JDK 17）JDialog 即使非模态、可调整大小，
+        // 原生标题栏也只有标题文字、没有 最小化/最大化/关闭 按钮（peer 未设置
+        // WS_SYSMENU / WS_MAXIMIZEBOX / WS_MINIMIZEBOX），点右上角毫无反应。
+        // JFrame 与主页面一致，原生自带 最小化/最大化/关闭 三个按钮。
+        // 模态体验仍由下方 WindowListener 的"手动模态"实现（打开禁用主窗口、关闭恢复）。
+        super(title);
         this.owner = owner;
         this.titleText = title;
         this.iconName = iconName;
-        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         // 使用原生窗口装饰：标题栏自带 最小化 / 最大化 / 关闭 按钮
         setUndecorated(false);
 

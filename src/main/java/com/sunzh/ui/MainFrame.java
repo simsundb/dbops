@@ -468,9 +468,11 @@ public class MainFrame extends JFrame {
     }
     // 快捷入口汇总对话框（含三个标签页）
     private void openQualitySummaryDialog() {
-        // 非模态（Windows 模态对话框无最大化按钮）+ 手动模态：打开禁用主窗口，关闭恢复
-        JDialog dialog = new JDialog(this, "数据质量规则引擎", false);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        // JFrame 原生标题栏才有 最小化/最大化/关闭 三按钮（JDialog 在 Windows 上不显示）
+        // + 手动模态：打开禁用主窗口，关闭恢复
+        JFrame dialog = new JFrame("数据质量规则引擎");
+        dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        dialog.setResizable(true);
         SvgIconUtils.applyWindowIcon(dialog);
         dialog.addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowOpened(java.awt.event.WindowEvent e) { setEnabled(false); }
