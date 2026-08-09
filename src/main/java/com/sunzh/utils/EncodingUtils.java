@@ -81,6 +81,14 @@ public class EncodingUtils {
         if (bytes == null || bytes.length == 0) {
             return "";
         }
+        // 0. UTF-16 BOM 优先处理（Windows 部分编辑器常见）
+        if (hasUtf16LeBom(bytes)) {
+            return new String(bytes, 2, bytes.length - 2, StandardCharsets.UTF_16LE);
+        }
+        if (hasUtf16BeBom(bytes)) {
+            return new String(bytes, 2, bytes.length - 2, StandardCharsets.UTF_16BE);
+        }
+
         int offset = hasUtf8Bom(bytes) ? 3 : 0;
         byte[] body = Arrays.copyOfRange(bytes, offset, bytes.length);
 
@@ -126,5 +134,17 @@ public class EncodingUtils {
                 && (bytes[0] & 0xFF) == 0xEF
                 && (bytes[1] & 0xFF) == 0xBB
                 && (bytes[2] & 0xFF) == 0xBF;
+    }
+
+    private static boolean hasUtf16LeBom(byte[] bytes) {
+        return bytes.length >= 2
+                && (bytes[0] & 0xFF) == 0xFF
+                && (bytes[1] & 0xFF) == 0xFE;
+    }
+
+    private static boolean hasUtf16BeBom(byte[] bytes) {
+        return bytes.length >= 2
+                && (bytes[0] & 0xFF) == 0xFE
+                && (bytes[1] & 0xFF) == 0xFF;
     }
 }
