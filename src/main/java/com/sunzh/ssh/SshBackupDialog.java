@@ -3,6 +3,7 @@ package com.sunzh.ssh;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.utils.EncodingUtils;
 import com.sunzh.utils.SvgIconUtils;
 import com.sunzh.utils.ThemeUtils;
 import org.apache.sshd.client.SshClient;
@@ -656,8 +657,9 @@ public class SshBackupDialog extends BaseDialog {
             ch.open().verify(10000);
             ch.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.MINUTES.toMillis(2));
 
-            String output = out.toString(StandardCharsets.UTF_8);
-            String error = err.toString(StandardCharsets.UTF_8);
+            // 远端命令输出编码取决于服务器 locale（GBK/UTF-8 都可能），用自动识别解码防乱码
+            String output = EncodingUtils.decode(out.toByteArray());
+            String error = EncodingUtils.decode(err.toByteArray());
 
             if (!output.isEmpty()) {
                 for (String line : output.split("\n")) {
@@ -879,8 +881,9 @@ public class SshBackupDialog extends BaseDialog {
                     execChannel.setErr(err);
                     execChannel.open().verify(10000);
                     execChannel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.MINUTES.toMillis(30));
-                    String output = out.toString(StandardCharsets.UTF_8);
-                    String error = err.toString(StandardCharsets.UTF_8);
+                    // 远端命令输出编码取决于服务器 locale，用自动识别解码防乱码
+                    String output = EncodingUtils.decode(out.toByteArray());
+                    String error = EncodingUtils.decode(err.toByteArray());
                     if (!output.isEmpty()) publish(output);
                     if (!error.isEmpty()) publish("[ERR] " + error);
                     int exit = execChannel.getExitStatus();

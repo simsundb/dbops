@@ -189,7 +189,7 @@ public class DataSyncDialog extends BaseDialog {
 
         mapCard.add(mapTopPanel, BorderLayout.NORTH);
 
-        taTableMaps = new JTextArea(8, 80);
+        taTableMaps = new JTextArea(12, 80);
         taTableMaps.setFont(FONT_FIELD);
         taTableMaps.setLineWrap(true);
         taTableMaps.setBorder(new CompoundBorder(
@@ -200,7 +200,8 @@ public class DataSyncDialog extends BaseDialog {
         sp.setBorder(BorderFactory.createEmptyBorder());
         sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        // sp.setPreferredSize(new Dimension(900, 260)); // 改为由布局动态分配高度
+        // 显式指定输入框高度，确保表映射输入框显示完整（下面的内容自动下移）
+        sp.setPreferredSize(new Dimension(920, 300));
         mapCard.add(sp, BorderLayout.CENTER);
 
         panel.add(mapCard, gbc);
@@ -323,7 +324,7 @@ public class DataSyncDialog extends BaseDialog {
 
         mapCard.add(mapTopPanel, BorderLayout.NORTH);
 
-        taTableMapsG2O = new JTextArea(8, 80);
+        taTableMapsG2O = new JTextArea(12, 80);
         taTableMapsG2O.setFont(FONT_FIELD);
         taTableMapsG2O.setLineWrap(true);
         taTableMapsG2O.setBorder(new CompoundBorder(
@@ -334,7 +335,8 @@ public class DataSyncDialog extends BaseDialog {
         sp.setBorder(BorderFactory.createEmptyBorder());
         sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        // sp.setPreferredSize(new Dimension(900, 260)); // 改为由布局动态分配高度
+        // 显式指定输入框高度，确保表映射输入框显示完整（下面的内容自动下移）
+        sp.setPreferredSize(new Dimension(920, 300));
         mapCard.add(sp, BorderLayout.CENTER);
 
         panel.add(mapCard, gbc);
@@ -828,6 +830,9 @@ public class DataSyncDialog extends BaseDialog {
     private List<String> buildCommand(String mainClass, String... args) {
         List<String> cmd = new ArrayList<>();
         cmd.add("java");
+        // 关键：强制子进程 JVM 用 UTF-8 输出（Windows 中文系统默认 GBK，否则父进程按 UTF-8
+        // 读取其 System.out 时会中文乱码）
+        cmd.add("-Dfile.encoding=UTF-8");
         cmd.add("-cp");
         cmd.add(System.getProperty("java.class.path"));
         cmd.add(mainClass);

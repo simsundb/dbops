@@ -20,6 +20,7 @@ import javax.swing.table.TableRowSorter;
 
 import java.awt.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -973,7 +974,9 @@ private int executeSqlScript(Connection conn, String sqlScript) throws SQLExcept
     // ---- 日志工具 ----
     private void initLog() {
         try {
-            logWriter = new PrintWriter(new FileWriter("script_runner.log", true), true);
+            // 用 UTF-8 显式编码写日志文件（FileWriter 默认平台编码，Windows 中文系统是 GBK，会乱码）
+            logWriter = new PrintWriter(new OutputStreamWriter(
+                    new FileOutputStream("script_runner.log", true), StandardCharsets.UTF_8), true);
         } catch (IOException e) {
             System.err.println("初始化日志失败: " + e.getMessage());
         }

@@ -68,6 +68,10 @@ public class InspectionDialog extends BaseDialog {
 
     @Override
     protected void initUI() {
+        // 重要：BaseDialog 构造器在 super() 期间调用本虚方法，此时本类字段初始化器尚未执行，
+        // startupLogs 可能为 null（config.yaml 已存在时 addStartupLog 不会被调用）。
+        // 这里必须显式初始化，否则下方 isEmpty() 抛 NPE。
+        if (startupLogs == null) startupLogs = new ArrayList<>();
         if (service == null) service = new InspectionService();
         if (tasks == null) tasks = new ArrayList<>();
         prefs = Preferences.userNodeForPackage(InspectionDialog.class);
