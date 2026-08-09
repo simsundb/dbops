@@ -32,6 +32,9 @@ Thumbs.db
 # Logs
 *.log
 
+# CodeGraph 索引（机器相关，不入库；换机直接删除本目录后重新 init/index）
+.codegraph/
+
 # 本地配置（仅本机使用，不入库）
 DATASOURCE.JSON
 /config.yaml
