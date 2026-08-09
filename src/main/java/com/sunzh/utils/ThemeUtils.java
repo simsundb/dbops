@@ -156,7 +156,7 @@ public class ThemeUtils {
     public static final Font FONT_SMALL       = new Font("Microsoft YaHei", Font.PLAIN, 12);
     public static final Font FONT_SMALL_BOLD  = new Font("Microsoft YaHei", Font.BOLD, 12);
     public static final Font FONT_ICON        = new Font("Segoe UI", Font.PLAIN, 26);
-    public static final Font FONT_LOG         = new Font("Consolas", Font.PLAIN, 12);
+    public static final Font FONT_LOG         = new Font("Microsoft YaHei", Font.PLAIN, 12);
 
     // ═══════════════════════════════════════════════════════════════
     //  控件尺寸常量 — 全局统一
