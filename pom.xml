@@ -46,6 +46,12 @@
             <artifactId>flatlaf</artifactId>
             <version>3.5.4</version>
         </dependency>
+        <!-- FlatSVGIcon：矢量图标按设备 DPI 重绘，解决高分屏显示缩放下图标模糊 -->
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf-extras</artifactId>
+            <version>3.5.4</version>
+        </dependency>
         <dependency>
             <groupId>org.jfree</groupId>
             <artifactId>jfreechart</artifactId>

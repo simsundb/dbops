@@ -1,5 +1,6 @@
 package com.sunzh.utils;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import org.apache.batik.transcoder.SVGAbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -16,6 +17,8 @@ import java.util.Map;
 
 /**
  * SVG 图标工具类 — 从 resources/icons/ 加载 SVG 文件生成 Swing ImageIcon。
+ * 核心采用 FlatSVGIcon：矢量图标按设备 DPI 重绘，高分屏（125%/150% 缩放）下依旧清晰；
+ * 仅窗口标题栏/任务栏图标用 Batik 栅格化为固定尺寸位图。
  *
  * 图标来源：Tabler Icons (MIT License, https://tabler.io/icons)
  * 下载位置：src/main/resources/icons/
@@ -37,8 +40,9 @@ import java.util.Map;
  */
 public class SvgIconUtils {
 
-    private static final String ICON_DIR = "/icons/";
-    private static final Map<String, BufferedImage> cache = new HashMap<>();
+    // 注意：FlatSVGIcon 用 ClassLoader.getResource 按类路径加载，路径不能以 "/" 开头
+    private static final String ICON_DIR = "icons/";
+    private static final Map<String, ImageIcon> cache = new HashMap<>();
 
     private SvgIconUtils() {}
 
@@ -55,53 +59,27 @@ public class SvgIconUtils {
      */
     public static ImageIcon get(String name, int size, Color tint) {
         String cacheKey = name + "@" + size + "@" + (tint == null ? "none" : Integer.toHexString(tint.getRGB()));
-        BufferedImage cached = cache.get(cacheKey);
+        ImageIcon cached = cache.get(cacheKey);
         if (cached != null) {
-            return new ImageIcon(cached);
+            return cached;
         }
 
         try {
             String path = ICON_DIR + name + ".svg";
-            InputStream is = SvgIconUtils.class.getResourceAsStream(path);
-            if (is == null) {
+            // FlatSVGIcon 是矢量图标：绘制时按所在设备/窗口的 DPI 重新渲染
+            // （如 150% 缩放下渲染 24×24 设备像素、再画到 16×16 逻辑框），
+            // 不再像固定位图那样被简单放大而发虚。菜单文字前的图标由此变得清晰。
+            FlatSVGIcon svgIcon = new FlatSVGIcon(path, size, size);
+            if (!svgIcon.hasFound()) {
                 System.err.println("[SvgIconUtils] 未找到图标: " + path);
                 return new ImageIcon();
             }
-
-            BufferedImage[] holder = new BufferedImage[1];
-            ImageTranscoder transcoder = new ImageTranscoder() {
-                @Override
-                public BufferedImage createImage(int w, int h) {
-                    BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-                    holder[0] = bi;
-                    return bi;
-                }
-                @Override
-                public void writeImage(BufferedImage img, TranscoderOutput out) {
-                    // 不需要额外输出
-                }
-            };
-            transcoder.addTranscodingHint(SVGAbstractTranscoder.KEY_WIDTH, (float) size);
-            transcoder.addTranscodingHint(SVGAbstractTranscoder.KEY_HEIGHT, (float) size);
-            transcoder.transcode(new TranscoderInput(is), null);
-
-            BufferedImage raw = holder[0];
-            if (raw == null) return new ImageIcon();
-
-            BufferedImage result;
             if (tint != null) {
-                result = new BufferedImage(raw.getWidth(), raw.getHeight(), BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g = result.createGraphics();
-                g.drawImage(raw, 0, 0, null);
-                g.setComposite(AlphaComposite.SrcAtop);
-                g.setColor(tint);
-                g.fillRect(0, 0, result.getWidth(), result.getHeight());
-                g.dispose();
-            } else {
-                result = raw;
+                // 全量着色为指定颜色，保留 SVG 形状与抗锯齿边缘（等价于旧的 SrcAtop 填充）
+                svgIcon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> tint));
             }
-            cache.put(cacheKey, result);
-            return new ImageIcon(result);
+            cache.put(cacheKey, svgIcon);
+            return svgIcon;
         } catch (Exception e) {
             e.printStackTrace();
             return new ImageIcon();
@@ -134,13 +112,59 @@ public class SvgIconUtils {
     public static void applyWindowIcon(Window window) {
         List<Image> icons = new ArrayList<>();
         for (int size : new int[]{16, 32, 48, 64}) {
-            Image img = get("database", size, ThemeUtils.COLOR_PRIMARY).getImage();
+            BufferedImage img = rasterize("database", size, ThemeUtils.COLOR_PRIMARY);
             if (img != null) {
                 icons.add(img);
             }
         }
         if (!icons.isEmpty()) {
             window.setIconImages(icons);
+        }
+    }
+
+    /** 用 Batik 把 SVG 栅格化为固定尺寸位图（仅窗口图标用，标题栏/任务栏由系统按物理像素取图） */
+    private static BufferedImage rasterize(String name, int size, Color tint) {
+        try {
+            InputStream is = SvgIconUtils.class.getClassLoader().getResourceAsStream(ICON_DIR + name + ".svg");
+            if (is == null) {
+                System.err.println("[SvgIconUtils] 未找到图标: " + ICON_DIR + name + ".svg");
+                return null;
+            }
+
+            BufferedImage[] holder = new BufferedImage[1];
+            ImageTranscoder transcoder = new ImageTranscoder() {
+                @Override
+                public BufferedImage createImage(int w, int h) {
+                    BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                    holder[0] = bi;
+                    return bi;
+                }
+                @Override
+                public void writeImage(BufferedImage img, TranscoderOutput out) {
+                    // 不需要额外输出
+                }
+            };
+            transcoder.addTranscodingHint(SVGAbstractTranscoder.KEY_WIDTH, (float) size);
+            transcoder.addTranscodingHint(SVGAbstractTranscoder.KEY_HEIGHT, (float) size);
+            transcoder.transcode(new TranscoderInput(is), null);
+
+            BufferedImage raw = holder[0];
+            if (raw == null) return null;
+
+            if (tint != null) {
+                BufferedImage result = new BufferedImage(raw.getWidth(), raw.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g = result.createGraphics();
+                g.drawImage(raw, 0, 0, null);
+                g.setComposite(AlphaComposite.SrcAtop);
+                g.setColor(tint);
+                g.fillRect(0, 0, result.getWidth(), result.getHeight());
+                g.dispose();
+                return result;
+            }
+            return raw;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
