@@ -23,6 +23,7 @@ public class DetailPanel extends JPanel {
     private JButton btnQuery;
     private JButton btnExportCurrent;
     private JButton btnExportAll;
+    private JLabel statusLabel;
 
     // 使用 ThemeUtils 岩系冷调配色
     private static final java.awt.Color THEME_ACCENT = new java.awt.Color(76, 110, 138);
@@ -120,9 +121,12 @@ public class DetailPanel extends JPanel {
                 "对比明细结果",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12), THEME_ACCENT));
-        scrollPane.setPreferredSize(new java.awt.Dimension(800, 300));
-
         add(scrollPane, java.awt.BorderLayout.CENTER);
+
+        statusLabel = new JLabel("就绪：请选择对象类型后查询");
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(2, 4, 0, 4));
+        statusLabel.setForeground(THEME_ACCENT_DARK);
+        add(statusLabel, java.awt.BorderLayout.SOUTH);
     }
 
     // ----- 创建统一样式按钮 -----
@@ -163,63 +167,41 @@ public class DetailPanel extends JPanel {
     // ----- 美化明细表格 -----
     private void beautifyDetailTable(JTable table) {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        table.setRowHeight(24);
-        table.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12));
-        table.setGridColor(new java.awt.Color(205, 210, 218));
-        table.setSelectionBackground(new java.awt.Color(180, 200, 220));
+        table.setAutoCreateRowSorter(true);
+        table.setFillsViewportHeight(true);
+        table.setRowHeight(26);
+        table.setFont(new java.awt.Font("Microsoft YaHei", java.awt.Font.PLAIN, 12));
+        table.setGridColor(new java.awt.Color(220, 226, 234));
+        table.setShowVerticalLines(false);
+        table.setSelectionBackground(new java.awt.Color(210, 226, 240));
         table.setSelectionForeground(java.awt.Color.BLACK);
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
-                                                           boolean isSelected, boolean hasFocus, int row, int column) {
-                java.awt.Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                JLabel label = (JLabel) super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
+                label.setHorizontalAlignment(SwingConstants.LEADING);
+                label.setToolTipText(value == null ? null : value.toString());
                 if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? BG_ALTERNATE : java.awt.Color.WHITE);
+                    label.setBackground(row % 2 == 0 ? BG_ALTERNATE : java.awt.Color.WHITE);
+                    label.setForeground(java.awt.Color.BLACK);
                 }
-                ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
-                return c;
+                return label;
             }
         });
 
         JTableHeader header = table.getTableHeader();
-        header.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
+        header.setFont(new java.awt.Font("Microsoft YaHei", java.awt.Font.BOLD, 12));
         header.setForeground(java.awt.Color.WHITE);
         header.setBackground(THEME_ACCENT);
+        header.setReorderingAllowed(false);
         header.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(THEME_ACCENT_DARK, 1),
-                BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)));
         ((DefaultTableCellRenderer) header.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
-
-        table.setRowHeight(24);
-        table.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12));
-        table.setGridColor(new java.awt.Color(205, 210, 218));
-        table.setSelectionBackground(new java.awt.Color(180, 200, 220));
-        table.setSelectionForeground(java.awt.Color.BLACK);
-
-        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
-                                                           boolean isSelected, boolean hasFocus, int row, int column) {
-                java.awt.Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? BG_ALTERNATE : java.awt.Color.WHITE);
-                }
-                ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
-                return c;
-            }
-        });
-
-        JTableHeader header2 = table.getTableHeader();
-        header2.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
-        header2.setForeground(java.awt.Color.WHITE);
-        header2.setBackground(THEME_ACCENT);
-        header2.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(THEME_ACCENT_DARK, 1),
-                BorderFactory.createEmptyBorder(4, 8, 4, 8)));
-        ((DefaultTableCellRenderer) header2.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
     }
-
     // ----- 刷新数据 -----
     public void refreshData() {
         // 无自动刷新，用户需手动点击查询按钮
@@ -243,7 +225,7 @@ public class DetailPanel extends JPanel {
                 maxWidth = Math.max(maxWidth, width);
             }
 
-            int rowCount = Math.min(table.getRowCount(), 1000);
+            int rowCount = Math.min(table.getRowCount(), 200);
             for (int row = 0; row < rowCount; row++) {
                 Object value = table.getValueAt(row, col);
                 if (value != null) {
@@ -254,9 +236,8 @@ public class DetailPanel extends JPanel {
             }
 
             int preferred = Math.min(Math.max(maxWidth, 50), 500);
+            column.setMinWidth(72);
             column.setPreferredWidth(preferred);
-            column.setMinWidth(preferred);
-            column.setMaxWidth(preferred);
         }
 
         table.getTableHeader().resizeAndRepaint();
@@ -268,40 +249,69 @@ public class DetailPanel extends JPanel {
     private void doQuery() {
         String type = (String) typeCombo.getSelectedItem();
         String jobId = tfJobId.getText().trim();
-
         String tableName = getTableName(type);
         if (tableName == null) return;
 
-        try (Connection conn = parent.getConnection()) {
-            String sql = "SELECT * FROM " + tableName;
-            if (!jobId.isEmpty()) sql += " WHERE job_id = ?";
+        setQueryControlsEnabled(false);
+        statusLabel.setText("正在加载“" + type + "”明细…");
 
-            PreparedStatement ps = conn.prepareStatement(sql);
-            if (!jobId.isEmpty()) ps.setString(1, jobId);
+        new SwingWorker<QueryResult, Void>() {
+            @Override
+            protected QueryResult doInBackground() throws Exception {
+                try (Connection conn = parent.getConnection();
+                     PreparedStatement ps = conn.prepareStatement(
+                             "SELECT * FROM " + tableName + (jobId.isEmpty() ? "" : " WHERE job_id = ?"))) {
+                    if (!jobId.isEmpty()) ps.setString(1, jobId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        ResultSetMetaData meta = rs.getMetaData();
+                        int cols = meta.getColumnCount();
+                        String[] columnNames = new String[cols];
+                        for (int i = 0; i < cols; i++) columnNames[i] = meta.getColumnName(i + 1);
 
-            ResultSet rs = ps.executeQuery();
-            ResultSetMetaData meta = rs.getMetaData();
-            int cols = meta.getColumnCount();
-
-            String[] colNames = new String[cols];
-            for (int i = 0; i < cols; i++) {
-                colNames[i] = meta.getColumnName(i + 1);
-            }
-            detailModel.setDataVector(new Object[][]{}, colNames);
-
-            while (rs.next()) {
-                Object[] row = new Object[cols];
-                for (int i = 0; i < cols; i++) {
-                    row[i] = rs.getObject(i + 1);
+                        java.util.List<Object[]> rows = new java.util.ArrayList<>();
+                        while (rs.next()) {
+                            Object[] row = new Object[cols];
+                            for (int i = 0; i < cols; i++) row[i] = rs.getObject(i + 1);
+                            rows.add(row);
+                        }
+                        return new QueryResult(columnNames, rows);
+                    }
                 }
-                detailModel.addRow(row);
             }
-            rs.close();
-            ps.close();
 
-            SwingUtilities.invokeLater(() -> autoResizeColumns(detailTable));
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "查询失败: " + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+            @Override
+            protected void done() {
+                try {
+                    QueryResult result = get();
+                    detailModel.setDataVector(result.rows.toArray(new Object[0][]), result.columnNames);
+                    autoResizeColumns(detailTable);
+                    statusLabel.setText("查询完成：共 " + result.rows.size() + " 条明细");
+                } catch (Exception ex) {
+                    String message = ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage();
+                    statusLabel.setText("查询失败");
+                    JOptionPane.showMessageDialog(DetailPanel.this, "查询失败：" + message, "错误", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    setQueryControlsEnabled(true);
+                }
+            }
+        }.execute();
+    }
+
+    private void setQueryControlsEnabled(boolean enabled) {
+        typeCombo.setEnabled(enabled);
+        tfJobId.setEnabled(enabled);
+        btnQuery.setEnabled(enabled);
+        btnExportCurrent.setEnabled(enabled);
+        btnExportAll.setEnabled(enabled);
+    }
+
+    private static final class QueryResult {
+        private final String[] columnNames;
+        private final java.util.List<Object[]> rows;
+
+        private QueryResult(String[] columnNames, java.util.List<Object[]> rows) {
+            this.columnNames = columnNames;
+            this.rows = rows;
         }
     }
 

@@ -28,7 +28,9 @@ public class CustomButton extends JButton {
                 ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X, ThemeUtils.BTN_PAD_Y, ThemeUtils.BTN_PAD_X));
         setCursor(new Cursor(Cursor.HAND_CURSOR));
         setOpaque(true);
-        setPreferredSize(new Dimension(0, ThemeUtils.BTN_HEIGHT));
+        Dimension preferred = getPreferredSize();
+        preferred.height = ThemeUtils.BTN_HEIGHT;
+        setPreferredSize(preferred);
         setFocusable(true);
 
         Color hover = deriveHover(backgroundColor);

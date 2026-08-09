@@ -3,6 +3,7 @@ package com.sunzh.ui.dialogs;
 import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
+import com.sunzh.utils.SvgIconUtils;
 import com.sunzh.utils.ThemeUtils;
 
 import javax.swing.*;
@@ -13,6 +14,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,14 +33,14 @@ public class ObjectQueryDialog extends BaseDialog {
     private List<DataSource> dataSources;
 
     public ObjectQueryDialog(JFrame owner) {
-        super(owner, "🔍 数据库对象查询");
+        super(owner, "数据库对象查询", "search");
     }
 
     @Override
     protected void initUI() {
-        setLayout(new BorderLayout(10, 10));
-        getContentPane().setBackground(ThemeUtils.COLOR_BG);
-        ((JPanel) getContentPane()).setBorder(new EmptyBorder(14, 14, 14, 14));
+        mainContentPanel.setLayout(new BorderLayout(10, 10));
+        mainContentPanel.setBackground(ThemeUtils.COLOR_BG);
+        mainContentPanel.setBorder(new EmptyBorder(14, 14, 14, 14));
 
         // ---- 顶部：查询条件 ----
         JPanel queryPanel = new JPanel(new GridBagLayout());
@@ -91,17 +93,13 @@ public class ObjectQueryDialog extends BaseDialog {
         // 查询按钮
         gbc.gridx = 4;
         gbc.weightx = 0;
-        queryButton = new JButton("🔍 查询");
-        queryButton.setFont(ThemeUtils.FONT_BOLD);
-        queryButton.setBackground(ThemeUtils.COLOR_PRIMARY);
-        queryButton.setForeground(Color.WHITE);
-        queryButton.setFocusPainted(false);
-        queryButton.setBorderPainted(false);
-        queryButton.setPreferredSize(new Dimension(100, 32));
+        queryButton = ThemeUtils.primaryButton("查询");
+        queryButton.setIcon(SvgIconUtils.getWhite("search", 16));
+        queryButton.setIconTextGap(6);
         queryButton.addActionListener(e -> doQuery());
         queryPanel.add(queryButton, gbc);
 
-        add(queryPanel, BorderLayout.NORTH);
+        mainContentPanel.add(queryPanel, BorderLayout.NORTH);
 
         // ---- 中间：结果表格（占满剩余空间） ----
         JPanel tablePanel = new JPanel(new BorderLayout());
@@ -138,7 +136,7 @@ public class ObjectQueryDialog extends BaseDialog {
         // ★ 移除固定尺寸，让表格自动填满
 
         tablePanel.add(scrollPane, BorderLayout.CENTER);
-        add(tablePanel, BorderLayout.CENTER);
+        mainContentPanel.add(tablePanel, BorderLayout.CENTER);
 
         // ---- 底部：状态 + 关闭按钮 ----
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -161,17 +159,23 @@ public class ObjectQueryDialog extends BaseDialog {
         rightPanel.add(progressBar);
 
         bottomPanel.add(rightPanel, BorderLayout.EAST);
-        add(bottomPanel, BorderLayout.SOUTH);
+        mainContentPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         // 加载数据源
         loadDataSources();
     }
 
     private void loadDataSources() {
-        dataSources = DataSourceStore.load();
+        dataSources = new ArrayList<>();
+        for (DataSource ds : DataSourceStore.load()) {
+            if ("GAUSSDB".equalsIgnoreCase(ds.getType())) {
+                dataSources.add(ds);
+            }
+        }
+
         dataSourceCombo.removeAllItems();
         if (dataSources.isEmpty()) {
-            dataSourceCombo.addItem("请先在数据源配置中添加数据源");
+            dataSourceCombo.addItem("请先配置 GaussDB 数据源");
             dataSourceCombo.setEnabled(false);
         } else {
             for (DataSource ds : dataSources) {
@@ -296,7 +300,7 @@ public class ObjectQueryDialog extends BaseDialog {
             @Override
             protected void done() {
                 setUIEnabled(true);
-                queryButton.setText("🔍 查询");
+                queryButton.setText("查询");
                 progressBar.setVisible(false);
                 progressBar.setIndeterminate(false);
             }
@@ -384,9 +388,8 @@ public class ObjectQueryDialog extends BaseDialog {
         for (int col = 0; col < colCount; col++) {
             TableColumn column = colModel.getColumn(col);
             int width = Math.max(colWidths[col], 40);
+            column.setMinWidth(72);
             column.setPreferredWidth(width);
-            column.setMinWidth(width);
-            column.setMaxWidth(width);
         }
 
         table.getTableHeader().resizeAndRepaint();

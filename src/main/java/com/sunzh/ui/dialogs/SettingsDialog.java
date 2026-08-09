@@ -17,16 +17,14 @@ public class SettingsDialog extends BaseDialog {
 
     @Override
     protected void initUI() {
-        setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
-        ((JPanel) getContentPane()).setBorder(new EmptyBorder(40, 40, 40, 40));
+        mainContentPanel.setLayout(new BorderLayout());
+        mainContentPanel.setBackground(Color.WHITE);
+        mainContentPanel.setBorder(new EmptyBorder(40, 40, 40, 40));
 
         JPanel centerPanel = new JPanel(new GridBagLayout());
         centerPanel.setOpaque(false);
 
         JLabel iconLabel = new JLabel(SvgIconUtils.get("settings", 56, new Color(76, 110, 138)));
-        centerPanel.add(iconLabel, new GridBagConstraints());
-
         JLabel textLabel = new JLabel("系统设置功能开发中...", JLabel.CENTER);
         textLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 22));
         textLabel.setForeground(new Color(150, 150, 150));
@@ -49,6 +47,6 @@ public class SettingsDialog extends BaseDialog {
         gbc.insets = new Insets(0, 0, 0, 0);
         centerPanel.add(hintLabel, gbc);
 
-        add(centerPanel, BorderLayout.CENTER);
+        mainContentPanel.add(centerPanel, BorderLayout.CENTER);
     }
 }
