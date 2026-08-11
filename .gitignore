@@ -45,3 +45,5 @@ DATASOURCE.JSON
 /Edit1.txt
 *.xlsx
 hs_err_pid*.log
+# graphify 知识图谱生成物（缓存/状态不入库；如需共享图谱，仅提交 graph.json / graph.html / GRAPH_REPORT.md）
+graphify-out/

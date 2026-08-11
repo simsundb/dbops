@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-资源管控中心 · 数据库运维管理平台 (Resource Control Center · Database O&M Management Platform) — a Java 17 Swing desktop application for Oracle and GaussDB (Huawei's PostgreSQL-based database) operations. Built with Maven, FlatLaf UI theme, and Apache POI for Excel export.
+资源管控中心 · 数据库运维管理平台 (Resource Control Center · Database O&M Management Platform) — a Java 21 Swing desktop application for Oracle and GaussDB (Huawei's PostgreSQL-based database) operations. Built with Maven, FlatLaf UI theme, and Apache POI for Excel export.
 
 ## Build & Run
 
@@ -24,7 +24,7 @@ mvn clean package
 # Run the packaged JAR from project root (required — DATASOURCE.JSON and config.yaml are read from user.dir)
 java -jar target/db-project-1.0-SNAPSHOT.jar
 
-# Entry point: com.example.launcher.AppLauncher
+# Entry point: com.sunzh.launcher.AppLauncher
 ```
 
 ## Architecture
@@ -33,20 +33,24 @@ java -jar target/db-project-1.0-SNAPSHOT.jar
 
 | Package | Role |
 |---|---|
-| `com.example.launcher` | Entry point (`AppLauncher`), sets up FlatLaf theme then launches `MainFrame` |
-| `com.example.core` | Domain objects and infrastructure: `DataSource` (entity with Base64 password crypto), `DataSourceStore` (JSON persistence to `DATASOURCE.JSON`), `ConnectionManager` (JDBC connection testing for Oracle/GaussDB), `ScriptRunner` (SQL file migration with checkpoint/resume) |
-| `com.example.ui` | Swing GUI. `MainFrame` is the hub with a menu bar launching feature dialogs. `BaseDialog` is the abstract modal dialog base (1200x800, auto-refresh on open). Dialogs live in `ui/dialogs/`, reusable components in `ui/components/` |
-| `com.example.service` | `CheckModelService` — the inspection engine: loads tasks from `config.yaml`, executes SQL queries, exports results as `.xlsx` files |
-| `com.example.sync` | Standalone data sync tools (`OracleToGaussDB`, `GaussDBToOracle`, `ExcelToOracle`, `ExcelToGaussDB`). These are `main()` classes **spawned as subprocesses** by `DataSyncDialog` via `ProcessBuilder` — they don't run in-process |
-| `com.example.comparison` | Schema comparison feature: `ComparisonService` calls stored procedures (`sp_extract_source_data`, `sp_generate_all_compare`) and queries result tables (`gk_sjdb_*`) on GaussDB. `ComparisonDialog` has tabbed panels (`ExtractPanel`, `ComparePanel`, `DetailPanel`, `TaskConfigPanel`) |
-| `com.example.checkmodel` | `InspectionTask` entity with `Status` enum (`PENDING/SUCCESS/NO_DATA/FAILED/SKIPPED`) |
-| `com.example.utils` | `CryptoUtils` (Base64 encode/decode for passwords — not real encryption, fallback to plaintext on decode failure), `ThemeUtils` (FlatLaf color/font constants), `SvgIconUtils` |
+| `com.sunzh.launcher` | Entry point (`AppLauncher`), sets up FlatLaf theme then launches `MainFrame` |
+| `com.sunzh.core` | Domain objects and infrastructure: `DataSource` (entity with Base64 password crypto), `DataSourceStore` (JSON persistence to `DATASOURCE.JSON`), `ConnectionManager` (JDBC connection testing for Oracle/GaussDB) |
+| `com.sunzh.ui` | Swing GUI. `MainFrame` is the hub with a menu bar launching feature dialogs. `BaseDialog` is the abstract modal dialog base (1200x800, auto-refresh on open). Dialogs live in `ui/dialogs/`, reusable components (`CustomButton`, `StatusBar`) in `ui/components/` |
+| `com.sunzh.inspection` | Inspection feature: `InspectionService` (the inspection engine — loads tasks from `config.yaml`, executes SQL queries from `query/`, exports results as `.xlsx`), `InspectionTask` entity with `Status` enum (`PENDING/SUCCESS/NO_DATA/FAILED/SKIPPED`), `InspectionDialog` |
+| `com.sunzh.datacheck` | Data check feature: `DataCheckConfig`/`DataCheckDetail` + DAOs, `ExecuteBatchDialog`/`ExecuteBatchPanel`, `GenerateScriptDialog`/`GenerateScriptPanel`, `RuleConfigDialog`/`RuleConfigPanel` |
+| `com.sunzh.datasource` | `DataSourceDialog` — manage data source entries |
+| `com.sunzh.scriptrunner` | `ScriptRunner` (SQL file migration with checkpoint/resume), `ScriptRunnerDialog` |
+| `com.sunzh.ssh` | SSH backup: `SshBackupDialog`, `SshProfile`/`SshProfileStore` |
+| `com.sunzh.stats` | Statistics: `StatsConfig`, `StatsQueryDialog`, `TableExportUtil` |
+| `com.sunzh.sync` | Standalone data sync tools (`OracleToGaussDB`, `GaussDBToOracle`, `ExcelToOracle`, `ExcelToGaussDB`). These are `main()` classes **spawned as subprocesses** by `DataSyncDialog` via `ProcessBuilder` — they don't run in-process |
+| `com.sunzh.comparison` | Schema comparison feature: `ComparisonService` calls stored procedures (`sp_extract_source_data`, `sp_generate_all_compare`) and queries result tables (`gk_sjdb_*`) on GaussDB. `ComparisonDialog` has tabbed panels (`ExtractPanel`, `ComparePanel`, `DetailPanel`, `TaskConfigPanel`) in `comparison/panels/` |
+| `com.sunzh.utils` | `CryptoUtils` (Base64 encode/decode for passwords — not real encryption, fallback to plaintext on decode failure), `ThemeUtils` (FlatLaf color/font constants), `SvgIconUtils`, `EncodingUtils`/`ConsoleEncoding` (UTF-8 normalization), `ExternalConfigUtils` |
 
 ### Key Design Decisions
 
 - **Data sources** are persisted in `DATASOURCE.JSON` at the project root (`user.dir`). Passwords are Base64-encoded (not truly encrypted). The `DataSource.getPassword()` auto-decrypts, `setPassword()` auto-encrypts.
-- **Config YAML** (`config.yaml`) defines inspection tasks — each task maps a `description` + `enabled` flag to a SQL file in the `query/` directory. `CheckModelService.loadTasks()` resolves SQL files relative to a `queryDir` parameter.
-- **Data sync runs as subprocesses** — `DataSyncDialog` spawns `java -cp <classpath> <sync-class> <args>` via `ProcessBuilder`. This means sync classes (`com.example.sync.*`) use `System.out.println` for logging (captured by the dialog's log panel).
+- **Config YAML** (`config.yaml`) defines inspection tasks — each task maps a `description` + `enabled` flag to a SQL file in the `query/` directory. `InspectionService.loadTasks()` resolves SQL files relative to a `queryDir` parameter.
+- **Data sync runs as subprocesses** — `DataSyncDialog` spawns `java -cp <classpath> <sync-class> <args>` via `ProcessBuilder`. This means sync classes (`com.sunzh.sync.*`) use `System.out.println` for logging (captured by the dialog's log panel).
 - **Schema comparison** requires a GaussDB connection with pre-existing stored procedures (`sp_extract_source_data`, `sp_extract_target_data`, `sp_generate_all_compare`) and result tables (`gk_sjdb_task`, `gk_sjdb_task_config`, `gk_sjdb_table_jg`, `gk_sjdb_column_jg`, etc.).
 - **ScriptRunner** supports checkpoint/resume — it stores SQL file content and parsed statements in `general_app_form` / `general_app_form_parsed` tables, tracking execution status per statement.
 - **Dual database support**: JDBC URLs are built dynamically by `DataSource.buildUrl()` based on the `type` field (`ORACLE` or `GAUSSDB`). Oracle uses `serviceName`, GaussDB uses `database` + `schema`.
