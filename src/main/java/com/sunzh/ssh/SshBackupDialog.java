@@ -52,6 +52,7 @@ public class SshBackupDialog extends BaseDialog {
     private JComboBox<DataSource> dataSourceCombo;
 
     private JButton saveProfileBtn, deleteProfileBtn, newProfileBtn;
+    private JButton testSshBtn;
     private JButton executeBtn, stopBtn, clearLogBtn;
     private JButton viewDirBtn;
 
@@ -225,9 +226,17 @@ public class SshBackupDialog extends BaseDialog {
         gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 4;
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.CENTER;
+
+        // 保存 + SSH连接测试 并排居中
+        JPanel saveRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        saveRow.setOpaque(false);
         saveProfileBtn = SvgIconUtils.button("save", "保存", ThemeUtils.COLOR_SUCCESS);
         saveProfileBtn.addActionListener(e -> saveCurrentProfile());
-        panel.add(saveProfileBtn, gbc);
+        testSshBtn = SvgIconUtils.outlineButton("ssh", "SSH连接测试", ThemeUtils.COLOR_PRIMARY);
+        testSshBtn.addActionListener(e -> testSshConnection());
+        saveRow.add(saveProfileBtn);
+        saveRow.add(testSshBtn);
+        panel.add(saveRow, gbc);
 
         return panel;
     }
@@ -642,6 +651,84 @@ public class SshBackupDialog extends BaseDialog {
                 progressBar.setVisible(false);
                 progressBar.setIndeterminate(false);
                 stopBtn.setEnabled(false);
+            }
+        };
+        worker.execute();
+    }
+
+    // ======================= SSH 连接测试 =======================
+    private void testSshConnection() {
+        // 直接读表单当前值（与保存一致），未选配置也能测
+        final String sshHost = sshHostField.getText().trim();
+        int port;
+        try {
+            port = Integer.parseInt(sshPortField.getText().trim());
+        } catch (NumberFormatException e) {
+            port = 22;
+        }
+        final int sshPort = port;
+        final String sshUser = sshUserField.getText().trim();
+        final String sshPassword = new String(sshPasswordField.getPassword()).trim();
+
+        if (sshHost.isEmpty() || sshUser.isEmpty() || sshPassword.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "请填写 SSH 主机、用户、密码", "错误", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        testSshBtn.setEnabled(false);
+        testSshBtn.setText("测试中…");
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+        SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() {
+                SshClient client = null;
+                ClientSession sess = null;
+                try {
+                    client = SshClient.setUpDefaultClient();
+                    client.start();
+                    ConnectFuture cf = client.connect(sshUser, sshHost, sshPort);
+                    sess = cf.verify(10000).getSession();
+                    sess.addPasswordIdentity(sshPassword);
+                    sess.auth().verify(10000);
+                    return "✅ SSH 连接成功\n" + sshUser + "@" + sshHost + ":" + sshPort + "\n认证通过，会话已建立";
+                } catch (Exception e) {
+                    String reason = e.getMessage();
+                    if (reason == null || reason.isEmpty()) reason = e.getClass().getSimpleName();
+                    if (reason.contains("No more authentication methods")) {
+                        reason += "\n提示: 认证失败，请检查 SSH 密码是否正确";
+                    } else if (reason.contains("ConnectException") || reason.contains("Connection refused")) {
+                        reason += "\n提示: 无法连接主机，请检查地址/端口/网络";
+                    } else if (reason.contains("UnknownHost")) {
+                        reason += "\n提示: 主机名无法解析";
+                    }
+                    return "❌ SSH 连接失败\n" + sshUser + "@" + sshHost + ":" + sshPort + "\n原因: " + reason;
+                } finally {
+                    if (sess != null && !sess.isClosed()) {
+                        try { sess.close(); } catch (IOException ignore) {}
+                    }
+                    if (client != null && client.isStarted()) {
+                        try { client.stop(); } catch (Exception ignore) {}
+                    }
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    String msg = get();
+                    boolean ok = msg.startsWith("✅");
+                    JOptionPane.showMessageDialog(SshBackupDialog.this, msg,
+                            ok ? "连接成功" : "连接失败",
+                            ok ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(SshBackupDialog.this,
+                            "测试过程中发生异常: " + e.getMessage(), "连接失败", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    testSshBtn.setEnabled(true);
+                    testSshBtn.setText("SSH连接测试");
+                    setCursor(Cursor.getDefaultCursor());
+                }
             }
         };
         worker.execute();
