@@ -6,6 +6,8 @@ import com.sunzh.utils.CryptoUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,25 +16,10 @@ public class SshProfileStore {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public static List<SshProfile> load() {
-        File file = new File(CONFIG_FILE);
-        if (!file.exists()) {
-            SshProfile defaultProfile = new SshProfile();
-            defaultProfile.setName("默认配置");
-            defaultProfile.setSshHost("");
-            defaultProfile.setSshPort(22);
-            defaultProfile.setSshUser("root");
-            defaultProfile.setSshPassword("");
-            defaultProfile.setExecUser("Ruby");
-            defaultProfile.setDbHost("");
-            defaultProfile.setDbPort(8000);
-            defaultProfile.setDbName("");
-            defaultProfile.setDbUser("");
-            defaultProfile.setDbPassword("");
-            defaultProfile.setBackupDir("/data/dump");
-            List<SshProfile> list = new ArrayList<>();
-            list.add(defaultProfile);
-            save(list);
-            return list;
+        File file = ensureConfigFile();
+        if (file == null || !file.exists()) {
+            System.err.println("SSH 配置文件缺失且无默认模板: " + CONFIG_FILE);
+            return new ArrayList<>();
         }
         try (Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
             SshProfile[] arr = GSON.fromJson(reader, SshProfile[].class);
@@ -55,7 +42,30 @@ public class SshProfileStore {
         }
     }
 
+    /**
+     * 确保外部配置文件存在：外部缺失时从 JAR/resources 复制默认模板（自动创建父目录）。
+     * 已存在的文件不覆盖（用户自定义优先）。
+     */
+    private static File ensureConfigFile() {
+        File file = new File(CONFIG_FILE);
+        if (file.isFile()) return file;
+        try (InputStream in = SshProfileStore.class.getResourceAsStream("/ssh_profiles.json")) {
+            if (in == null) return null;
+            File parent = file.getParentFile();
+            if (parent != null) parent.mkdirs();
+            Files.copy(in, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("📦 已从 JAR 复制默认配置: " + file.getAbsolutePath());
+            return file;
+        } catch (IOException e) {
+            System.err.println("复制 SSH 配置失败: " + file.getAbsolutePath() + " - " + e.getMessage());
+            return null;
+        }
+    }
+
     public static void save(List<SshProfile> profiles) {
+        File configFile = new File(CONFIG_FILE);
+        File parent = configFile.getParentFile();
+        if (parent != null) parent.mkdirs();
         List<SshProfile> copy = new ArrayList<>();
         for (SshProfile p : profiles) {
             SshProfile encrypted = new SshProfile();
@@ -73,7 +83,7 @@ public class SshProfileStore {
             encrypted.setBackupDir(p.getBackupDir());
             copy.add(encrypted);
         }
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(CONFIG_FILE), StandardCharsets.UTF_8)) {
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(configFile), StandardCharsets.UTF_8)) {
             GSON.toJson(copy, writer);
         } catch (Exception e) {
             e.printStackTrace();

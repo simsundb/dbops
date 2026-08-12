@@ -1,0 +1,16 @@
+[
+  {
+    "name": "默认配置",
+    "sshHost": "",
+    "sshPort": 22,
+    "sshUser": "root",
+    "sshPassword": "",
+    "execUser": "Ruby",
+    "dbHost": "",
+    "dbPort": 8000,
+    "dbName": "",
+    "dbUser": "",
+    "dbPassword": "",
+    "backupDir": "/data/dump"
+  }
+]
