@@ -1,6 +1,7 @@
 package com.sunzh.launcher;
 
 import com.sunzh.ui.MainFrame;
+import com.sunzh.utils.ExternalConfigUtils;
 import com.sunzh.utils.ThemeUtils;
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -10,6 +11,10 @@ import java.awt.*;
 public class AppLauncher {
 
     public static void main(String[] args) {
+        // 0. 先把 JAR 内全部默认配置导出到 conf/（已存在的文件不覆盖，用户自定义优先）
+        //    必须在任何读配置之前执行，保证首次运行即自包含。
+        ExternalConfigUtils.exportBundledDefaults();
+
         try {
             // 1. 先应用 FlatLaf 外观
             UIManager.setLookAndFeel(new FlatLightLaf());

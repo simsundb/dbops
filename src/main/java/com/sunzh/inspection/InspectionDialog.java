@@ -24,8 +24,8 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 public class InspectionDialog extends BaseDialog {
-    // ---- 外部配置目录（JAR 同级 ./conf/inspection/），与 StatsQueryDialog 的 conf/stats 一致 ----
-    private static final String EXTERNAL_CONFIG_DIR = "./conf/inspection/";
+    // ---- 外部配置目录（conf/inspection/，conf 根目录由 ExternalConfigUtils 智能定位），与 StatsQueryDialog 的 conf/stats 一致 ----
+    private static final String EXTERNAL_CONFIG_DIR = ExternalConfigUtils.CONF_DIR + "inspection/";
     private static final String CONFIG_FILE_NAME = "config.yaml";
     private static final String QUERY_DIR_NAME = "query";
     private static final String REPORTS_DIR_NAME = "reports";
