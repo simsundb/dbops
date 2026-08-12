@@ -11,6 +11,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -213,14 +215,33 @@ public class InspectionDialog extends BaseDialog {
 
         // ===== 中间区域 =====
         JSplitPane centerSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        centerSplit.setResizeWeight(0.35);
+        centerSplit.setResizeWeight(0.6);
         centerSplit.setDividerLocation(380);
         centerSplit.setOneTouchExpandable(true);
+        // 首次真实布局后按 60%/40% 定位分隔条（setup 阶段面板还没有实际宽度，按像素设置会失效）
+        centerSplit.addComponentListener(new ComponentAdapter() {
+            private boolean located;
+
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (!located && centerSplit.getWidth() > 0) {
+                    located = true;
+                    centerSplit.setDividerLocation(0.6);
+                }
+            }
+        });
 
         tableModel = new TaskTableModel();
         taskTable = new JTable(tableModel);
         taskTable.setRowHeight(25);
-        taskTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+        // 所有列按比例自动铺满表格宽度（AUTO_RESIZE_LAST_COLUMN 只会撑大最后一列）
+        taskTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        // 给每列设最小宽度：正常宽度下均匀铺开；左侧窗格被拖窄时列不再挤压，
+        // 而是整体超出视口宽度，触发横向滚动条
+        int[] colMinWidths = {60, 160, 140, 60, 60, 140};
+        for (int i = 0; i < colMinWidths.length; i++) {
+            taskTable.getColumnModel().getColumn(i).setMinWidth(colMinWidths[i]);
+        }
         taskTable.getSelectionModel().addListSelectionListener(e -> {
             int row = taskTable.getSelectedRow();
             if (row >= 0 && row < tasks.size()) {
@@ -230,12 +251,16 @@ public class InspectionDialog extends BaseDialog {
         });
 
         JScrollPane tableScroll = new JScrollPane(taskTable);
+        tableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tableScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         tableScroll.setBorder(BorderFactory.createTitledBorder("任务列表"));
 
         sqlPreviewArea = new JTextArea();
         sqlPreviewArea.setEditable(false);
         sqlPreviewArea.setFont(ThemeUtils.FONT_LOG);
         JScrollPane previewScroll = new JScrollPane(sqlPreviewArea);
+        previewScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         previewScroll.setBorder(BorderFactory.createTitledBorder("SQL 预览"));
 
         centerSplit.setLeftComponent(tableScroll);
