@@ -61,7 +61,12 @@ public class DataSourceStore {
     public static List<DataSource> load() {
         File configFile = getConfigFile();
         initFromClasspathIfNeeded(configFile);
-        if (!configFile.exists()) return new ArrayList<>();
+        if (!configFile.exists()) {
+            System.err.println("⚠️ 未找到数据源配置文件: " + configFile.getAbsolutePath());
+            System.err.println("   请把 DATASOURCE.JSON 放到程序所在目录的 conf/ 下（即上面这个路径），");
+            System.err.println("   或在“数据源管理”界面新增数据源后保存。当前数据源列表为空。");
+            return new ArrayList<>();
+        }
         try (Reader reader = new InputStreamReader(new FileInputStream(configFile), StandardCharsets.UTF_8)) {
             ConfigRoot root = GSON.fromJson(reader, ConfigRoot.class);
             if (root != null && root.datasources != null) {
