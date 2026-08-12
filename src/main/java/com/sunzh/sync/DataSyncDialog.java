@@ -89,7 +89,7 @@ public class DataSyncDialog extends BaseDialog {
 
         mainContentPanel.add(createHeader(), BorderLayout.NORTH);
 
-        // 执行日志与上方 TAB 内容用垂直分隔条：日志默认更大（~200px），小屏或想多看表映射时可拖动分隔条调整。
+        // 执行日志与上方 TAB 内容用垂直分隔条：日志默认更大（~320px），小屏或想多看表映射时可拖动分隔条调整。
         // resizeWeight=1.0 → 窗口变高时额外空间优先给上方 TAB（表映射输入框），日志保持默认高度可读。
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createTabPane(), createLogPanel());
         splitPane.setOneTouchExpandable(true);
@@ -101,9 +101,9 @@ public class DataSyncDialog extends BaseDialog {
             public void componentResized(java.awt.event.ComponentEvent e) {
                 if (!dividerInitialized && splitPane.getHeight() > 200) {
                     dividerInitialized = true;
-                    // 默认日志高约 150px（比原 100px 大 50%，可读 8 行左右）；小屏时日志不低于 140px。
-                    // 想再多看日志可拖动分隔条向上扩展（表映射行有最小高度兜底，不会塌成一条缝）。
-                    splitPane.setDividerLocation(Math.max(splitPane.getHeight() - 150, 140));
+                    // 默认日志高约 320px（用户要求扩大执行日志）；小屏时日志不低于 160px。
+                    // 想调整可拖动分隔条（表映射行有最小高度兜底，不会塌成一条缝）。
+                    splitPane.setDividerLocation(Math.max(splitPane.getHeight() - 320, 160));
                 }
             }
         });
@@ -454,8 +454,8 @@ public class DataSyncDialog extends BaseDialog {
         panel.add(dsCard, gbc);
 
         gbc.gridy = 1;
-        // 中间行吸收剩余垂直空间（对齐 Tab1/Tab2：可伸缩内容行在上，按钮行固定在底部）
-        gbc.weighty = 1.0;
+        // Excel 选择卡片行 weighty=0：保持紧凑（不吸收垂直空间），避免选择框被撑得过大
+        gbc.weighty = 0;
         gbc.insets = new Insets(0, 0, 8, 0);
 
         tfExcel1 = new JTextField();
@@ -488,11 +488,11 @@ public class DataSyncDialog extends BaseDialog {
         panel.add(fileCard, gbc);
 
         gbc.gridy = 2;
-        // 按钮行 weighty=0 固定在底部（完全对齐 Tab1/Tab2 的按钮行写法），
-        // 上方 fileCard(weighty=1.0) 先吸收压缩，按钮不会被底部裁切
-        gbc.weighty = 0;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.CENTER;
+        // 按钮行吸收剩余垂直空间但自身不拉伸（fill=NONE + anchor=SOUTH），按钮固定在底部；
+        // 上方 Excel 卡片保持紧凑后，多余空间由本行兜底，按钮不会被顶到中间
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.SOUTH;
         gbc.insets = new Insets(0, 0, 0, 0);
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -528,8 +528,8 @@ public class DataSyncDialog extends BaseDialog {
         panel.add(dsCard, gbc);
 
         gbc.gridy = 1;
-        // 中间行吸收剩余垂直空间（对齐 Tab1/Tab2：可伸缩内容行在上，按钮行固定在底部）
-        gbc.weighty = 1.0;
+        // Excel 选择卡片行 weighty=0：保持紧凑（不吸收垂直空间），避免选择框被撑得过大
+        gbc.weighty = 0;
         gbc.insets = new Insets(0, 0, 8, 0);
 
         tfExcel2 = new JTextField();
@@ -562,11 +562,11 @@ public class DataSyncDialog extends BaseDialog {
         panel.add(fileCard, gbc);
 
         gbc.gridy = 2;
-        // 按钮行 weighty=0 固定在底部（完全对齐 Tab1/Tab2 的按钮行写法），
-        // 上方 fileCard(weighty=1.0) 先吸收压缩，按钮不会被底部裁切
-        gbc.weighty = 0;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.CENTER;
+        // 按钮行吸收剩余垂直空间但自身不拉伸（fill=NONE + anchor=SOUTH），按钮固定在底部；
+        // 上方 Excel 卡片保持紧凑后，多余空间由本行兜底，按钮不会被顶到中间
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.SOUTH;
         gbc.insets = new Insets(0, 0, 0, 0);
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
