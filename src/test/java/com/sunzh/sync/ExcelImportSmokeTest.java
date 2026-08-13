@@ -3,6 +3,8 @@ package com.sunzh.sync;
 import com.sunzh.sync.ExcelImportEngine.Dialect;
 import com.sunzh.sync.ExcelImportEngine.ErrorRecord;
 import com.sunzh.sync.ExcelImportEngine.SheetResult;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.Assert;
@@ -91,5 +93,53 @@ public class ExcelImportSmokeTest {
         System.out.println("WROTE: " + out.getAbsolutePath());
         Assert.assertTrue("异常记录文件未生成", out.exists());
         Assert.assertTrue(out.getName().startsWith("销售数据_异常记录"));
+    }
+
+    @Test
+    public void formulaCellToStringHandlesErrorResult() throws Exception {
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("s");
+            Row row = sheet.createRow(0);
+            // 数值结果公式
+            Cell numeric = row.createCell(0);
+            numeric.setCellFormula("1+2");
+            wb.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(numeric);
+            Assert.assertEquals("3", ExcelImportEngine.cellToString(numeric));
+            // 字符串结果公式
+            Cell text = row.createCell(1);
+            text.setCellFormula("\"abc\"");
+            wb.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(text);
+            Assert.assertEquals("abc", ExcelImportEngine.cellToString(text));
+            // 错误结果公式（1/0 -> #DIV/0!）：修复前 getNumericCellValue() 抛 IllegalStateException
+            Cell err = row.createCell(2);
+            err.setCellFormula("1/0");
+            wb.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(err);
+            Assert.assertEquals("#DIV/0!", ExcelImportEngine.cellToString(err));
+        }
+    }
+
+    @Test
+    public void errorFormulaColumnWidenedTo4000() throws Exception {
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("s");
+            // 表头行
+            Row h = sheet.createRow(0);
+            h.createCell(0).setCellValue("名称");
+            h.createCell(1).setCellValue("数量");
+            // 数据行：普通文本 + 错误公式
+            Row r1 = sheet.createRow(1);
+            r1.createCell(0).setCellValue("张三");
+            Cell err = r1.createCell(1);
+            err.setCellFormula("1/0");
+            wb.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(err);
+            Row r2 = sheet.createRow(2);
+            r2.createCell(0).setCellValue("李四");
+            r2.createCell(1).setCellValue(5.0);
+
+            int[] maxLen = ExcelImportEngine.probeMaxLength(sheet, 2);
+            // 含错误公式的列应扩容到 4000，普通文本列保持探测/下限 255
+            Assert.assertEquals("含错误公式的列应建为 VARCHAR(4000)", 4000, maxLen[1]);
+            Assert.assertEquals("普通文本列最小 255", 255, maxLen[0]);
+        }
     }
 }

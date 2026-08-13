@@ -520,20 +520,28 @@ public class ExcelImportEngine {
     }
 
     /** 采样前 50 行探测每列最大长度 */
-    private static int[] probeMaxLength(Sheet sheet, int colCount) {
+    static int[] probeMaxLength(Sheet sheet, int colCount) {
         int[] maxLen = new int[colCount];
         for (int i = 0; i < colCount; i++) maxLen[i] = 1;
+        boolean[] ambiguous = new boolean[colCount];
         int limit = Math.min(sheet.getLastRowNum() + 1, 51);
         for (int rr = 1; rr < limit; rr++) {
             Row row = sheet.getRow(rr);
             if (row == null) continue;
             for (int c = 0; c < colCount; c++) {
                 Cell cell = row.getCell(c);
+                // 公式结果为错误的单元格内容不明 -> 该列直接建为 VARCHAR(4000)，保证兼容
+                if (cell != null && cell.getCellType() == CellType.FORMULA
+                        && cell.getCachedFormulaResultType() == CellType.ERROR) {
+                    ambiguous[c] = true;
+                    continue;
+                }
                 String val = cellToString(cell);
                 if (val.length() > maxLen[c]) maxLen[c] = val.length();
             }
         }
         for (int i = 0; i < colCount; i++) {
+            if (ambiguous[i]) { maxLen[i] = 4000; continue; }
             maxLen[i] = Math.min((int) (maxLen[i] * 2.5), 4000);
             if (maxLen[i] < 255) maxLen[i] = 255;
         }
@@ -573,7 +581,7 @@ public class ExcelImportEngine {
         }
     }
 
-    private static String cellToString(Cell cell) {
+    static String cellToString(Cell cell) {
         if (cell == null) return "";
         switch (cell.getCellType()) {
             case STRING:  return cell.getStringCellValue();
@@ -588,8 +596,19 @@ public class ExcelImportEngine {
                 return String.valueOf(d);
             case BOOLEAN: return String.valueOf(cell.getBooleanCellValue());
             case FORMULA:
-                try { return cell.getStringCellValue(); }
-                catch (Exception e) { return String.valueOf(cell.getNumericCellValue()); }
+                // 公式单元格按缓存结果类型取值，避免对 ERROR 单元格调 getNumericCellValue() 抛异常
+                try {
+                    switch (cell.getCachedFormulaResultType()) {
+                        case STRING:  return cell.getStringCellValue();
+                        case NUMERIC:
+                            double fv = cell.getNumericCellValue();
+                            if (fv == Math.floor(fv) && !Double.isInfinite(fv)) return String.valueOf((long) fv);
+                            return String.valueOf(fv);
+                        case BOOLEAN: return String.valueOf(cell.getBooleanCellValue());
+                        case ERROR:   return FormulaError.forInt(cell.getErrorCellValue()).getString();
+                        default:      return "";
+                    }
+                } catch (Exception e) { return ""; }
             default: return "";
         }
     }
