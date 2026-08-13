@@ -437,7 +437,7 @@ public class ExcelImportEngine {
     }
 
     /** 抽取为可用标识符的 ASCII token；无法解析返回 null */
-    private static String parseToken(String raw) {
+    static String parseToken(String raw) {
         if (raw == null) return null;
         StringBuilder sb = new StringBuilder();
         HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
@@ -451,9 +451,8 @@ public class ExcelImportEngine {
                 }
             } else if (Character.isLetterOrDigit(ch) || ch == '_') {
                 sb.append(ch);
-            } else {
-                sb.append('_');
             }
+            // else: 特殊符号（括号/@/-/emoji 等）视为噪音直接删除，不替换为下划线
         }
         String s = sb.toString().replaceAll("_+", "_").replaceAll("^_|_$", "");
         return s.isEmpty() ? null : s;

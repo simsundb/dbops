@@ -142,4 +142,19 @@ public class ExcelImportSmokeTest {
             Assert.assertEquals("普通文本列最小 255", 255, maxLen[0]);
         }
     }
+
+    @Test
+    public void parseTokenDeletesSpecialSymbolNoise() throws Exception {
+        // 中文 -> 拼音
+        Assert.assertEquals("ceshi", ExcelImportEngine.parseToken("测试"));
+        // 特殊符号噪音被删除（@、-、括号、emoji 等）
+        Assert.assertEquals("ceshi2024zuizhongban", ExcelImportEngine.parseToken("测试@2024@最终版"));
+        Assert.assertEquals("xiaoshoushuju", ExcelImportEngine.parseToken("销售-数据"));
+        Assert.assertEquals("2024shuju", ExcelImportEngine.parseToken("(2024)数据"));
+        Assert.assertEquals("ceshishuju", ExcelImportEngine.parseToken("测试📊数据"));
+        // 下划线保留
+        Assert.assertEquals("shuju_biaozhun", ExcelImportEngine.parseToken("数据_标准"));
+        // 全部为特殊符号 -> null
+        Assert.assertNull(ExcelImportEngine.parseToken("!!!"));
+    }
 }

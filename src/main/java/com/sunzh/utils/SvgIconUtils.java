@@ -107,18 +107,28 @@ public class SvgIconUtils {
 
     /**
      * 给窗口设置应用图标（标题栏左上角 + 任务栏）。
-     * 提供多尺寸，由操作系统自动选择最清晰的缩放。
+     * 使用专用 app-icon.svg（品牌渐变圆角底 + 白色数据库图形），
+     * 提供多尺寸，由操作系统自动选择最清晰的缩放；同时设置 Dock/任务栏图标。
      */
     public static void applyWindowIcon(Window window) {
         List<Image> icons = new ArrayList<>();
-        for (int size : new int[]{16, 32, 48, 64}) {
-            BufferedImage img = rasterize("database", size, ThemeUtils.COLOR_PRIMARY);
+        for (int size : new int[]{16, 24, 32, 48, 64, 128, 256}) {
+            BufferedImage img = rasterize("app-icon", size, null);
             if (img != null) {
                 icons.add(img);
             }
         }
-        if (!icons.isEmpty()) {
-            window.setIconImages(icons);
+        if (icons.isEmpty()) return;
+        window.setIconImages(icons);
+        // macOS Dock / Windows 任务栏图标（Java 9+）
+        try {
+            if (Taskbar.isTaskbarSupported()) {
+                Taskbar tb = Taskbar.getTaskbar();
+                if (tb.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+                    tb.setIconImage(icons.get(icons.size() - 1));
+                }
+            }
+        } catch (Exception ignore) {
         }
     }
 

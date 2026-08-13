@@ -4,6 +4,7 @@ import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
 import com.sunzh.utils.EncodingUtils;
+import com.sunzh.utils.MessageDialogs;
 import com.sunzh.utils.SvgIconUtils;
 import com.sunzh.utils.ThemeUtils;
 import org.apache.sshd.client.SshClient;
@@ -679,9 +680,9 @@ public class SshBackupDialog extends BaseDialog {
         testSshBtn.setText("测试中…");
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-        SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
+        SwingWorker<SshTestResult, Void> worker = new SwingWorker<SshTestResult, Void>() {
             @Override
-            protected String doInBackground() {
+            protected SshTestResult doInBackground() {
                 SshClient client = null;
                 ClientSession sess = null;
                 try {
@@ -691,7 +692,7 @@ public class SshBackupDialog extends BaseDialog {
                     sess = cf.verify(10000).getSession();
                     sess.addPasswordIdentity(sshPassword);
                     sess.auth().verify(10000);
-                    return "✅ SSH 连接成功\n" + sshUser + "@" + sshHost + ":" + sshPort + "\n认证通过，会话已建立";
+                    return new SshTestResult(true, "SSH 连接成功\n" + sshUser + "@" + sshHost + ":" + sshPort + "\n认证通过，会话已建立");
                 } catch (Exception e) {
                     String reason = e.getMessage();
                     if (reason == null || reason.isEmpty()) reason = e.getClass().getSimpleName();
@@ -702,7 +703,7 @@ public class SshBackupDialog extends BaseDialog {
                     } else if (reason.contains("UnknownHost")) {
                         reason += "\n提示: 主机名无法解析";
                     }
-                    return "❌ SSH 连接失败\n" + sshUser + "@" + sshHost + ":" + sshPort + "\n原因: " + reason;
+                    return new SshTestResult(false, "SSH 连接失败\n" + sshUser + "@" + sshHost + ":" + sshPort + "\n原因: " + reason);
                 } finally {
                     if (sess != null && !sess.isClosed()) {
                         try { sess.close(); } catch (IOException ignore) {}
@@ -716,14 +717,15 @@ public class SshBackupDialog extends BaseDialog {
             @Override
             protected void done() {
                 try {
-                    String msg = get();
-                    boolean ok = msg.startsWith("✅");
-                    JOptionPane.showMessageDialog(SshBackupDialog.this, msg,
-                            ok ? "连接成功" : "连接失败",
-                            ok ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+                    SshTestResult r = get();
+                    if (r.ok) {
+                        MessageDialogs.success(SshBackupDialog.this, r.message, "连接成功");
+                    } else {
+                        MessageDialogs.error(SshBackupDialog.this, r.message, "连接失败");
+                    }
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(SshBackupDialog.this,
-                            "测试过程中发生异常: " + e.getMessage(), "连接失败", JOptionPane.ERROR_MESSAGE);
+                    MessageDialogs.error(SshBackupDialog.this,
+                            "测试过程中发生异常: " + e.getMessage(), "连接失败");
                 } finally {
                     testSshBtn.setEnabled(true);
                     testSshBtn.setText("SSH连接测试");
@@ -732,6 +734,16 @@ public class SshBackupDialog extends BaseDialog {
             }
         };
         worker.execute();
+    }
+
+    /** SSH 连接测试结果 */
+    private static class SshTestResult {
+        final boolean ok;
+        final String message;
+        SshTestResult(boolean ok, String message) {
+            this.ok = ok;
+            this.message = message;
+        }
     }
 
     private List<String> executeSimpleCommand(ClientSession sess, String command) throws Exception {

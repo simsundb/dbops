@@ -5,6 +5,7 @@ import com.sunzh.core.DataSource;
 import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
 import com.sunzh.ui.components.CustomButton;
+import com.sunzh.utils.MessageDialogs;
 import com.sunzh.utils.ThemeUtils;
 import com.sunzh.utils.SvgIconUtils;
 
@@ -634,7 +635,7 @@ public class DataSourceDialog extends BaseDialog {
         List<DataSource> all = Collections.list(listModel.elements());
         DataSourceStore.save(all);
 
-        JOptionPane.showMessageDialog(this, "✅ 保存成功！");
+        MessageDialogs.success(this, "保存成功！");
     }
 
     private void deleteSelected() {
@@ -693,7 +694,11 @@ public class DataSourceDialog extends BaseDialog {
         }
 
         boolean ok = ConnectionManager.testConnection(temp);
-        JOptionPane.showMessageDialog(this, ok ? "✅ 连接成功！" : "❌ 连接失败，请检查参数和网络");
+        if (ok) {
+            MessageDialogs.success(this, "连接成功！");
+        } else {
+            MessageDialogs.error(this, "连接失败，请检查参数和网络");
+        }
     }
 
     @Override
