@@ -133,13 +133,9 @@ public class DataSourceDialog extends BaseDialog {
 
             if (value instanceof DataSource) {
                 DataSource ds = (DataSource) value;
-                String icon = "ORACLE".equals(ds.getType()) ? "🔶" : "🔷";
                 Color iconColor = "ORACLE".equals(ds.getType()) ?
                         new Color(200, 120, 30) : ThemeUtils.COLOR_PRIMARY;
-
-                JLabel iconLabel = new JLabel(icon);
-                iconLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-                iconLabel.setForeground(iconColor);
+                JLabel iconLabel = SvgIconUtils.iconLabel("database", 16, iconColor);
 
                 JPanel textPanel = new JPanel(new BorderLayout());
                 textPanel.setOpaque(false);
@@ -185,7 +181,7 @@ public class DataSourceDialog extends BaseDialog {
         panel.setBackground(ThemeUtils.COLOR_BG_CARD);
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(ThemeUtils.COLOR_BORDER),
-                "✏️ 编辑数据源",
+                " 编辑数据源",
                 TitledBorder.LEFT,
                 TitledBorder.TOP,
                 ThemeUtils.FONT_SUBTITLE,

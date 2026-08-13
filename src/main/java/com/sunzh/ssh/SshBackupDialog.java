@@ -592,7 +592,7 @@ public class SshBackupDialog extends BaseDialog {
                 SshClient client = null;
                 ClientSession sess = null;
                 try {
-                    publish("🔌 正在连接 SSH: " + sshUser + "@" + sshHost + ":" + sshPort);
+                    publish("正在连接 SSH: " + sshUser + "@" + sshHost + ":" + sshPort);
                     client = SshClient.setUpDefaultClient();
                     client.start();
                     ConnectFuture cf = client.connect(sshUser, sshHost, sshPort);
@@ -600,14 +600,14 @@ public class SshBackupDialog extends BaseDialog {
                     sess.addPasswordIdentity(sshPassword);
                     sess.auth().verify(30000);
 
-                    publish("✅ SSH 连接成功");
+                    publish("[成功] SSH 连接成功");
                     publish("");
                     publish("查看远程目录: " + normalizedDir);
                     publish("--------------------------------------------------");
 
                     String lsCmd = "ls -lh " + normalizedDir + " | sort -k5 -h";
                     String lsFull = "su - " + execUser + " -c \"" + lsCmd.replace("\"", "\\\"") + "\"";
-                    publish("🔧 执行命令: " + lsFull);
+                    publish("执行命令: " + lsFull);
                     publish("");
                     for (String line : executeSimpleCommand(sess, lsFull)) {
                         publish(line);
@@ -628,7 +628,7 @@ public class SshBackupDialog extends BaseDialog {
                     }
 
                 } catch (Exception e) {
-                    publish("❌ 错误: " + e.getMessage());
+                    publish("[失败] 错误: " + e.getMessage());
                     e.printStackTrace();
                 } finally {
                     if (sess != null && !sess.isClosed()) {
@@ -770,7 +770,7 @@ public class SshBackupDialog extends BaseDialog {
             }
             int exit = ch.getExitStatus();
             if (exit != 0) {
-                result.add("⚠️ 命令退出码: " + exit);
+                result.add("[警告] 命令退出码: " + exit);
             }
         }
         return result;
@@ -875,7 +875,7 @@ public class SshBackupDialog extends BaseDialog {
                     if ("table".equals(finalGrain) && useTableListCheck.isSelected()) {
                         List<String> tables = queryTableList(selectedDs);
                         if (tables.isEmpty()) {
-                            publish("⚠️ 表列表为空，无法执行备份");
+                            publish("[警告] 表列表为空，无法执行备份");
                             return null;
                         }
                         File localFile = File.createTempFile("tablelist_", ".txt");
@@ -924,17 +924,17 @@ public class SshBackupDialog extends BaseDialog {
                     publish("----------------------------------------------------------------------------------------------------");
                     // ★ 密码脱敏：将 -W '...' 替换为 -W '***'
                     String maskedCommand = fullSuCommand.replaceAll("(?<=-W )'[^']*'", "'***'");
-                    publish("🔧: " + maskedCommand);
+                    publish("执行命令: " + maskedCommand);
                     publish("----------------------------------------------------------------------------------------------------");
                     // 执行原始命令（未脱敏）
                     executeCommand(session, execCmd);
 
                 } catch (Exception e) {
-                    publish("❌ 错误: " + e.getMessage());
+                    publish("[失败] 错误: " + e.getMessage());
                     e.printStackTrace();
                 } finally {
                     if (session != null && !session.isClosed()) {
-                        try { session.close(); } catch (IOException e) { publish("⚠️ 关闭 SSH 会话时出错: " + e.getMessage()); }
+                        try { session.close(); } catch (IOException e) { publish("[警告] 关闭 SSH 会话时出错: " + e.getMessage()); }
                     }
                 }
                 return null;
@@ -966,7 +966,7 @@ public class SshBackupDialog extends BaseDialog {
                      FileInputStream fis = new FileInputStream(localFile)) {
                     sftp.put(fis, remotePath);
                 } catch (Exception e) {
-                    publish("⚠️ 上传表列表文件失败: " + e.getMessage());
+                    publish("[警告] 上传表列表文件失败: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -986,7 +986,7 @@ public class SshBackupDialog extends BaseDialog {
                     if (!output.isEmpty()) publish(output);
                     if (!error.isEmpty()) publish("[ERR] " + error);
                     int exit = execChannel.getExitStatus();
-                    if (exit != 0) publish("⚠️ 命令退出码: " + exit);
+                    if (exit != 0) publish("[警告] 命令退出码: " + exit);
                 }
             }
 
@@ -1003,7 +1003,7 @@ public class SshBackupDialog extends BaseDialog {
                 stopBtn.setEnabled(false);
                 currentWorker = null;
                 if (session != null && !session.isClosed()) {
-                    try { session.close(); } catch (IOException e) { log("⚠️ 关闭 SSH 会话时出错: " + e.getMessage()); }
+                    try { session.close(); } catch (IOException e) { log("[警告] 关闭 SSH 会话时出错: " + e.getMessage()); }
                 }
             }
         };
@@ -1014,7 +1014,7 @@ public class SshBackupDialog extends BaseDialog {
         if (currentWorker != null && !currentWorker.isDone()) {
             currentWorker.cancel(true);
             if (session != null && !session.isClosed()) {
-                try { session.close(); } catch (IOException e) { log("⚠️ 关闭 SSH 会话时出错: " + e.getMessage()); }
+                try { session.close(); } catch (IOException e) { log("[警告] 关闭 SSH 会话时出错: " + e.getMessage()); }
             }
         }
     }

@@ -49,7 +49,7 @@ public class TaskConfigPanel extends JPanel {
         JScrollPane configScroll = new JScrollPane(configTable);
         configScroll.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(76, 110, 138), 1),
-                "📋 gk_sjdb_task_config（配置模板表）",
+                "gk_sjdb_task_config（配置模板表）",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("SansSerif", Font.BOLD, 12), new Color(76, 110, 138)));
         configScroll.setPreferredSize(new Dimension(600, 150));
@@ -84,7 +84,7 @@ public class TaskConfigPanel extends JPanel {
         JScrollPane taskScroll = new JScrollPane(taskTable);
         taskScroll.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(76, 110, 138), 1),
-                "📋 gk_sjdb_task（任务执行表）",
+                "gk_sjdb_task（任务执行表）",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("SansSerif", Font.BOLD, 12), new Color(76, 110, 138)));
         taskScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -297,7 +297,7 @@ public class TaskConfigPanel extends JPanel {
                 configModel.addRow(new Object[]{tc.getSourceSchema(), tc.getTargetSchema(), tc.getEnableFlag()});
             }
         } catch (Exception ex) {
-            statusLabel.setText("⚠ " + ex.getMessage());
+            statusLabel.setText("[警告] " + ex.getMessage());
         }
 
         // 刷新任务表
@@ -319,7 +319,7 @@ public class TaskConfigPanel extends JPanel {
                 });
             }
         } catch (Exception ex) {
-            statusLabel.setText("⚠ " + ex.getMessage());
+            statusLabel.setText("[警告] " + ex.getMessage());
         }
         autoResizeColumns(taskTable);
     }

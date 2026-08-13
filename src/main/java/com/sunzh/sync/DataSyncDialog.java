@@ -929,7 +929,7 @@ public class DataSyncDialog extends BaseDialog {
                     int ec = get();
                     Color c = ec == 0 ? LOG_OK : LOG_ERR;
                     appendLog("──────────────────────────────────────────────────", LOG_INFO);
-                    appendLog("  " + (ec == 0 ? "✅ 完成 (exit=0)" : "❌ 退出 (exit=" + ec + ")"), c);
+                    appendLog("  " + (ec == 0 ? "[成功] 完成 (exit=0)" : "[失败] 退出 (exit=" + ec + ")"), c);
                     appendLog("──────────────────────────────────────────────────", LOG_INFO);
                 } catch (CancellationException | InterruptedException e) {
                     appendLog("[INFO] 任务已终止", LOG_INFO);

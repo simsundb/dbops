@@ -87,7 +87,7 @@ public final class ExternalConfigUtils {
             File parent = external.getParentFile();
             if (parent != null) parent.mkdirs();
             Files.copy(in, external.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("📦 已从 JAR/resources 复制默认配置: " + external.getAbsolutePath());
+            System.out.println("已从 JAR/resources 复制默认配置: " + external.getAbsolutePath());
             return external;
         } catch (IOException e) {
             System.err.println("复制外部配置失败: " + external.getAbsolutePath() + " - " + e.getMessage());
@@ -176,7 +176,7 @@ public final class ExternalConfigUtils {
             File parent = dest.getParentFile();
             if (parent != null) parent.mkdirs();
             Files.copy(in, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("📦 已从 JAR 复制默认配置: " + dest.getAbsolutePath());
+            System.out.println("已从 JAR 复制默认配置: " + dest.getAbsolutePath());
         } catch (IOException e) {
             System.err.println("复制默认配置失败: " + dest.getAbsolutePath() + " - " + e.getMessage());
         }

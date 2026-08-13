@@ -332,7 +332,7 @@ public class ExecuteBatchPanel extends JPanel {
 
         // 初始化日志
         logArea.append("═══════════════════════════════════════════════════════════\n");
-        logArea.append("  📌 执行日志区域\n");
+        logArea.append("  执行日志区域\n");
         logArea.append("  ─────────────────────────────────────────────────────────\n");
         logArea.append("  1. 选择数据源 → 自动加载批次列表\n");
         logArea.append("  2. 选择批次 → 点击「查询明细」查看数据\n");
@@ -534,12 +534,12 @@ public class ExecuteBatchPanel extends JPanel {
             protected void done() {
                 try {
                     get();
-                    logArea.append("✅ 批次执行成功！\n");
+                    logArea.append("[成功] 批次执行成功！\n");
                     setStatus("执行成功");
                     displayBatchSummary(batchId, ds);
                     loadDetailData(batchId);
                 } catch (Exception ex) {
-                    logArea.append("❌ 执行失败: " + ex.getCause().getMessage() + "\n");
+                    logArea.append("[失败] 执行失败: " + ex.getCause().getMessage() + "\n");
                     setStatus("执行失败");
                 } finally {
                     logArea.append("═══════════════════════════════════════════════════════════\n\n");
@@ -560,7 +560,7 @@ public class ExecuteBatchPanel extends JPanel {
             long cleanError = list.stream().filter(d -> "E".equals(d.getCleanStatus())).count();
             long cleanWaiting = list.stream().filter(d -> "W".equals(d.getCleanStatus())).count();
 
-            logArea.append("\n📊 执行汇总:\n");
+            logArea.append("\n 执行汇总:\n");
             logArea.append("  ┌─────────────────────────────────────────────────┐\n");
             logArea.append("  │  总任务数: " + String.format("%-4d", total) + "                               │\n");
             logArea.append("  ├─────────────────────────────────────────────────┤\n");

@@ -643,7 +643,7 @@ public class ScriptRunnerDialog extends BaseDialog {
                         }
                     }
                 } catch (ClassNotFoundException e) {
-                    appendLog("❌ 驱动加载失败: " + e.getMessage());
+                    appendLog("[失败] 驱动加载失败: " + e.getMessage());
                     return null;
                 }
 
@@ -657,10 +657,10 @@ public class ScriptRunnerDialog extends BaseDialog {
                         try {
                             runner.processFile(conn, file, file.getName());
                             conn.commit();
-                            appendLog("✅ 文件处理完成: " + file.getName());
+                            appendLog("[成功] 文件处理完成: " + file.getName());
                         } catch (Exception e) {
                             conn.rollback();
-                            appendLog("❌ 文件处理失败: " + file.getName() + " - " + e.getMessage());
+                            appendLog("[失败] 文件处理失败: " + file.getName() + " - " + e.getMessage());
                             logException(e);
                         }
                         completed = i + 1;
@@ -672,7 +672,7 @@ public class ScriptRunnerDialog extends BaseDialog {
                     appendLog("执行完成！共处理 " + totalFiles + " 个文件");
                     appendLog("========================================");
                 } catch (SQLException e) {
-                    appendLog("❌ 数据库连接失败: " + e.getMessage());
+                    appendLog("[失败] 数据库连接失败: " + e.getMessage());
                     logException(e);
                 }
                 return null;
@@ -744,7 +744,7 @@ public class ScriptRunnerDialog extends BaseDialog {
                     // 从 classpath 加载 SQL 内容
                     String sqlScript = loadSqlScriptFromResource(sqlFile);
                     if (sqlScript == null || sqlScript.trim().isEmpty()) {
-                        appendLog("❌ 无法加载资源文件: " + sqlFile);
+                        appendLog("[失败] 无法加载资源文件: " + sqlFile);
                         return null;
                     }
                     appendLog("加载脚本成功，长度: " + sqlScript.length() + " 字符");
@@ -766,10 +766,10 @@ public class ScriptRunnerDialog extends BaseDialog {
                         appendLog("开始执行建表脚本...");
                         int executed = executeSqlScript(conn, sqlScript);
                         conn.commit();
-                        appendLog("✅ 建表脚本执行成功，共执行 " + executed + " 条语句。");
+                        appendLog("[成功] 建表脚本执行成功，共执行 " + executed + " 条语句。");
                     }
                 } catch (Exception e) {
-                    appendLog("❌ 初始化失败: " + e.getMessage());
+                    appendLog("[失败] 初始化失败: " + e.getMessage());
                     logException(e);
                 }
                 return null;
@@ -790,12 +790,12 @@ public class ScriptRunnerDialog extends BaseDialog {
                 // 自动识别编码（UTF-8/GBK），避免建表脚本中文乱码
                 return EncodingUtils.readText(is);
             } catch (IOException e) {
-                appendLog("❌ 读取外部脚本失败: " + external.getAbsolutePath());
+                appendLog("[失败] 读取外部脚本失败: " + external.getAbsolutePath());
             }
         }
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
             if (is == null) {
-                appendLog("❌ classpath 资源不存在: " + resourcePath);
+                appendLog("[失败] classpath 资源不存在: " + resourcePath);
                 return null;
             }
             // 自动识别编码（UTF-8/GBK），避免建表脚本中文乱码
@@ -918,9 +918,9 @@ private int executeSqlScript(Connection conn, String sqlScript) throws SQLExcept
                     appendLog("  -> 成功");
                 } catch (SQLException e) {
                     if (e.getMessage().contains("already exists") || e.getMessage().contains("exists")) {
-                        appendLog("  -> ⚠️ 表已存在，忽略");
+                        appendLog("  -> [警告] 表已存在，忽略");
                     } else {
-                        appendLog("  -> ❌ 失败: " + e.getMessage());
+                        appendLog("  -> 失败: " + e.getMessage());
                         throw e;
                     }
                 }

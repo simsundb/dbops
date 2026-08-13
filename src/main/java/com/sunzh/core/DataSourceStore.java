@@ -40,7 +40,7 @@ public class DataSourceStore {
             try {
                 configFile.getParentFile().mkdirs();
                 Files.copy(legacy.toPath(), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("📦 已迁移旧配置到: " + configFile.getAbsolutePath());
+                System.out.println("已迁移旧配置到: " + configFile.getAbsolutePath());
                 return;
             } catch (Exception e) {
                 System.err.println("迁移旧 DATASOURCE.JSON 失败，改用 JAR 默认: " + e.getMessage());
@@ -51,7 +51,7 @@ public class DataSourceStore {
             if (in != null) {
                 configFile.getParentFile().mkdirs();
                 Files.copy(in, configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("📦 已从 JAR/resources 复制默认配置: " + configFile.getAbsolutePath());
+                System.out.println("已从 JAR/resources 复制默认配置: " + configFile.getAbsolutePath());
             }
         } catch (Exception e) {
             System.err.println("从 classpath 复制配置文件失败: " + e.getMessage());
@@ -62,7 +62,7 @@ public class DataSourceStore {
         File configFile = getConfigFile();
         initFromClasspathIfNeeded(configFile);
         if (!configFile.exists()) {
-            System.err.println("⚠️ 未找到数据源配置文件: " + configFile.getAbsolutePath());
+            System.err.println("[警告] 未找到数据源配置文件: " + configFile.getAbsolutePath());
             System.err.println("   请把 DATASOURCE.JSON 放到程序所在目录的 conf/ 下（即上面这个路径），");
             System.err.println("   或在“数据源管理”界面新增数据源后保存。当前数据源列表为空。");
             return new ArrayList<>();

@@ -122,7 +122,7 @@ public class InspectionDialog extends BaseDialog {
         boolean existed = configFile.exists();
         File f = ExternalConfigUtils.ensureExternalFile("inspection", CONFIG_FILE_NAME, "/" + CONFIG_FILE_NAME);
         if (!existed && f != null) {
-            addStartupLog("📦 已从 JAR 复制默认配置: " + f.getAbsolutePath());
+            addStartupLog("已从 JAR 复制默认配置: " + f.getAbsolutePath());
         }
     }
 
@@ -316,7 +316,7 @@ public class InspectionDialog extends BaseDialog {
                 outputPathField.setText(reportsDir.getAbsolutePath());
                 prefs.put(PREF_REPORTS_PATH, reportsDir.getAbsolutePath());
                 loadReports();
-                log("📂 输出目录已切换至: " + reportsDir.getAbsolutePath());
+                log("输出目录已切换至: " + reportsDir.getAbsolutePath());
             }
         }
     }
@@ -369,7 +369,7 @@ public class InspectionDialog extends BaseDialog {
             tasks = (loaded != null) ? loaded : new ArrayList<>();
             tableModel.fireTableDataChanged();
             startButton.setEnabled(!tasks.isEmpty() && dataSourceCombo.getSelectedItem() != null);
-            log("✅ 加载配置成功，共 " + tasks.size() + " 个任务。");
+            log("[成功] 加载配置成功，共 " + tasks.size() + " 个任务。");
             sqlPreviewArea.setText("");
         } catch (Exception e) {
             tasks = new ArrayList<>();
@@ -464,10 +464,10 @@ public class InspectionDialog extends BaseDialog {
                 try {
                     conn = getConnection(ds);
                     if (conn == null) {
-                        publish("❌ 无法获取数据库连接");
+                        publish("[失败] 无法获取数据库连接");
                         return null;
                     }
-                    publish("✅ 数据库连接成功");
+                    publish("[成功] 数据库连接成功");
 
                     InspectionService.ProgressListener listener = new InspectionService.ProgressListener() {
                         @Override
@@ -480,20 +480,20 @@ public class InspectionDialog extends BaseDialog {
                             String statusStr;
                             switch (task.getStatus()) {
                                 case SUCCESS:
-                                    statusStr = String.format("✓ 成功 (记录数: %d, 文件: %s)", task.getRowCount(), task.getOutputFileName());
+                                    statusStr = String.format("成功 (记录数: %d, 文件: %s)", task.getRowCount(), task.getOutputFileName());
                                     break;
                                 case NO_DATA:
-                                    statusStr = "ℹ 无数据";
+                                    statusStr = "无数据";
                                     break;
                                 case FAILED:
-                                    statusStr = "✗ 失败: " + task.getErrorMessage();
+                                    statusStr = " 失败: " + task.getErrorMessage();
                                     break;
                                 case SKIPPED:
-                                    statusStr = "⏭ 跳过 (未启用)";
+                                    statusStr = "跳过 (未启用)";
                                     break;
                                 default: statusStr = "未知";
                             }
-                            publish(String.format("  ⏱ %ds → %s", elapsedSeconds, statusStr));
+                            publish(String.format("  %ds → %s", elapsedSeconds, statusStr));
                         }
 
                         @Override
@@ -517,10 +517,10 @@ public class InspectionDialog extends BaseDialog {
                     service.runInspection(conn, tasks, reportsDir, listener);
 
                 } catch (ClassNotFoundException | SQLException e) {
-                    publish("❌ 连接失败: " + e.getMessage());
+                    publish("[失败] 连接失败: " + e.getMessage());
                     e.printStackTrace();
                 } catch (Exception e) {
-                    publish("❌ 执行出错: " + e.getMessage());
+                    publish("[失败] 执行出错: " + e.getMessage());
                     e.printStackTrace();
                 } finally {
                     if (conn != null) try { conn.close(); } catch (SQLException ignored) {}

@@ -334,13 +334,13 @@ public class ExtractPanel extends JPanel {
                     String displayText = status;
                     Color color = Color.BLACK;
                     if ("SUCCESS".equals(status)) {
-                        displayText = "✅ " + status;
+                        displayText = "[成功] " + status;
                         color = new Color(90, 150, 120);
                     } else if ("FAILED".equals(status)) {
-                        displayText = "❌ " + status;
+                        displayText = "[失败] " + status;
                         color = new Color(190, 90, 85);
                     } else if ("RUNNING".equals(status)) {
-                        displayText = "⏳ " + status;
+                        displayText = "[进行中] " + status;
                         color = new Color(195, 140, 85);
                     }
                     setText(displayText);
@@ -439,7 +439,7 @@ public class ExtractPanel extends JPanel {
             rs.close();
             st.close();
         } catch (Exception e) {
-            appendLog("⚠ 刷新模式列表失败：" + e.getMessage());
+            appendLog("[警告] 刷新模式列表失败：" + e.getMessage());
         }
         updateAllSchemaState();
         schemaCheckboxPanel.revalidate();
@@ -471,7 +471,7 @@ public class ExtractPanel extends JPanel {
             rs.close();
             ps.close();
         } catch (Exception e) {
-            appendLog("⚠ 刷新抽取日志失败：" + e.getMessage());
+            appendLog("[警告] 刷新抽取日志失败：" + e.getMessage());
         }
     }
 
@@ -513,7 +513,7 @@ public class ExtractPanel extends JPanel {
                             cstmt.execute();
                             cstmt.close();
                             time = new SimpleDateFormat("HH:mm:ss").format(new java.util.Date());
-                            publish("[" + time + "] ✓ 完成模式: " + schema + " 类型: " + type);
+                            publish("[" + time + "] 完成模式: " + schema + " 类型: " + type);
                         }
                     }
                     publish("================== 全部完成 ==================");

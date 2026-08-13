@@ -306,7 +306,7 @@ public class ComparePanel extends JPanel {
                 });
             }
         } catch (Exception e) {
-            statusLabel.setText("⚠ " + e.getMessage());
+            statusLabel.setText("[警告] " + e.getMessage());
         }
         chkSelectAll.setSelected(false);
         autoResizeColumns(taskTable);

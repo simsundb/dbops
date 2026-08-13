@@ -5,6 +5,7 @@ import com.sunzh.core.DataSourceStore;
 import com.sunzh.ui.BaseDialog;
 import com.sunzh.utils.EncodingUtils;
 import com.sunzh.utils.ExternalConfigUtils;
+import com.sunzh.utils.SvgIconUtils;
 import com.sunzh.utils.ThemeUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -100,7 +101,7 @@ public class StatsQueryDialog extends BaseDialog {
     private Map<StatsConfig, JTable> tableMap = new LinkedHashMap<>();
 
     public StatsQueryDialog(JFrame owner) {
-        super(owner, "📊 统计数据查询");
+        super(owner, " 统计数据查询");
     }
 
     @Override
@@ -141,11 +142,15 @@ public class StatsQueryDialog extends BaseDialog {
         ));
         leftTop.add(dataSourceCombo);
 
-        refreshButton = createStyledButton("🔄 刷新数据", PRIMARY);
+        refreshButton = createStyledButton(" 刷新数据", PRIMARY);
+        refreshButton.setIcon(SvgIconUtils.getWhite("refresh", 16));
+        refreshButton.setIconTextGap(6);
         refreshButton.addActionListener(e -> loadStatsData());
         leftTop.add(refreshButton);
 
-        exportAllButton = createStyledButton("📥 全部导出Excel", new Color(32, 157, 52));
+        exportAllButton = createStyledButton(" 全部导出Excel", new Color(32, 157, 52));
+        exportAllButton.setIcon(SvgIconUtils.getWhite("download", 16));
+        exportAllButton.setIconTextGap(6);
         exportAllButton.addActionListener(e -> exportAllToExcel());
         exportAllButton.setEnabled(false);
         leftTop.add(exportAllButton);
@@ -183,7 +188,7 @@ public class StatsQueryDialog extends BaseDialog {
 
         JPanel titleBar = new JPanel(new BorderLayout());
         titleBar.setOpaque(false);
-        JLabel configTitle = new JLabel("📋 任务配置（勾选后强制执行）");
+        JLabel configTitle = new JLabel("任务配置（勾选后强制执行）");
         configTitle.setFont(FONT_BOLD);
         configTitle.setForeground(TEXT);
         titleBar.add(configTitle, BorderLayout.WEST);
@@ -230,7 +235,7 @@ public class StatsQueryDialog extends BaseDialog {
         tasksScroll = new JScrollPane(tasksPanel);
         tasksScroll.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(BORDER, 1),
-                "📊 统计结果",
+                " 统计结果",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 ThemeUtils.FONT_SUBTITLE,
                 TEXT
@@ -415,7 +420,7 @@ public class StatsQueryDialog extends BaseDialog {
 
                         String sql = loadSqlFile(cfg.getSqlFile());
                         if (sql == null) {
-                            publish("  ⚠️ 无法加载 SQL 文件: " + cfg.getSqlFile());
+                            publish("  [警告] 无法加载 SQL 文件: " + cfg.getSqlFile());
                             continue;
                         }
 
@@ -441,13 +446,13 @@ public class StatsQueryDialog extends BaseDialog {
                             for (Object[] r : rows) model.addRow(r);
                             tableModels.put(cfg, model);
 
-                            publish("  ✅ 完成: " + cfg.getDescription() + " (行数: " + rows.size() + ")");
+                            publish("  [成功] 完成: " + cfg.getDescription() + " (行数: " + rows.size() + ")");
                         } catch (SQLException e) {
-                            publish("  ❌ 失败: " + cfg.getDescription() + " - " + e.getMessage());
+                            publish("  [失败] 失败: " + cfg.getDescription() + " - " + e.getMessage());
                         }
                     }
                 } catch (Exception e) {
-                    publish("❌ 连接失败: " + e.getMessage());
+                    publish("[失败] 连接失败: " + e.getMessage());
                 } finally {
                     if (conn != null) try { conn.close(); } catch (SQLException ignored) {}
                 }
@@ -462,7 +467,7 @@ public class StatsQueryDialog extends BaseDialog {
             @Override
             protected void done() {
                 setUIEnabled(true);
-                refreshButton.setText("🔄 刷新数据");
+                refreshButton.setText(" 刷新数据");
                 progressBar.setVisible(false);
                 progressBar.setIndeterminate(false);
                 statusLabel.setText("执行完成");
@@ -531,7 +536,7 @@ public class StatsQueryDialog extends BaseDialog {
             rightInfo.add(rowLabel);
 
             // ---- 导出按钮 ----
-            JButton expBtn = new JButton("⬇ 导出");
+            JButton expBtn = new JButton("导出", SvgIconUtils.get("download", 12, new Color(29, 143, 40)));
             expBtn.setFont(new Font("SansSerif", Font.PLAIN, 11));
             expBtn.setBackground(new Color(239, 248, 237));
             expBtn.setForeground(new Color(29, 143, 40));
@@ -542,7 +547,7 @@ public class StatsQueryDialog extends BaseDialog {
             rightInfo.add(expBtn);
 
             // ---- 图表按钮 ----
-            JButton chartBtn = new JButton("📊 图表");
+            JButton chartBtn = new JButton(" 图表", SvgIconUtils.get("chart-line", 14, new Color(33, 102, 206)));
             chartBtn.setFont(new Font("SansSerif", Font.PLAIN, 11));
             chartBtn.setBackground(new Color(233, 242, 252));
             chartBtn.setForeground(new Color(33, 102, 206));
@@ -612,7 +617,8 @@ public class StatsQueryDialog extends BaseDialog {
 
             // ---- 右键菜单 ----
             JPopupMenu popup = new JPopupMenu();
-            JMenuItem exportItem = new JMenuItem("📥 导出为 Excel");
+            JMenuItem exportItem = new JMenuItem("导出为 Excel",
+                    SvgIconUtils.get("download", 14, new Color(32, 157, 52)));
             exportItem.setFont(FONT_NORMAL);
             exportItem.addActionListener(e -> TableExportUtil.exportToExcel(table, this, cfg.getDescription()));
             popup.add(exportItem);

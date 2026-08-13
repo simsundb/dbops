@@ -56,7 +56,7 @@ public class GaussDBToOracle {
         // 加载 Oracle 驱动
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            log("✅ 成功加载 Oracle 驱动");
+            log("[成功] 成功加载 Oracle 驱动");
         } catch (ClassNotFoundException e) {
             throw new ClassNotFoundException("未找到 Oracle JDBC 驱动 (oracle.jdbc.driver.OracleDriver)，请检查 lib 目录。");
         }
@@ -103,7 +103,7 @@ public class GaussDBToOracle {
                         // 覆盖模式：删除表并重建
                         if (targetExists) {
                             if (!silentMode) {
-                                log("⚠️  WARNING: 目标表 " + targetTable + " 已存在，将删除并重建（覆盖）");
+                                log("[警告]  WARNING: 目标表 " + targetTable + " 已存在，将删除并重建（覆盖）");
                             }
                             try (Statement stmt = tgtConn.createStatement()) {
                                 stmt.execute("DROP TABLE " + targetTable);
@@ -223,7 +223,7 @@ public class GaussDBToOracle {
         for (String driverClass : gaussDrivers) {
             try {
                 Class.forName(driverClass);
-                log("✅ 成功加载 GaussDB 驱动: " + driverClass);
+                log("[成功] 成功加载 GaussDB 驱动: " + driverClass);
                 return;
             } catch (ClassNotFoundException ignored) {}
         }

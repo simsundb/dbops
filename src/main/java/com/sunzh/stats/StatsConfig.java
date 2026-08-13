@@ -18,6 +18,6 @@ public class StatsConfig {
 
     @Override
     public String toString() {
-        return description + (enabled ? " ✅" : " ⛔");
+        return description + (enabled ? " [启用]" : " [停用]");
     }
 }

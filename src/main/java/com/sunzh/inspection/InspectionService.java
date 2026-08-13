@@ -56,7 +56,7 @@ public class InspectionService {
                             if (sqlIn != null) {
                                 Files.createDirectories(queryDir.toPath());
                                 Files.copy(sqlIn, filePath, StandardCopyOption.REPLACE_EXISTING);
-                                System.out.println("📦 已从 JAR 复制巡检 SQL: " + filePath.toAbsolutePath());
+                                System.out.println("已从 JAR 复制巡检 SQL: " + filePath.toAbsolutePath());
                                 sqlIn.close();
                                 sql = EncodingUtils.readText(filePath.toFile());
                             } else {
@@ -150,11 +150,11 @@ public class InspectionService {
         String timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
         File finalOutputDir = new File(outputDir, timeStamp);
         if (!finalOutputDir.exists() && !finalOutputDir.mkdirs()) {
-            listener.onLog("❌ 创建输出目录失败: " + finalOutputDir.getAbsolutePath());
+            listener.onLog("[失败] 创建输出目录失败: " + finalOutputDir.getAbsolutePath());
             return;
         }
 
-        listener.onLog("📂 结果将保存到: " + finalOutputDir.getAbsolutePath());
+        listener.onLog("结果将保存到: " + finalOutputDir.getAbsolutePath());
 
         long startAll = System.currentTimeMillis();
         int index = 0;
