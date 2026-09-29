@@ -35,20 +35,20 @@ import java.util.*;
  * <pre>{@code
  * # 覆盖模式（默认）：三张表同名同步
  * java -cp ".:lib/*" OracleToGaussDB3 \
- *   "jdbc:oracle:thin:@//172.20.36.45:1521/hydb" ZDHSQD_GD ZDHSQD_GD \
- *   "jdbc:gaussdb://172.19.136.3:8000/muts" gktest gktest_2026 \
+ *   "jdbc:oracle:thin:@//<oracle-host>:1521/<service>" <oracle-user> <oracle-pwd> \
+ *   "jdbc:gaussdb://<gauss-host>:8000/<database>" <gauss-user> <gauss-pwd> \
  *   EMPLOYEES,DEPARTMENTS,JOBS
  *
  * # 表重命名：Oracle EMP -> GaussDB employees_new
  * java -cp ".:lib/*" OracleToGaussDB3 \
- *   "jdbc:oracle:thin:@//172.20.36.45:1521/hydb" ZDHSQD_GD ZDHSQD_GD \
- *   "jdbc:gaussdb://172.19.136.3:8000/muts" gktest gktest_2026 \
+ *   "jdbc:oracle:thin:@//<oracle-host>:1521/<service>" <oracle-user> <oracle-pwd> \
+ *   "jdbc:gaussdb://<gauss-host>:8000/<database>" <gauss-user> <gauss-pwd> \
  *   EMP:EMPLOYEES_NEW,DEPT:DEPARTMENTS_NEW
  *
  * # 追加模式：将 Oracle 数据追加到 GaussDB 已有表中（不建表不删表）
  * java -cp ".:lib/*" OracleToGaussDB3 \
- *   "jdbc:oracle:thin:@//172.20.36.45:1521/hydb" ZDHSQD_GD ZDHSQD_GD \
- *   "jdbc:gaussdb://172.19.136.3:8000/muts" gktest gktest_2026 \
+ *   "jdbc:oracle:thin:@//<oracle-host>:1521/<service>" <oracle-user> <oracle-pwd> \
+ *   "jdbc:gaussdb://<gauss-host>:8000/<database>" <gauss-user> <gauss-pwd> \
  *   EMPLOYEES,DEPARTMENTS --append
  * }</pre>
  *
@@ -370,8 +370,8 @@ public class OracleToGaussDB {
         log("完整示例:");
         log("  # 覆盖模式（默认）：同名同步");
         log("  java -cp \".:lib/*\" OracleToGaussDB \\");
-        log("    \"jdbc:oracle:thin:@//172.20.36.45:1521/hydb\" ZDHSQD_GD ZDHSQD_GD \\");
-        log("    \"jdbc:gaussdb://172.19.136.3:8000/muts\" gktest gktest_2026 \\");
+        log("    \"jdbc:oracle:thin:@//<oracle-host>:1521/<service>\" <oracle-user> <oracle-pwd> \\");
+        log("    \"jdbc:gaussdb://<gauss-host>:8000/<database>\" <gauss-user> <gauss-pwd> \\");
         log("    EMPLOYEES,DEPARTMENTS,JOBS");
         log("");
         log("  # 表重命名");
