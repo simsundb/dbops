@@ -42,7 +42,20 @@ DATASOURCE.JSON
 !src/main/resources/DATASOURCE.JSON
 /config.yaml
 /reports/
+# 分发包产物（mvn package 后的 zip，不入库）
+/dist/
 .claude/settings.local.json
+
+# 仓库里保留空模板，本机真实凭据用 skip-worktree 隔离（不入库）
+#   src/main/resources/DATASOURCE.JSON   HEAD 内为 {"datasources": []}
+#   src/main/resources/ssh_profiles.json HEAD 内密码字段为空
+# 本机工作区放的是真实测试库配置，供 mvn package 打包分发包使用；
+# 已执行 git update-index --skip-worktree，因此 git add -A / git commit -a
+# 都不会把凭据带上（已验证）。换机器或重新 clone 后需重跑一次:
+#   git update-index --skip-worktree \
+#       src/main/resources/DATASOURCE.JSON src/main/resources/ssh_profiles.json
+# 需要让 git 重新跟踪本地改动时:
+#   git update-index --no-skip-worktree src/main/resources/DATASOURCE.JSON
 /Edit1.txt
 *.xlsx
 hs_err_pid*.log
