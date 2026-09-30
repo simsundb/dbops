@@ -136,10 +136,10 @@ public class ExcelImportSmokeTest {
             r2.createCell(0).setCellValue("李四");
             r2.createCell(1).setCellValue(5.0);
 
-            int[] maxLen = ExcelImportEngine.probeMaxLength(sheet, 2);
-            // 含错误公式的列应扩容到 4000，普通文本列保持探测/下限 255
-            Assert.assertEquals("含错误公式的列应建为 VARCHAR(4000)", 4000, maxLen[1]);
-            Assert.assertEquals("普通文本列最小 255", 255, maxLen[0]);
+            int[] maxLen = ExcelImportEngine.fixedColumnLengths(2);
+            // 不再采样探测：两列都固定 4000
+            Assert.assertEquals("文本列固定 4000", 4000, maxLen[0]);
+            Assert.assertEquals("含错误公式的列固定 4000", 4000, maxLen[1]);
         }
     }
 

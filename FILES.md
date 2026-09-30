@@ -36,6 +36,7 @@
 | `GaussDBToOracle.java` | 同步工具 (main class)：GaussDB 表 → Oracle 表（反向），同上批量和追加模式 |
 | `ExcelToOracle.java` | 导入工具 (main class)：Excel 文件 → Oracle 表，中文列名自动转拼音 |
 | `ExcelToGaussDB.java` | 导入工具 (main class)：Excel 文件 → GaussDB 表 |
+| `ExcelImportEngine.java` | Excel 导入引擎（ExcelToOracle / ExcelToGaussDB 共用，两者只是传方言的壳）：多 Sheet 各建一表、表名/列名规范化、行级异常记录导出。**建表时所有列统一为 4000 长度的字符型（Oracle `VARCHAR2(4000)` / GaussDB `VARCHAR(4000)`），不采样探测、不猜类型和长度**，见 `COLUMN_LEN` / `fixedColumnLengths()` |
 | `DataSyncDialog.java` | 数据同步对话框 UI：四个 Tab（O→G / G→O / Excel→Oracle / Excel→GaussDB），选择数据源、配置表映射、通过 `ProcessBuilder` 启动同步子进程，实时查看日志 |
 
 ### `com.example.scriptrunner` — SQL 脚本执行模块

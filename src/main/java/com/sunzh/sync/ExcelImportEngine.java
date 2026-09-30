@@ -24,6 +24,7 @@ import java.util.*;
  *  2. 表名 = 文件名解析_<Sheet名解析>；Sheet名无法解析时退化为 _<序号>（_1 表示第一个 Sheet）
  *  3. 行级异常处理：某一行插入失败时记录该行并继续，不影响其余行
  *  4. 有异常行时，生成 <文件名>_异常记录.xlsx（含 汇总 + 各 Sheet 的错误明细）
+ *  5. 建表时所有列统一为 4000 长度的字符型，不采样探测、不猜类型和长度
  *
  * 用法: java -cp ".:lib/*" ExcelImportEngine <jdbc-url> <user> <password> <excel-file>
  */
@@ -31,6 +32,8 @@ public class ExcelImportEngine {
 
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final int BATCH_SIZE = 500;
+    /** 所有列统一使用 4000 长度的字符型（Oracle VARCHAR2(4000) / GaussDB VARCHAR(4000)） */
+    static final int COLUMN_LEN = 4000;
 
     // ===================== 数据库方言差异 =====================
     public interface Dialect {
@@ -189,9 +192,9 @@ public class ExcelImportEngine {
         }
         log("共 " + r.colNames.size() + " 列");
 
-        // 探测列长
-        log("--- 采样探测列长度 (前50行) ---");
-        int[] maxLen = probeMaxLength(sheet, r.colNames.size());
+        // 列类型：全部按 4000 字符型建表，不采样、不猜类型和长度
+        log("--- 列类型 (统一 " + d.columnType(COLUMN_LEN) + ") ---");
+        int[] maxLen = fixedColumnLengths(r.colNames.size());
         for (int i = 0; i < r.colNames.size(); i++) {
             log(String.format("  %-30s %s", r.colNames.get(i), d.columnType(maxLen[i])));
         }
@@ -518,32 +521,10 @@ public class ExcelImportEngine {
         return true;
     }
 
-    /** 采样前 50 行探测每列最大长度 */
-    static int[] probeMaxLength(Sheet sheet, int colCount) {
+    /** 所有列统一建为 4000 长度的字符型，不做采样探测 */
+    static int[] fixedColumnLengths(int colCount) {
         int[] maxLen = new int[colCount];
-        for (int i = 0; i < colCount; i++) maxLen[i] = 1;
-        boolean[] ambiguous = new boolean[colCount];
-        int limit = Math.min(sheet.getLastRowNum() + 1, 51);
-        for (int rr = 1; rr < limit; rr++) {
-            Row row = sheet.getRow(rr);
-            if (row == null) continue;
-            for (int c = 0; c < colCount; c++) {
-                Cell cell = row.getCell(c);
-                // 公式结果为错误的单元格内容不明 -> 该列直接建为 VARCHAR(4000)，保证兼容
-                if (cell != null && cell.getCellType() == CellType.FORMULA
-                        && cell.getCachedFormulaResultType() == CellType.ERROR) {
-                    ambiguous[c] = true;
-                    continue;
-                }
-                String val = cellToString(cell);
-                if (val.length() > maxLen[c]) maxLen[c] = val.length();
-            }
-        }
-        for (int i = 0; i < colCount; i++) {
-            if (ambiguous[i]) { maxLen[i] = 4000; continue; }
-            maxLen[i] = Math.min((int) (maxLen[i] * 2.5), 4000);
-            if (maxLen[i] < 255) maxLen[i] = 255;
-        }
+        Arrays.fill(maxLen, COLUMN_LEN);
         return maxLen;
     }
 
