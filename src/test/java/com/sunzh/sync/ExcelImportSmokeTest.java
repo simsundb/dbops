@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -21,6 +22,8 @@ import java.util.Set;
  * ExcelImportEngine 纯逻辑单测（无需数据库）：
  * 1. Sheet 序号/名称 -> 表名 的生成规则
  * 2. 异常记录 Excel 的生成
+ * 3. 单元格取值（含公式错误结果）
+ * 4. 列长上限截断：Oracle 按字节、GaussDB 按字符，且不切断多字节字符
  */
 public class ExcelImportSmokeTest {
 
@@ -140,6 +143,88 @@ public class ExcelImportSmokeTest {
             // 不再采样探测：两列都固定 4000
             Assert.assertEquals("文本列固定 4000", 4000, maxLen[0]);
             Assert.assertEquals("含错误公式的列固定 4000", 4000, maxLen[1]);
+        }
+    }
+
+    @Test
+    public void oracleTruncatesByBytesNotChars() {
+        // Oracle 的 VARCHAR2(4000) 按字节：ASCII 1 字节 + 汉字 3 字节 = 正好 4000
+        String mixed = "a" + "中".repeat(2000);
+        String fitted = ExcelImportEngine.truncate(ExcelImportEngine.ORACLE, mixed);
+        Assert.assertEquals("a" + "中".repeat(1333), fitted);
+        Assert.assertEquals("截断后必须正好是 4000 字节", 4000, fitted.getBytes(StandardCharsets.UTF_8).length);
+
+        // 4 字节 emoji：不能把代理对切成两半
+        String emoji = "😀".repeat(1500);
+        String fittedEmoji = ExcelImportEngine.truncate(ExcelImportEngine.ORACLE, emoji);
+        Assert.assertEquals(4000, fittedEmoji.getBytes(StandardCharsets.UTF_8).length);
+        Assert.assertEquals("代理对必须成对保留", 1000, fittedEmoji.codePointCount(0, fittedEmoji.length()));
+        Assert.assertEquals("😀".repeat(1000), fittedEmoji);
+    }
+
+    @Test
+    public void gaussdbTruncatesByChars() {
+        // GaussDB 的 VARCHAR(4000) 按字符：4000 个汉字就是 4000 字符，不按字节削
+        String cn = "中".repeat(5000);
+        String fitted = ExcelImportEngine.truncate(ExcelImportEngine.GAUSSDB, cn);
+        Assert.assertEquals(4000, fitted.length());
+        Assert.assertEquals("GaussDB 按字符算，汉字不该被按字节提前削短", "中".repeat(4000), fitted);
+    }
+
+    @Test
+    public void valuesWithinLimitAreUntouched() {
+        List<String> headers = Arrays.asList("备注", "名称");
+
+        String[] v1 = {"短文本", "中".repeat(4000)};
+        Assert.assertTrue("未超长不应返回截断描述",
+                ExcelImportEngine.fitColumnsToLimit(ExcelImportEngine.GAUSSDB, headers, v1).isEmpty());
+        Assert.assertEquals("中".repeat(4000), v1[1]);
+
+        // 超长：就地截断，返回可读的列名 + 长度变化
+        String[] v2 = {"中".repeat(5000), "ok"};
+        List<String> cut = ExcelImportEngine.fitColumnsToLimit(ExcelImportEngine.GAUSSDB, headers, v2);
+        Assert.assertEquals(1, cut.size());
+        Assert.assertEquals("备注(5000->4000)", cut.get(0));
+        Assert.assertEquals(4000, v2[0].length());
+        Assert.assertEquals("ok", v2[1]);
+    }
+
+    @Test
+    public void truncationRecordedInErrorWorkbook() throws Exception {
+        File dir = new File(System.getProperty("java.io.tmpdir"), "excel_trunc_" + System.nanoTime());
+        Assert.assertTrue(dir.mkdirs());
+        File src = new File(dir, "销售数据.xlsx");
+
+        SheetResult s = new SheetResult();
+        s.sheetName = "一月";
+        s.tableName = "XIAOSHUSHUJU_YIYUE";
+        s.rawHeaders = Arrays.asList("姓名", "备注");
+        s.colNames = Arrays.asList("XINGMING", "BEIZHU");
+        s.success = 10;
+        s.fail = 0;
+        s.truncated = 1; // 已成功入库，只记告警
+        s.tableCreated = true;
+        s.truncations.add(new ErrorRecord("一月", 3,
+                Arrays.asList("张三", "中".repeat(5000)), "值超长已截断到 4000: 备注(5000->4000)"));
+
+        File out = ExcelImportEngine.writeErrorWorkbook(src, "销售数据", Arrays.asList(s));
+        Assert.assertTrue(out.exists());
+
+        try (XSSFWorkbook wb = new XSSFWorkbook(out)) {
+            Sheet sum = wb.getSheet("汇总");
+            Row row = sum.getRow(1);
+            Assert.assertEquals("截断行不计入失败", 0, (int) row.getCell(4).getNumericCellValue());
+            Assert.assertEquals(1, (int) row.getCell(5).getNumericCellValue());
+            Assert.assertTrue("状态要体现出截断", row.getCell(6).getStringCellValue().contains("1行截断"));
+
+            // 明细 Sheet：类型列区分"导入失败"与"超长截断"，且保留截断前的原值
+            Sheet detail = wb.getSheet("一月");
+            Assert.assertNotNull("只有截断也要出明细 Sheet", detail);
+            Row d = detail.getRow(1);
+            Assert.assertEquals(3, (int) d.getCell(0).getNumericCellValue());
+            Assert.assertEquals("超长截断", d.getCell(1).getStringCellValue());
+            Assert.assertEquals(5000, d.getCell(3).getStringCellValue().length());
+            Assert.assertTrue(d.getCell(4).getStringCellValue().contains("值超长已截断到 4000"));
         }
     }
 

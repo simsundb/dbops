@@ -23,8 +23,10 @@ import java.util.*;
  *  1. 多 Sheet：每个 Sheet 单独创建一张表
  *  2. 表名 = 文件名解析_<Sheet名解析>；Sheet名无法解析时退化为 _<序号>（_1 表示第一个 Sheet）
  *  3. 行级异常处理：某一行插入失败时记录该行并继续，不影响其余行
- *  4. 有异常行时，生成 <文件名>_异常记录.xlsx（含 汇总 + 各 Sheet 的错误明细）
+ *  4. 有异常行时，生成 <文件名>_异常记录.xlsx（含 汇总 + 各 Sheet 的明细：失败行 / 截断行）
  *  5. 建表时所有列统一为 4000 长度的字符型，不采样探测、不猜类型和长度
+ *  6. 值超过 4000 时截断到上限后照常入库（该行仍算成功），并记一条"超长截断"明细，
+ *     提示回源修正。Oracle 按字节算（VARCHAR2 的语义），GaussDB 按字符算
  *
  * 用法: java -cp ".:lib/*" ExcelImportEngine <jdbc-url> <user> <password> <excel-file>
  */
@@ -49,6 +51,12 @@ public class ExcelImportEngine {
         String toColumnName(String name);
         /** 标识符最大长度 */
         int maxTableNameLen();
+        /**
+         * 列长度（{@link #COLUMN_LEN}）的计量单位是否为字节。
+         * Oracle 的 VARCHAR2(4000) 默认按字节（AL32UTF8 下一个汉字 3 字节），
+         * GaussDB 的 VARCHAR(4000) 按字符。截断超长值时必须按各自单位算。
+         */
+        boolean lengthInBytes();
     }
 
     public static final Dialect ORACLE = new Dialect() {
@@ -61,6 +69,7 @@ public class ExcelImportEngine {
         @Override public String toTableName(String base) { return normalizeName(base, true, "T", maxTableNameLen()); }
         @Override public String toColumnName(String name) { return normalizeName(name, true, "C", 30); }
         @Override public int maxTableNameLen() { return 30; }
+        @Override public boolean lengthInBytes() { return true; }
     };
 
     public static final Dialect GAUSSDB = new Dialect() {
@@ -71,6 +80,7 @@ public class ExcelImportEngine {
         @Override public String toTableName(String base) { return normalizeName(base, false, "T", maxTableNameLen()); }
         @Override public String toColumnName(String name) { return normalizeName(name, false, "C", 30); }
         @Override public int maxTableNameLen() { return 63; }
+        @Override public boolean lengthInBytes() { return false; }
     };
 
     // ===================== 数据结构 =====================
@@ -97,9 +107,13 @@ public class ExcelImportEngine {
         List<String> colNames = new ArrayList<>();
         int success;
         int fail;
+        /** 含超长值、已被截断到 4000 后成功入库的行数（这些行计入 success，不算 fail） */
+        int truncated;
         boolean tableCreated;
         String createError;
         final List<ErrorRecord> errors = new ArrayList<>();
+        /** 截断行的明细，与 errors 结构相同，仅 message 不同 */
+        final List<ErrorRecord> truncations = new ArrayList<>();
 
         int dataRows() { return success + fail; }
     }
@@ -192,8 +206,8 @@ public class ExcelImportEngine {
         }
         log("共 " + r.colNames.size() + " 列");
 
-        // 列类型：全部按 4000 字符型建表，不采样、不猜类型和长度
-        log("--- 列类型 (统一 " + d.columnType(COLUMN_LEN) + ") ---");
+        // 列类型：全部按 4000 字符型建表，不采样、不猜类型和长度；超长值截断入库
+        log("--- 列类型 (统一 " + d.columnType(COLUMN_LEN) + "，超长值截断到 " + COLUMN_LEN + " 后入库) ---");
         int[] maxLen = fixedColumnLengths(r.colNames.size());
         for (int i = 0; i < r.colNames.size(); i++) {
             log(String.format("  %-30s %s", r.colNames.get(i), d.columnType(maxLen[i])));
@@ -240,7 +254,13 @@ public class ExcelImportEngine {
                 if (row == null) { skipped++; continue; }
                 if (isEmptyRow(row, r.colNames.size())) { skipped++; continue; }
 
-                String[] vals = readRowValues(row, r.colNames.size());
+                String[] raw = readRowValues(row, r.colNames.size());
+                // 超长值截到列上限，保证该行能入库（截断明细单独记录，该行仍算成功）
+                String[] vals = raw.clone();
+                List<String> cut = fitColumnsToLimit(d, r.colNames, vals);
+                if (!cut.isEmpty()) {
+                    recordTruncation(r, rr + 1, raw, cut);
+                }
                 try {
                     setParams(pstmt, vals);
                     pstmt.addBatch();
@@ -259,8 +279,8 @@ public class ExcelImportEngine {
         }
 
         log("");
-        log(String.format("  Sheet[%s] 完成: 成功 %d 行, 失败 %d 行, 空行跳过 %d 行, 目标表 %s",
-                r.sheetName, r.success, r.fail, skipped, r.tableName));
+        log(String.format("  Sheet[%s] 完成: 成功 %d 行（其中 %d 行有值被截断）, 失败 %d 行, 空行跳过 %d 行, 目标表 %s",
+                r.sheetName, r.success, r.truncated, r.fail, skipped, r.tableName));
     }
 
     /**
@@ -304,8 +324,8 @@ public class ExcelImportEngine {
 
         if (totalRows > 0) {
             double pct = 100.0 * Math.min(curRow, totalRows) / totalRows;
-            log(String.format("  [%s] 已处理 %d/%d 行 (%.1f%%), 成功 %d, 失败 %d, 空行 %d",
-                    now(), curRow, totalRows, pct, r.success, r.fail, skipped));
+            log(String.format("  [%s] 已处理 %d/%d 行 (%.1f%%), 成功 %d, 失败 %d, 空行 %d, 截断 %d",
+                    now(), curRow, totalRows, pct, r.success, r.fail, skipped, r.truncated));
         }
     }
 
@@ -315,12 +335,89 @@ public class ExcelImportEngine {
         log("  [第 " + excelRow + " 行] 导入失败: " + message);
     }
 
+    /**
+     * 记录一条截断告警。该行已按截断后的值成功入库，所以不计入 fail——
+     * 但要让用户知道哪些单元格被削掉了，回源修正后重导。
+     * 存的是截断前的原值，便于定位问题单元格。
+     */
+    private static void recordTruncation(SheetResult r, int excelRow, String[] rawVals, List<String> cut) {
+        r.truncated++;
+        r.truncations.add(new ErrorRecord(r.sheetName, excelRow, Arrays.asList(rawVals.clone()),
+                "值超长已截断到 " + COLUMN_LEN + ": " + String.join(", ", cut)));
+        log("  [第 " + excelRow + " 行] 值超长已截断到 " + COLUMN_LEN + ": " + String.join(", ", cut));
+    }
+
+    // ===================== 列长上限 =====================
+    /**
+     * 把各列值就地截断到 {@link #COLUMN_LEN}。
+     * @param colNames 列名，仅用于生成可读的描述；可为 null
+     * @return 被截断的列描述，如 {@code ["备注(5200->4000)"]}；全部未超长时返回空表
+     */
+    static List<String> fitColumnsToLimit(Dialect d, List<String> colNames, String[] vals) {
+        List<String> cut = new ArrayList<>();
+        for (int i = 0; i < vals.length; i++) {
+            String v = vals[i];
+            if (v == null || v.isEmpty()) continue;
+            int before = valueLength(d, v);
+            if (before <= COLUMN_LEN) continue;
+            vals[i] = truncate(d, v);
+            String label = (colNames != null && i < colNames.size()) ? colNames.get(i) : "第" + (i + 1) + "列";
+            cut.add(label + "(" + before + "->" + valueLength(d, vals[i]) + ")");
+        }
+        return cut;
+    }
+
+    /** 值在该方言下的长度：Oracle 数字节，GaussDB 数字符 */
+    static int valueLength(Dialect d, String v) {
+        return d.lengthInBytes() ? utf8Length(v) : v.length();
+    }
+
+    /** 截断到 {@link #COLUMN_LEN} 以内，不会切断多字节字符或代理对 */
+    static String truncate(Dialect d, String v) {
+        if (!d.lengthInBytes()) return v.substring(0, COLUMN_LEN);
+        int bytes = 0;
+        int end = 0;
+        while (end < v.length()) {
+            int cp = v.codePointAt(end);
+            int n = utf8Len(cp);
+            if (bytes + n > COLUMN_LEN) break;
+            bytes += n;
+            end += Character.charCount(cp);
+        }
+        return v.substring(0, end);
+    }
+
+    private static int utf8Length(String s) {
+        int bytes = 0;
+        for (int i = 0; i < s.length(); ) {
+            int cp = s.codePointAt(i);
+            bytes += utf8Len(cp);
+            i += Character.charCount(cp);
+        }
+        return bytes;
+    }
+
+    private static int utf8Len(int codePoint) {
+        if (codePoint < 0x80) return 1;
+        if (codePoint < 0x800) return 2;
+        if (codePoint < 0x10000) return 3;
+        return 4;
+    }
+
     // ===================== 异常记录 Excel =====================
     private static boolean hasAnyError(List<SheetResult> results) {
         for (SheetResult r : results) {
-            if (r.fail > 0) return true;
+            if (r.fail > 0 || r.truncated > 0) return true;
         }
         return false;
+    }
+
+    /** Excel 单元格文本上限，超出会被 POI 拒绝写入 */
+    private static final int EXCEL_CELL_MAX = 32767;
+
+    private static String clip(String s) {
+        if (s == null) return "";
+        return s.length() <= EXCEL_CELL_MAX ? s : s.substring(0, EXCEL_CELL_MAX);
     }
 
     static File writeErrorWorkbook(File src, String baseName, List<SheetResult> results) throws IOException {
@@ -331,7 +428,7 @@ public class ExcelImportEngine {
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             // ---- 汇总 Sheet ----
             Sheet sum = wb.createSheet("汇总");
-            String[] sumCols = {"源Sheet", "目标表", "数据行数", "成功", "失败", "状态"};
+            String[] sumCols = {"源Sheet", "目标表", "数据行数", "成功", "失败", "截断", "状态"};
             Row sh = sum.createRow(0);
             for (int c = 0; c < sumCols.length; c++) sh.createCell(c).setCellValue(sumCols[c]);
             int sr = 1;
@@ -342,31 +439,32 @@ public class ExcelImportEngine {
                 row.createCell(2).setCellValue(r.dataRows());
                 row.createCell(3).setCellValue(r.success);
                 row.createCell(4).setCellValue(r.fail);
-                row.createCell(5).setCellValue(statusText(r));
+                row.createCell(5).setCellValue(r.truncated);
+                row.createCell(6).setCellValue(statusText(r));
             }
 
-            // ---- 每个有错误的源 Sheet 一个明细 Sheet ----
+            // ---- 每个有异常的源 Sheet 一个明细 Sheet（失败行 + 截断行）----
             Set<String> usedNames = new HashSet<>();
             usedNames.add("汇总");
             for (SheetResult r : results) {
-                if (r.errors.isEmpty()) continue;
+                if (r.errors.isEmpty() && r.truncations.isEmpty()) continue;
                 String name = safeSheetName(r.sheetName, usedNames);
                 Sheet es = wb.createSheet(name);
                 Row h = es.createRow(0);
                 h.createCell(0).setCellValue("Excel行号");
+                h.createCell(1).setCellValue("类型");
                 for (int c = 0; c < r.rawHeaders.size(); c++) {
-                    h.createCell(c + 1).setCellValue(r.rawHeaders.get(c));
+                    h.createCell(c + 2).setCellValue(r.rawHeaders.get(c));
                 }
-                h.createCell(r.rawHeaders.size() + 1).setCellValue("错误信息");
+                h.createCell(r.rawHeaders.size() + 2).setCellValue("说明");
 
                 int er = 1;
+                // 失败行在前，截断行在后；截断行存的是截断前的原值
                 for (ErrorRecord rec : r.errors) {
-                    Row row = es.createRow(er++);
-                    row.createCell(0).setCellValue(rec.excelRow);
-                    for (int c = 0; c < rec.values.size(); c++) {
-                        row.createCell(c + 1).setCellValue(rec.values.get(c));
-                    }
-                    row.createCell(rec.values.size() + 1).setCellValue(rec.message);
+                    er = writeDetailRow(es, er, rec, "导入失败", r.rawHeaders.size());
+                }
+                for (ErrorRecord rec : r.truncations) {
+                    er = writeDetailRow(es, er, rec, "超长截断", r.rawHeaders.size());
                 }
             }
 
@@ -377,10 +475,25 @@ public class ExcelImportEngine {
         return out;
     }
 
+    private static int writeDetailRow(Sheet es, int rowIdx, ErrorRecord rec, String type, int headerCount) {
+        Row row = es.createRow(rowIdx);
+        row.createCell(0).setCellValue(rec.excelRow);
+        row.createCell(1).setCellValue(type);
+        for (int c = 0; c < rec.values.size(); c++) {
+            row.createCell(c + 2).setCellValue(clip(rec.values.get(c)));
+        }
+        row.createCell(headerCount + 2).setCellValue(clip(rec.message));
+        return rowIdx + 1;
+    }
+
     private static String statusText(SheetResult r) {
         if (!r.tableCreated) return "建表失败";
-        if (r.fail == 0) return "正常";
-        return "有异常(" + r.fail + "行)";
+        if (r.fail == 0 && r.truncated == 0) return "正常";
+        StringBuilder sb = new StringBuilder("有异常(");
+        if (r.fail > 0) sb.append(r.fail).append("行失败");
+        if (r.fail > 0 && r.truncated > 0) sb.append(", ");
+        if (r.truncated > 0) sb.append(r.truncated).append("行截断");
+        return sb.append(")").toString();
     }
 
     private static String safeSheetName(String name, Set<String> used) {
@@ -406,8 +519,8 @@ public class ExcelImportEngine {
             if (r.tableName == null) {
                 log("  [" + r.sheetName + "] 未建表: " + r.createError);
             } else {
-                log(String.format("  [%s] -> %s : 成功 %d 行, 失败 %d 行%s",
-                        r.sheetName, r.tableName, r.success, r.fail,
+                log(String.format("  [%s] -> %s : 成功 %d 行, 失败 %d 行, 截断 %d 行%s",
+                        r.sheetName, r.tableName, r.success, r.fail, r.truncated,
                         r.createError != null ? "（建表失败）" : ""));
             }
         }
